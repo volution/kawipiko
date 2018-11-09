@@ -16,7 +16,8 @@ import "path/filepath"
 import "os"
 import "sort"
 
-import "github.com/colinmarc/cdb"
+// import "github.com/colinmarc/cdb"
+import cdb "github.com/cipriancraciun/go-cdb-lib"
 
 import . "../lib"
 

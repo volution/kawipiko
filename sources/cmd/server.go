@@ -14,9 +14,11 @@ import "net/url"
 import "os"
 import "time"
 
-import "github.com/colinmarc/cdb"
+// import "github.com/colinmarc/cdb"
+import cdb "github.com/cipriancraciun/go-cdb-lib"
 
 import . "../lib"
+
 
 
 
@@ -264,7 +266,7 @@ func main_0 () (error) {
 	}
 	
 	var _cdbReader *cdb.CDB
-	if _cdbReader_0, _error := cdb.New (_cdbFile, nil); _error == nil {
+	if _cdbReader_0, _error := cdb.NewWithHasher (_cdbFile, nil); _error == nil {
 		_cdbReader = _cdbReader_0
 	} else {
 		AbortError (_error, "[85234ba0]  failed opening archive!")
