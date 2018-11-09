@@ -168,6 +168,42 @@
 !!
 
 
+<< workspace / initialize / python
+	
+	test "${#}" -eq 0
+	
+	if test -d ./.python ; then
+		exit -- 0
+	fi
+	
+	test -d ./.outputs
+	mkdir -- ./.outputs/python
+	
+	virtualenv-2.7 \
+			--python python2.7 \
+			--clear \
+			--no-site-packages \
+			--no-setuptools \
+			--no-wheel \
+			--no-download \
+			--unzip-setuptools \
+			-- \
+			./.outputs/python \
+		#
+	
+	./.outputs/python/bin/pip install --upgrade --compile -- pip
+	./.outputs/python/bin/pip install --upgrade --compile -- wheel
+	./.outputs/python/bin/pip install --upgrade --compile -- setuptools
+	
+	./.outputs/python/bin/pip install --compile -- docutils
+	./.outputs/python/bin/pip install --compile -- restview
+	
+	ln -s -f -T -- ./.outputs/python ./.python
+	
+	exit -- 0
+!!
+
+
 << workspace / initialize / databases
 	
 	test "${#}" -eq 0
@@ -191,6 +227,19 @@
 	test "${#}" -eq 0
 	grep -o -P -e '(?<=\[)[0-9a-f]{8}(?=\])' -h -r . --include '*.go' | sort | uniq -d
 	exit -- 0
+!!
+
+
+<< documentation / readme / open
+	test "${#}" -eq 0
+	exec -- x-www open http://127.33.237.174:8080/
+	exit -- 1
+!!
+
+<< documentation / readme / server
+	test "${#}" -eq 0
+	exec -- ./.python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
+	exit -- 1
 !!
 
 
