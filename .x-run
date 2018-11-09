@@ -9,6 +9,12 @@
 	exit -- 1
 !!
 
+<< go / execute / server / release
+	"${X_RUN[@]}" ':: go / build / server / release'
+	exec -- ./.outputs/server-release.elf "${@}"
+	exit -- 1
+!!
+
 
 << go / build / server / debug
 	test "${#}" -eq 0
@@ -55,6 +61,12 @@
 << go / execute / archiver / debug
 	"${X_RUN[@]}" ':: go / build / archiver / debug'
 	exec -- ./.outputs/archiver-debug.elf "${@}"
+	exit -- 1
+!!
+
+<< go / execute / archiver / release
+	"${X_RUN[@]}" ':: go / build / archiver / release'
+	exec -- ./.outputs/archiver-release.elf "${@}"
 	exit -- 1
 !!
 
@@ -184,8 +196,15 @@
 
 
 
-<< examples / python-2.7.15-docs-html / archive
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / debug' \
+<< examples / python-2.7.15-docs-html / archive / all
+	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / identity'
+	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / gzip'
+	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / brotli'
+	exit -- 0
+!!
+
+<< examples / python-2.7.15-docs-html / archive / identity
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
 			--sources ./.databases/python-2.7.15-docs-html \
 			--archive ./.databases/python-2.7.15-docs-html.cdb \
 			--debug \
@@ -195,7 +214,7 @@
 !!
 
 << examples / python-2.7.15-docs-html / archive / gzip
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / debug' \
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
 			--sources ./.databases/python-2.7.15-docs-html \
 			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
 			--compress gzip \
@@ -206,7 +225,7 @@
 !!
 
 << examples / python-2.7.15-docs-html / archive / brotli
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / debug' \
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
 			--sources ./.databases/python-2.7.15-docs-html \
 			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
 			--compress brotli \
@@ -217,12 +236,11 @@
 !!
 
 
-
-
-<< examples / python-2.7.15-docs-html / serve
-	exec -- "${X_RUN[@]}" ':: go / execute / server / debug' \
+<< examples / python-2.7.15-docs-html / serve / identity
+	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
 			--archive ./.databases/python-2.7.15-docs-html.cdb \
 			--bind 127.198.53.69:8080 \
+			--preload \
 			--debug \
 			"${@}" \
 		#
@@ -230,9 +248,10 @@
 !!
 
 << examples / python-2.7.15-docs-html / serve / gzip
-	exec -- "${X_RUN[@]}" ':: go / execute / server / debug' \
+	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
 			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
 			--bind 127.198.53.69:8080 \
+			--preload \
 			--debug \
 			"${@}" \
 		#
@@ -240,9 +259,64 @@
 !!
 
 << examples / python-2.7.15-docs-html / serve / brotli
-	exec -- "${X_RUN[@]}" ':: go / execute / server / debug' \
+	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
 			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
 			--bind 127.198.53.69:8080 \
+			--preload \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+
+
+
+<< examples / jdk-11.0.1-docs-html / archive / all
+	"${X_RUN[@]}" ':: examples / jdk-11.0.1-docs-html / archive / gzip'
+	"${X_RUN[@]}" ':: examples / jdk-11.0.1-docs-html / archive / brotli'
+	exit -- 0
+!!
+
+<< examples / jdk-11.0.1-docs-html / archive / gzip
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
+			--sources ./.databases/jdk-11.0.1-docs-html \
+			--archive ./.databases/jdk-11.0.1-docs-html-gzip.cdb \
+			--compress gzip \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< examples / jdk-11.0.1-docs-html / archive / brotli
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
+			--sources ./.databases/jdk-11.0.1-docs-html \
+			--archive ./.databases/jdk-11.0.1-docs-html-brotli.cdb \
+			--compress brotli \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+
+<< examples / jdk-11.0.1-docs-html / serve / gzip
+	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
+			--archive ./.databases/jdk-11.0.1-docs-html-gzip.cdb \
+			--bind 127.198.53.69:8080 \
+			--preload \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< examples / jdk-11.0.1-docs-html / serve / brotli
+	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
+			--archive ./.databases/jdk-11.0.1-docs-html-brotli.cdb \
+			--bind 127.198.53.69:8080 \
+			--preload \
 			--debug \
 			"${@}" \
 		#
