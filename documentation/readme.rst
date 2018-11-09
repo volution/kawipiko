@@ -86,7 +86,7 @@ Examples
 * fetch and extract the Python 3.7 documentation HTML archive: ::
 
     curl -s -S -f \
-        'https://docs.python.org/3/archives/python-3.7.1-docs-html.tar.bz2' \
+        https://docs.python.org/3/archives/python-3.7.1-docs-html.tar.bz2 \
     | tar -x -j -v
 
 * create the CDB archive (without any compression): ::
@@ -94,19 +94,22 @@ Examples
     cdb-http-archiver \
         --archive ./python-3.7.1-docs.cdb \
         --sources ./python-3.7.1-docs-html \
+        --debug
 
 * create the CDB archive (with `gzip` compression): ::
 
     cdb-http-archiver \
         --archive ./python-3.7.1-docs-gzip.cdb \
         --sources ./python-3.7.1-docs-html \
-        --compress gzip
+        --compress gzip \
+        --debug
 
 * serve the CDB archive (with `gzip` compression): ::
 
     cdb-http-server \
         --bind 127.0.0.1:8080 \
         --archive ./python-3.7.1-docs-gzip.cdb \
+        --preload \
         --debug
 
 * compare sources and archive sizes: ::
