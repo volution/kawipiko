@@ -1,0 +1,183 @@
+#!/dev/null
+
+
+
+
+<< go / execute / server / debug
+	"${X_RUN[@]}" ':: go / build / server / debug'
+	exec -- ./.outputs/server-debug.elf "${@}"
+	exit -- 1
+!!
+
+
+<< go / build / server / debug
+	test "${#}" -eq 0
+	exec -- "${X_RUN[@]}" ':: go / tool' build \
+			-v \
+			-o ./.outputs/server-debug.elf \
+			-- ./sources/cmd/server.go \
+		#
+	exit -- 1
+!!
+
+<< go / build / server / release
+	test "${#}" -eq 0
+	exec -- "${X_RUN[@]}" ':: go / tool' build \
+			-v \
+			-ldflags '-s' \
+			-o ./.outputs/server-release.elf \
+			-- ./sources/cmd/server.go \
+		#
+	exit -- 1
+!!
+
+
+<< go / build / server / release / publish
+	test "${#}" -eq 0
+	printf -- '[ii]  building...\n' >&2
+	"${X_RUN[@]}" ':: go / build / server / release'
+	if test ! -e ./.outputs/publish ; then
+		mkdir -- ./.outputs/publish
+	fi
+	if test ! -e ./.outputs/publish/bin ; then
+		mkdir -- ./.outputs/publish/bin
+	fi
+	cp -T -- \
+		./.outputs/server-release.elf \
+		./.outputs/publish/bin/server.elf \
+	#
+	exit -- 0
+!!
+
+
+
+
+<< go / execute / archiver
+	"${X_RUN[@]}" ':: go / build / archiver / debug'
+	exec -- ./.outputs/archiver-debug.elf "${@}"
+	exit -- 1
+!!
+
+
+<< go / build / archiver / debug
+	test "${#}" -eq 0
+	exec -- "${X_RUN[@]}" ':: go / tool' build \
+			-v \
+			-o ./.outputs/archiver-debug.elf \
+			-- ./sources/cmd/archiver.go \
+		#
+	exit -- 1
+!!
+
+<< go / build / archiver / release
+	test "${#}" -eq 0
+	exec -- "${X_RUN[@]}" ':: go / tool' build \
+			-v \
+			-ldflags '-s' \
+			-o ./.outputs/archiver-release.elf \
+			-- ./sources/cmd/archiver.go \
+		#
+	exit -- 1
+!!
+
+
+<< go / build / archiver / release / publish
+	test "${#}" -eq 0
+	printf -- '[ii]  building...\n' >&2
+	"${X_RUN[@]}" ':: go / build / archiver / release'
+	if test ! -e ./.outputs/publish ; then
+		mkdir -- ./.outputs/publish
+	fi
+	if test ! -e ./.outputs/publish/bin ; then
+		mkdir -- ./.outputs/publish/bin
+	fi
+	cp -T -- \
+		./.outputs/archiver-release.elf \
+		./.outputs/publish/bin/archiver.elf \
+	#
+	exit -- 0
+!!
+
+
+
+
+<< publish
+	test "${#}" -eq 0
+	printf -- '[ii]  publishing to `https://data.volution.ro/ciprian/ad5264afc6e27e46b5d71837552cb3fd`...\n' >&2
+	exec -- rsync -a -v -- ./.outputs/publish/ ./.publish/
+	exit -- 1
+!!
+
+
+
+
+
+
+<< go / dependencies / update
+	test "${#}" -eq 0
+	exec -- "${X_RUN[@]}" ':: go / tool' get -v -d -- ./sources/...
+	exit -- 1
+!!
+
+
+<< go / tool
+	
+	test "${#}" -ge 1
+	
+	test -d ./.outputs
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	
+	export -- GOPATH="${_outputs}/go"
+	exec -- go "${@}"
+	
+	exit -- 1
+!!
+
+
+
+
+<< workspace / initialize / outputs
+	
+	test "${#}" -eq 0
+	
+	if test -d ./.outputs ; then
+		exit -- 0
+	fi
+	
+	_outputs_store="${TMPDIR:-/tmp}/go--${UID}--${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+	
+	mkdir -- "${_outputs_store}"
+	
+	_outputs_store="$( exec -- readlink -e -- "${_outputs_store}" )"
+	
+	ln -s -f -T -- "${_outputs_store}" ./.outputs
+	
+	exit -- 0
+!!
+
+
+<< workspace / initialize / databases
+	
+	test "${#}" -eq 0
+	
+	if test -d ./.databases ; then
+		exit -- 0
+	fi
+	
+	test -d ./.outputs
+	mkdir -- ./.outputs/databases
+	
+	ln -s -f -T -- ./.outputs/databases ./.databases
+	
+	exit -- 0
+!!
+
+
+
+
+<< sources / grep / codes
+	test "${#}" -eq 0
+	grep -o -P -e '(?<=\[)[0-9a-f]{8}(?=\])' -h -r . --include '*.go' | sort | uniq -d
+	exit -- 0
+!!
+
