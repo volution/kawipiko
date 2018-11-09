@@ -7,7 +7,6 @@ import "flag"
 import "fmt"
 import "log"
 import "os"
-import "regexp"
 
 
 
@@ -49,42 +48,5 @@ func FlagsParse (_flags *flag.FlagSet, _argumentsMin uint, _argumentsMax uint) (
 	}
 	
 	return _flags.Args ()
-}
-
-
-
-
-func LogError (_error error, _message string) () {
-	
-	if _message != "#" {
-		if (_message == "") && (_error != nil) {
-			_message = "[70d7e7c6]  unexpected error encountered!";
-		}
-		if _message != "" {
-			log.Printf ("[ee] %s\n", _message)
-		}
-	}
-	
-	if _error != nil {
-		_errorString := _error.Error ()
-		if _matches, _matchesError := regexp.MatchString (`^\[[0-9a-f]{8}\] [^\n]+$`, _errorString); _matchesError == nil {
-			if _matches {
-				log.Printf ("[ee] %s\n", _errorString)
-			} else {
-				log.Printf ("[ee] [c776ae31]  %q\n", _errorString)
-				log.Printf ("[ee] [ddd6baae]  %#v\n", _error)
-			}
-		} else {
-			log.Printf ("[ee] [609a0410]  %q\n", _errorString)
-			log.Printf ("[ee] [2ddce4bf]  %#v\n", _error)
-		}
-	}
-}
-
-
-func AbortError (_error error, _message string) () {
-	LogError (_error, _message)
-	log.Printf ("[!!] [89251d36]  aborting!\n")
-	os.Exit (1)
 }
 

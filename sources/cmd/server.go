@@ -29,15 +29,15 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	
 	_responseHeaders := _response.Header ()
 	
-	_responseHeaders.Set ("Content-Security-Policy", "upgrade-insecure-requests")
+	// _responseHeaders.Set ("Content-Security-Policy", "upgrade-insecure-requests")
 	_responseHeaders.Set ("Referrer-Policy", "strict-origin-when-cross-origin")
 	_responseHeaders.Set ("X-Frame-Options", "SAMEORIGIN")
-	_responseHeaders.Set ("X-Content-Type-Options", "nosniff")
+	_responseHeaders.Set ("X-content-type-Options", "nosniff")
 	_responseHeaders.Set ("X-XSS-Protection", "1; mode=block")
 	
-	_responseHeaders.Set ("Date", _timestampHttp)
-	_responseHeaders.Set ("Last-Modified", _timestampHttp)
-	_responseHeaders.Set ("Age", "0")
+	_responseHeaders.Set ("date", _timestampHttp)
+	_responseHeaders.Set ("last-modified", _timestampHttp)
+	_responseHeaders.Set ("age", "0")
 	
 	_method := _request.Method
 	_path := _request.URL.Path
@@ -54,12 +54,12 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		if (_path != "/") && (_path[len (_path) - 1] == '/') {
 			_path_0 = _path[: len (_path) - 1]
 		}
-		for _, _namespace := range []string {NamespaceFilesContent, NamespaceFoldersContent, NamespaceFoldersMetadata} {
+		for _, _namespace := range []string {NamespaceFilesContent, NamespaceFoldersContent, NamespaceFoldersEntries} {
 			_key := fmt.Sprintf ("%s:%s", _namespace, _path_0)
 			if _value, _error := _server.cdbReader.Get ([]byte (_key)); _error == nil {
 				if _value != nil {
 					_fingerprint = string (_value)
-					if ((_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersMetadata)) && (_path == _path_0) && (_path != "/") {
+					if ((_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries)) && (_path == _path_0) && (_path != "/") {
 						_server.ServeRedirect (_response, http.StatusTemporaryRedirect, _path + "/")
 						return
 					}
@@ -77,9 +77,10 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 			_server.ServeError (_response, http.StatusNotFound, nil)
 		} else {
 			_data, _dataContentType := FaviconData ()
-			_responseHeaders.Set ("Content-Type", _dataContentType)
-			_responseHeaders.Set ("Cache-Control", "public, immutable, max-age=3600")
-			_responseHeaders.Set ("ETag", "f00f5f99bb3d45ef9806547fe5fe031a")
+			_responseHeaders.Set ("content-type", _dataContentType)
+			_responseHeaders.Set ("content-encoding", "identity")
+			_responseHeaders.Set ("etag", "f00f5f99bb3d45ef9806547fe5fe031a")
+			_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
 			_response.WriteHeader (http.StatusOK)
 			_response.Write (_data)
 		}
@@ -92,22 +93,30 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		if _value, _error := _server.cdbReader.Get ([]byte (_key)); _error == nil {
 			if _value != nil {
 				_data = _value
+			} else {
+				_server.ServeError (_response, http.StatusInternalServerError, fmt.Errorf ("[0165c193]  missing data content:  `%s`", _fingerprint))
+				return
 			}
 		} else {
 			_server.ServeError (_response, http.StatusInternalServerError, _error)
 			return
 		}
 	}
-	if _data == nil {
-		_server.ServeError (_response, http.StatusNotFound, nil)
-		return
-	}
 	
+	var _metadata [][2]string
 	{
-		_key := fmt.Sprintf ("%s:%s", NamespaceDataContentType, _fingerprint)
+		_key := fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _fingerprint)
 		if _value, _error := _server.cdbReader.Get ([]byte (_key)); _error == nil {
 			if _value != nil {
-				_responseHeaders.Set ("Content-Type", string (_value))
+				if _metadata_0, _error := MetadataDecode (_value); _error == nil {
+					_metadata = _metadata_0
+				} else {
+					_server.ServeError (_response, http.StatusInternalServerError, _error)
+					return
+				}
+			} else {
+				_server.ServeError (_response, http.StatusInternalServerError, fmt.Errorf ("[e8702411]  missing data metadata:  `%s`", _fingerprint))
+				return
 			}
 		} else {
 			_server.ServeError (_response, http.StatusInternalServerError, _error)
@@ -119,8 +128,11 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _path)
 	}
 	
-	_responseHeaders.Set ("Cache-Control", "public, immutable, max-age=3600")
-	_responseHeaders.Set ("ETag", _fingerprint)
+	for _, _metadata := range _metadata {
+		_responseHeaders.Set (_metadata[0], _metadata[1])
+	}
+	_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
+	
 	_response.WriteHeader (http.StatusOK)
 	_response.Write (_data)
 }
@@ -139,19 +151,27 @@ func (_server *server) ServeRedirect (_response http.ResponseWriter, _status uin
 		return
 	}
 	
-	_responseHeaders.Set ("Content-Type", "text/plain; charset=utf-8")
-	_responseHeaders.Set ("Cache-Control", "public, immutable, max-age=3600")
-	_responseHeaders.Set ("ETag", "7aa652d8d607b85808c87c1c2105fbb5")
-	_responseHeaders.Set ("Location", _url)
+	_responseHeaders.Set ("content-type", MimeTypeText)
+	_responseHeaders.Set ("content-encoding", "identity")
+	_responseHeaders.Set ("etag", "7aa652d8d607b85808c87c1c2105fbb5")
+	_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
+	_responseHeaders.Set ("location", _url)
+	
 	_response.WriteHeader (int (_status))
 	_response.Write ([]byte (fmt.Sprintf ("[%d] %s", _status, _url)))
 }
 
 
 func (_server *server) ServeError (_response http.ResponseWriter, _status uint, _error error) () {
-	_response.Header () .Set ("Content-Type", "text/plain; charset=utf-8")
+	_responseHeaders := _response.Header ()
+	
+	_responseHeaders.Set ("content-type", MimeTypeText)
+	_responseHeaders.Set ("content-encoding", "identity")
+	_responseHeaders.Set ("cache-control", "no-cache")
+	
 	_response.WriteHeader (int (_status))
 	_response.Write ([]byte (fmt.Sprintf ("[%d]", _status)))
+	
 	LogError (_error, "")
 }
 
@@ -204,6 +224,10 @@ func main_0 () (error) {
 			cdbReader : _cdbReader,
 			debug : _debug,
 		}
+	
+	if _debug {
+		log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`", _bind)
+	}
 	
 	if _error := http.ListenAndServe (_bind, _server); _error != nil {
 		AbortError (_error, "[44f45c67]  failed starting server!")

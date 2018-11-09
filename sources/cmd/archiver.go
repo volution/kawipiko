@@ -23,7 +23,17 @@ import . "../lib"
 
 
 
-func archiveFile (_cdbWriter *cdb.Writer, _pathResolved string, _pathInArchive string, _name string, _stat os.FileInfo, _stored map[string]bool, _debug bool) (error) {
+type context struct {
+	cdbWriter *cdb.Writer
+	storedData map[string]bool
+	compress string
+	debug bool
+}
+
+
+
+
+func archiveFile (_context *context, _pathResolved string, _pathInArchive string, _name string, _stat os.FileInfo) (error) {
 	
 	var _data []byte
 	if _data_0, _error := ioutil.ReadFile (_pathResolved); _error == nil {
@@ -32,13 +42,17 @@ func archiveFile (_cdbWriter *cdb.Writer, _pathResolved string, _pathInArchive s
 		return _error
 	}
 	
-	return archiveData (_cdbWriter, NamespaceFilesContent, _pathInArchive, _data, "", _stored, _debug)
+	if _, _error := archiveData (_context, NamespaceFilesContent, _pathInArchive, _name, _data, ""); _error != nil {
+		return _error
+	}
+	
+	return nil
 }
 
 
 
 
-func archiveFolder (_cdbWriter *cdb.Writer, _pathResolved string, _pathInArchive string, _names []string, _stats map[string]os.FileInfo, _stored map[string]bool, _debug bool) (error) {
+func archiveFolder (_context *context, _pathResolved string, _pathInArchive string, _names []string, _stats map[string]os.FileInfo) (error) {
 	
 	type Entry struct {
 		Name string `json:"name",omitempty`
@@ -72,7 +86,11 @@ func archiveFolder (_cdbWriter *cdb.Writer, _pathResolved string, _pathInArchive
 		}
 	
 	if _data, _error := json.Marshal (&_folder); _error == nil {
-		return archiveData (_cdbWriter, NamespaceFoldersMetadata, _pathInArchive, _data, "application/json; charset=utf-8", _stored, _debug)
+		if _, _error := archiveData (_context, NamespaceFoldersEntries, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+			return _error
+		}
+	} else {
+		return _error
 	}
 	
 	return nil
@@ -81,59 +99,88 @@ func archiveFolder (_cdbWriter *cdb.Writer, _pathResolved string, _pathInArchive
 
 
 
-func archiveData (_cdbWriter *cdb.Writer, _namespace string, _pathInArchive string, _data []byte, _dataType string, _stored map[string]bool, _debug bool) (error) {
+func archiveData (_context *context, _namespace string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, error) {
 	
 	_fingerprintRaw := sha256.Sum256 (_data)
 	_fingerprint := hex.EncodeToString (_fingerprintRaw[:])
 	
-	_wasStored, _ := _stored[_fingerprint]
+	_wasStored, _ := _context.storedData[_fingerprint]
 	
-	if ! _wasStored {
-		_key := fmt.Sprintf ("%s:%s", NamespaceDataContent, _fingerprint)
-		if _debug {
-			log.Printf ("[  ] ++ %s", _key)
+	if (_dataType == "") && (_name != "") {
+		_extension := filepath.Ext (_pathInArchive)
+		if _extension != "" {
+			_extension = _extension[1:]
 		}
-		if _error := _cdbWriter.Put ([]byte (_key), _data); _error != nil {
-			return _error
-		}
+		_dataType, _ = MimeTypesByExtension[_extension]
+	}
+	if _dataType == "" {
+		_dataType = http.DetectContentType (_data)
+	}
+	if _dataType == "" {
+		_dataType = MimeTypeRaw
 	}
 	
 	if ! _wasStored {
-		_key := fmt.Sprintf ("%s:%s", NamespaceDataContentType, _fingerprint)
-		if _dataType == "" {
-			_dataType = http.DetectContentType (_data)
+		
+		var _dataEncoding string
+		if _data_0, _dataEncoding_0, _error := Compress (_data, _context.compress); _error == nil {
+			_data = _data_0
+			_dataEncoding = _dataEncoding_0
 		}
-		if _debug {
-			log.Printf ("[  ] ++ %s %s", _key, _dataType)
+		
+		_metadata := make (map[string]string, 16)
+		_metadata["content-type"] = _dataType
+		_metadata["content-encoding"] = _dataEncoding
+		_metadata["etag"] = _fingerprint
+		
+		var _metadataRaw []byte
+		if _metadataRaw_0, _error := MetadataEncode (_metadata); _error == nil {
+			_metadataRaw = _metadataRaw_0
+		} else {
+			return "", _error
 		}
-		if _error := _cdbWriter.Put ([]byte (_key), []byte (_dataType)); _error != nil {
-			return _error
+		
+		{
+			_key := fmt.Sprintf ("%s:%s", NamespaceDataContent, _fingerprint)
+			if _context.debug {
+				log.Printf ("[  ] ++ %s", _key)
+			}
+			if _error := _context.cdbWriter.Put ([]byte (_key), _data); _error != nil {
+				return "", _error
+			}
+		}
+		
+		{
+			_key := fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _fingerprint)
+			if _context.debug {
+				log.Printf ("[  ] ++ %s", _key)
+			}
+			if _error := _context.cdbWriter.Put ([]byte (_key), _metadataRaw); _error != nil {
+				return "", _error
+			}
 		}
 	}
 	
 	if _namespace != "" {
 		_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
-		if _debug {
-			log.Printf ("[  ] ++ %s", _key)
+		if _context.debug {
+			log.Printf ("[  ] ++ %s %s", _key, _fingerprint)
 		}
-		if _error := _cdbWriter.Put ([]byte (_key), []byte (_fingerprint)); _error != nil {
-			return _error
+		if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprint)); _error != nil {
+			return "", _error
 		}
 	}
 	
-	return nil
+	return _dataType, nil
 }
 
 
 
 
-func walkPath (_cdbWriter *cdb.Writer, _path string, _prefix string, _name string, _recursed map[string]uint, _stored map[string]bool, _debug bool) (error) {
+func walkPath (_context *context, _path string, _prefix string, _name string, _recursed map[string]uint) (error) {
 	
 	if _recursed == nil {
 		_recursed = make (map[string]uint, 128)
-	}
-	if _stored == nil {
-		_stored = make (map[string]bool, 16 * 1024)
 	}
 	
 	_pathInArchive := filepath.Join (_prefix, _name)
@@ -166,16 +213,16 @@ func walkPath (_cdbWriter *cdb.Writer, _path string, _prefix string, _name strin
 		_pathResolved = _path
 	}
 	
-	if _isSymlink && _debug {
+	if _isSymlink && _context.debug {
 		log.Printf ("[  ] ~~ %s -> %s\n", _pathInArchive, _pathResolved)
 	}
 	
 	if _stat.Mode () .IsRegular () {
 		
-		if _debug {
+		if _context.debug {
 			log.Printf ("[  ] ## %s\n", _pathInArchive)
 		}
-		return archiveFile (_cdbWriter, _pathResolved, _pathInArchive, _name, _stat, _stored, _debug)
+		return archiveFile (_context, _pathResolved, _pathInArchive, _name, _stat)
 		
 	} else if _stat.Mode () .IsDir () {
 		
@@ -186,7 +233,7 @@ func walkPath (_cdbWriter *cdb.Writer, _path string, _prefix string, _name strin
 		}
 		_recursed[_pathResolved] = _wasRecursed + 1
 		
-		if _debug {
+		if _context.debug {
 			log.Printf ("[  ] >> %s\n", _pathInArchive)
 		}
 		
@@ -203,7 +250,7 @@ func walkPath (_cdbWriter *cdb.Writer, _path string, _prefix string, _name strin
 							_name := _stat.Name ()
 							_names = append (_names, _name)
 							_stats[_name] = _stat
-							if _error := walkPath (_cdbWriter, filepath.Join (_path, _name), _prefix, _name, _recursed, _stored, _debug); _error != nil {
+							if _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed); _error != nil {
 								return _error
 							}
 						}
@@ -217,13 +264,13 @@ func walkPath (_cdbWriter *cdb.Writer, _path string, _prefix string, _name strin
 		
 		sort.Strings (_names)
 		
-		if _debug {
+		if _context.debug {
 			log.Printf ("[  ] << %s\n", _pathInArchive)
 		}
 		
-		if _debug {
+		if _context.debug {
 			log.Printf ("[  ] <> %s\n", _pathInArchive)
-			if _error := archiveFolder (_cdbWriter, _pathResolved, _pathInArchive, _names, _stats, _stored, _debug); _error != nil {
+			if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _names, _stats); _error != nil {
 				return _error
 			}
 		}
@@ -249,6 +296,7 @@ func main_0 () (error) {
 	
 	var _sourcesFolder string
 	var _archiveFile string
+	var _compress string
 	var _debug bool
 	
 	{
@@ -256,12 +304,14 @@ func main_0 () (error) {
 		
 		_sourcesFolder_0 := _flags.String ("sources", "", "<path>")
 		_archiveFile_0 := _flags.String ("archive", "", "<path>")
+		_compress_0 := _flags.String ("compress", "", "gzip | brotli")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)
 		
 		_sourcesFolder = *_sourcesFolder_0
 		_archiveFile = *_archiveFile_0
+		_compress = *_compress_0
 		_debug = *_debug_0
 		
 		if _sourcesFolder == "" {
@@ -280,7 +330,14 @@ func main_0 () (error) {
 		AbortError (_error, "[85234ba0]  failed creating archive (while opening)!")
 	}
 	
-	if _error := walkPath (_cdbWriter, _sourcesFolder, "/", "", nil, nil, _debug); _error != nil {
+	_context := & context {
+			cdbWriter : _cdbWriter,
+			storedData : make (map[string]bool, 16 * 1024),
+			compress : _compress,
+			debug : _debug,
+		}
+	
+	if _error := walkPath (_context, _sourcesFolder, "/", "", nil); _error != nil {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
 	}
 	

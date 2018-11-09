@@ -7,8 +7,8 @@ package lib
 
 const NamespaceFilesContent = "files:content"
 const NamespaceFoldersContent = "folders:content"
-const NamespaceFoldersMetadata = "folders:metadata"
+const NamespaceFoldersEntries = "folders:entries"
 
 const NamespaceDataContent = "data:content"
-const NamespaceDataContentType = "data:content-type"
+const NamespaceDataMetadata = "data:metadata"
 
