@@ -51,7 +51,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 			if _value, _error := _server.cdbReader.Get ([]byte (_key)); _error == nil {
 				if _value != nil {
 					_fingerprint = string (_value)
-					if ((_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersMetadata)) && (_path == _path_0) {
+					if ((_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersMetadata)) && (_path == _path_0) && (_path != "/") {
 						_server.ServeRedirect (_response, http.StatusTemporaryRedirect, _path + "/")
 						return
 					}
@@ -64,8 +64,15 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		}
 	}
 	if _fingerprint == "" {
-		log.Printf ("[ww] [7416f61d]  not found for `%s`!", _path)
-		_server.ServeError (_response, http.StatusNotFound, nil)
+		if _path != "/favicon.ico" {
+			log.Printf ("[ww] [7416f61d]  not found for `%s`!", _path)
+			_server.ServeError (_response, http.StatusNotFound, nil)
+		} else {
+			_data, _dataContentType := FaviconData ()
+			_responseHeaders.Set ("Content-Type", _dataContentType)
+			_response.WriteHeader (http.StatusOK)
+			_response.Write (_data)
+		}
 		return
 	}
 	
