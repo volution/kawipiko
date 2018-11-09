@@ -8,6 +8,7 @@ import "fmt"
 import "log"
 import "net/http"
 import "net/url"
+import "time"
 
 import "github.com/colinmarc/cdb"
 
@@ -23,6 +24,9 @@ type server struct {
 
 func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.Request) () {
 	
+	_timestamp := time.Now ()
+	_timestampHttp := _timestamp.Format (http.TimeFormat)
+	
 	_responseHeaders := _response.Header ()
 	
 	_responseHeaders.Set ("Content-Security-Policy", "upgrade-insecure-requests")
@@ -30,6 +34,10 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	_responseHeaders.Set ("X-Frame-Options", "SAMEORIGIN")
 	_responseHeaders.Set ("X-Content-Type-Options", "nosniff")
 	_responseHeaders.Set ("X-XSS-Protection", "1; mode=block")
+	
+	_responseHeaders.Set ("Date", _timestampHttp)
+	_responseHeaders.Set ("Last-Modified", _timestampHttp)
+	_responseHeaders.Set ("Age", "0")
 	
 	_method := _request.Method
 	_path := _request.URL.Path
@@ -70,6 +78,8 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		} else {
 			_data, _dataContentType := FaviconData ()
 			_responseHeaders.Set ("Content-Type", _dataContentType)
+			_responseHeaders.Set ("Cache-Control", "public, immutable, max-age=3600")
+			_responseHeaders.Set ("ETag", "f00f5f99bb3d45ef9806547fe5fe031a")
 			_response.WriteHeader (http.StatusOK)
 			_response.Write (_data)
 		}
@@ -109,6 +119,8 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _path)
 	}
 	
+	_responseHeaders.Set ("Cache-Control", "public, immutable, max-age=3600")
+	_responseHeaders.Set ("ETag", _fingerprint)
 	_response.WriteHeader (http.StatusOK)
 	_response.Write (_data)
 }
@@ -117,6 +129,8 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 
 
 func (_server *server) ServeRedirect (_response http.ResponseWriter, _status uint, _urlRaw string) () {
+	_responseHeaders := _response.Header ()
+	
 	var _url string
 	if _url_0, _error := url.Parse (_urlRaw); _error == nil {
 		_url = _url_0.String ()
@@ -124,8 +138,11 @@ func (_server *server) ServeRedirect (_response http.ResponseWriter, _status uin
 		_server.ServeError (_response, http.StatusInternalServerError, _error)
 		return
 	}
-	_response.Header () .Set ("Content-Type", "text/plain; charset=utf-8")
-	_response.Header () .Set ("Location", _url)
+	
+	_responseHeaders.Set ("Content-Type", "text/plain; charset=utf-8")
+	_responseHeaders.Set ("Cache-Control", "public, immutable, max-age=3600")
+	_responseHeaders.Set ("ETag", "7aa652d8d607b85808c87c1c2105fbb5")
+	_responseHeaders.Set ("Location", _url)
 	_response.WriteHeader (int (_status))
 	_response.Write ([]byte (fmt.Sprintf ("[%d] %s", _status, _url)))
 }
