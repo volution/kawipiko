@@ -5,22 +5,23 @@
 
 << go / execute / server / debug
 	"${X_RUN[@]}" ':: go / build / server / debug'
-	exec -- ./.outputs/server-debug.elf "${@}"
+	exec -- ./.outputs/binaries/debug/cdb-http-server "${@}"
 	exit -- 1
 !!
 
 << go / execute / server / release
 	"${X_RUN[@]}" ':: go / build / server / release'
-	exec -- ./.outputs/server-release.elf "${@}"
+	exec -- ./.outputs/binaries/release/cdb-http-server "${@}"
 	exit -- 1
 !!
 
 
 << go / build / server / debug
 	test "${#}" -eq 0
+	mkdir -p -- ./.outputs/binaries/debug
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
-			-o ./.outputs/server-debug.elf \
+			-o ./.outputs/binaries/debug/cdb-http-server \
 			-- ./sources/cmd/server.go \
 		#
 	exit -- 1
@@ -28,10 +29,11 @@
 
 << go / build / server / release
 	test "${#}" -eq 0
+	mkdir -p -- ./.outputs/binaries/release
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
 			-ldflags '-s' \
-			-o ./.outputs/server-release.elf \
+			-o ./.outputs/binaries/release/cdb-http-server \
 			-- ./sources/cmd/server.go \
 		#
 	exit -- 1
@@ -49,8 +51,8 @@
 		mkdir -- ./.outputs/publish/bin
 	fi
 	cp -T -- \
-		./.outputs/server-release.elf \
-		./.outputs/publish/bin/server.elf \
+		./.outputs/binaries/release/cdb-http-server \
+		./.outputs/publish/binaries/cdb-http-server \
 	#
 	exit -- 0
 !!
@@ -60,22 +62,23 @@
 
 << go / execute / archiver / debug
 	"${X_RUN[@]}" ':: go / build / archiver / debug'
-	exec -- ./.outputs/archiver-debug.elf "${@}"
+	exec -- ./.outputs/binaries/debug/cdb-http-archiver "${@}"
 	exit -- 1
 !!
 
 << go / execute / archiver / release
 	"${X_RUN[@]}" ':: go / build / archiver / release'
-	exec -- ./.outputs/archiver-release.elf "${@}"
+	exec -- ./.outputs/binaries/release/cdb-http-archiver "${@}"
 	exit -- 1
 !!
 
 
 << go / build / archiver / debug
 	test "${#}" -eq 0
+	mkdir -p -- ./.outputs/binaries/debug
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
-			-o ./.outputs/archiver-debug.elf \
+			-o ./.outputs/binaries/debug/cdb-http-archiver \
 			-- ./sources/cmd/archiver.go \
 		#
 	exit -- 1
@@ -83,10 +86,11 @@
 
 << go / build / archiver / release
 	test "${#}" -eq 0
+	mkdir -p -- ./.outputs/binaries/release
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
 			-ldflags '-s' \
-			-o ./.outputs/archiver-release.elf \
+			-o ./.outputs/binaries/release/cdb-http-archiver \
 			-- ./sources/cmd/archiver.go \
 		#
 	exit -- 1
@@ -104,8 +108,8 @@
 		mkdir -- ./.outputs/publish/bin
 	fi
 	cp -T -- \
-		./.outputs/archiver-release.elf \
-		./.outputs/publish/bin/archiver.elf \
+		./.outputs/binaries/release/cdb-http-archiver \
+		./.outputs/publish/binaries/cdb-http-archiver \
 	#
 	exit -- 0
 !!
