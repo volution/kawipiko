@@ -3,11 +3,15 @@
 package main
 
 
+import "bytes"
 import "flag"
 import "fmt"
+import "io"
+import "io/ioutil"
 import "log"
 import "net/http"
 import "net/url"
+import "os"
 import "time"
 
 import "github.com/colinmarc/cdb"
@@ -212,6 +216,7 @@ func main_0 () (error) {
 	
 	var _bind string
 	var _archive string
+	var _preload bool
 	var _debug bool
 	
 	{
@@ -219,12 +224,14 @@ func main_0 () (error) {
 		
 		_bind_0 := _flags.String ("bind", "", "<ip>:<port>")
 		_archive_0 := _flags.String ("archive", "", "<path>")
+		_preload_0 := _flags.Bool ("preload", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)
 		
 		_bind = *_bind_0
 		_archive = *_archive_0
+		_preload = *_preload_0
 		_debug = *_debug_0
 		
 		if _bind == "" {
@@ -236,8 +243,28 @@ func main_0 () (error) {
 	}
 	
 	
+	var _cdbFile io.ReaderAt
+	{
+		var _file *os.File
+		if _file_0, _error := os.Open (_archive); _error == nil {
+			_file = _file_0
+		} else {
+			AbortError (_error, "[9e0b5ed3]  failed opening archive!")
+		}
+		
+		if _preload {
+			if _data, _error := ioutil.ReadAll (_file); _error == nil {
+				_cdbFile = bytes.NewReader (_data)
+			} else {
+				AbortError (_error, "[73039784]  failed preloading archive!")
+			}
+		} else {
+			_cdbFile = _file
+		}
+	}
+	
 	var _cdbReader *cdb.CDB
-	if _cdbReader_0, _error := cdb.Open (_archive); _error == nil {
+	if _cdbReader_0, _error := cdb.New (_cdbFile, nil); _error == nil {
 		_cdbReader = _cdbReader_0
 	} else {
 		AbortError (_error, "[85234ba0]  failed opening archive!")
