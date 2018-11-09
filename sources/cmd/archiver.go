@@ -271,9 +271,9 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		
 		if _context.debug {
 			log.Printf ("[  ] <> %s\n", _pathInArchive)
-			if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _names, _stats); _error != nil {
-				return _error
-			}
+		}
+		if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _names, _stats); _error != nil {
+			return _error
 		}
 		
 		_recursed[_pathResolved] = _wasRecursed
