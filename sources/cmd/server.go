@@ -54,16 +54,40 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		if (_path != "/") && (_path[len (_path) - 1] == '/') {
 			_path_0 = _path[: len (_path) - 1]
 		}
-		for _, _namespace := range []string {NamespaceFilesContent, NamespaceFoldersContent, NamespaceFoldersEntries} {
+		_found : for _, _namespace := range []string {NamespaceFilesContent, NamespaceFoldersContent, NamespaceFoldersEntries} {
 			_key := fmt.Sprintf ("%s:%s", _namespace, _path_0)
 			if _value, _error := _server.cdbReader.Get ([]byte (_key)); _error == nil {
 				if _value != nil {
 					_fingerprint = string (_value)
-					if ((_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries)) && (_path == _path_0) && (_path != "/") {
-						_server.ServeRedirect (_response, http.StatusTemporaryRedirect, _path + "/")
-						return
+					if (_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries) {
+						if (_path == _path_0) && (_path != "/") {
+							_server.ServeRedirect (_response, http.StatusTemporaryRedirect, _path + "/")
+							return
+						}
 					}
-					break
+					if _namespace == NamespaceFoldersEntries {
+						for _, _index := range []string {
+								"index.html", "index.htm",
+								"index.xhtml", "index.xht",
+								"index.txt",
+								"index.json",
+								"index.xml",
+						} {
+							_pathIndex := _path_0 + "/" + _index
+							if _path_0 == "/" {
+								_pathIndex = "/" + _index
+							}
+							_key := fmt.Sprintf ("%s:%s", NamespaceFilesContent, _pathIndex)
+							if _value, _error := _server.cdbReader.Get ([]byte (_key)); _error == nil {
+								_fingerprint = string (_value)
+								break _found
+							} else {
+								_server.ServeError (_response, http.StatusInternalServerError, _error)
+								return
+							}
+						}
+					}
+					break _found
 				}
 			} else {
 				_server.ServeError (_response, http.StatusInternalServerError, _error)

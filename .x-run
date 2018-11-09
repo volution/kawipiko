@@ -52,7 +52,7 @@
 
 
 
-<< go / execute / archiver
+<< go / execute / archiver / debug
 	"${X_RUN[@]}" ':: go / build / archiver / debug'
 	exec -- ./.outputs/archiver-debug.elf "${@}"
 	exit -- 1
@@ -179,5 +179,73 @@
 	test "${#}" -eq 0
 	grep -o -P -e '(?<=\[)[0-9a-f]{8}(?=\])' -h -r . --include '*.go' | sort | uniq -d
 	exit -- 0
+!!
+
+
+
+
+<< examples / python-2.7.15-docs-html / archive
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / debug' \
+			--sources ./.databases/python-2.7.15-docs-html \
+			--archive ./.databases/python-2.7.15-docs-html.cdb \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< examples / python-2.7.15-docs-html / archive / gzip
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / debug' \
+			--sources ./.databases/python-2.7.15-docs-html \
+			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
+			--compress gzip \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< examples / python-2.7.15-docs-html / archive / brotli
+	exec -- "${X_RUN[@]}" ':: go / execute / archiver / debug' \
+			--sources ./.databases/python-2.7.15-docs-html \
+			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
+			--compress brotli \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+
+
+
+<< examples / python-2.7.15-docs-html / serve
+	exec -- "${X_RUN[@]}" ':: go / execute / server / debug' \
+			--archive ./.databases/python-2.7.15-docs-html.cdb \
+			--bind 127.198.53.69:8080 \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< examples / python-2.7.15-docs-html / serve / gzip
+	exec -- "${X_RUN[@]}" ':: go / execute / server / debug' \
+			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
+			--bind 127.198.53.69:8080 \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< examples / python-2.7.15-docs-html / serve / brotli
+	exec -- "${X_RUN[@]}" ':: go / execute / server / debug' \
+			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
+			--bind 127.198.53.69:8080 \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
 !!
 
