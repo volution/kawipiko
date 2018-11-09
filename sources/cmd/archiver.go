@@ -301,7 +301,7 @@ func main_0 () (error) {
 	var _debug bool
 	
 	{
-		_flags := flag.NewFlagSet ("cdb-archiver", flag.ContinueOnError)
+		_flags := flag.NewFlagSet ("cdb-http-archiver", flag.ContinueOnError)
 		
 		_sourcesFolder_0 := _flags.String ("sources", "", "<path>")
 		_archiveFile_0 := _flags.String ("archive", "", "<path>")

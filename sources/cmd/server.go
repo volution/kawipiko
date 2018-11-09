@@ -222,7 +222,7 @@ func main_0 () (error) {
 	var _debug bool
 	
 	{
-		_flags := flag.NewFlagSet ("cdb-server", flag.ContinueOnError)
+		_flags := flag.NewFlagSet ("cdb-http-server", flag.ContinueOnError)
 		
 		_bind_0 := _flags.String ("bind", "", "<ip>:<port>")
 		_archive_0 := _flags.String ("archive", "", "<path>")
