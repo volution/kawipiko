@@ -5,12 +5,14 @@
 
 << go / execute / server / debug
 	"${X_RUN[@]}" ':: go / build / server / debug'
+	export -- GOMAXPROCS=2
 	exec -- ./.outputs/binaries/debug/cdb-http-server "${@}"
 	exit -- 1
 !!
 
 << go / execute / server / release
 	"${X_RUN[@]}" ':: go / build / server / release'
+	export -- GOMAXPROCS=2
 	exec -- ./.outputs/binaries/release/cdb-http-server "${@}"
 	exit -- 1
 !!
@@ -373,6 +375,92 @@
 			--debug \
 			"${@}" \
 		#
+	exit -- 1
+!!
+
+
+
+
+<< benchmark / server
+	"${X_RUN[@]}" ':: go / build / server / release'
+	exec -- \
+	sudo -u root -n -E -P -- \
+	taskset -c 1,2,3 \
+	nice -n -19 -- \
+	ionice -c 2 -n 0 -- \
+	chrt -r 10 \
+	softlimit -o 16384 \
+	env -i \
+			GOMAXPROCS=4 \
+	./.outputs/binaries/release/cdb-http-server \
+			--archive ./examples/hello-world.cdb \
+			--bind 127.9.185.194:8080 \
+			--preload \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< benchmark / client / 2048
+	exec -- \
+	sudo -u root -n -E -P -- \
+	taskset -c 1,2,3 \
+	nice -n -19 -- \
+	ionice -c 2 -n 0 -- \
+	chrt -r 10 \
+	softlimit -o 16384 \
+	env -i \
+	"$( type -P -- wrk )" \
+			--threads 4 \
+			--connections 2048 \
+			--timeout 6s \
+			--duration 30s \
+			--latency \
+			"${@}" \
+			-- http://127.9.185.194:8080/ \
+	#
+	exit -- 1
+!!
+
+<< benchmark / client / 512
+	exec -- \
+	sudo -u root -n -E -P -- \
+	taskset -c 1,2,3 \
+	nice -n -19 -- \
+	ionice -c 2 -n 0 -- \
+	chrt -r 10 \
+	softlimit -o 16384 \
+	env -i \
+	"$( type -P -- wrk )" \
+			--threads 4 \
+			--connections 512 \
+			--timeout 6s \
+			--duration 30s \
+			--latency \
+			"${@}" \
+			-- http://127.9.185.194:8080/ \
+	#
+	exit -- 1
+!!
+
+<< benchmark / client / 16
+	exec -- \
+	sudo -u root -n -E -P -- \
+	taskset -c 1,2,3 \
+	nice -n -19 -- \
+	ionice -c 2 -n 0 -- \
+	chrt -r 10 \
+	softlimit -o 16384 \
+	env -i \
+	"$( type -P -- wrk )" \
+			--threads 4 \
+			--connections 16 \
+			--timeout 6s \
+			--duration 30s \
+			--latency \
+			"${@}" \
+			-- http://127.9.185.194:8080/ \
+	#
 	exit -- 1
 !!
 
