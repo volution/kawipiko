@@ -28,6 +28,92 @@ Unfortunately, there are also some tradeoffs as described in the `Limitations`_ 
 
 
 
+Benchmarks
+==========
+
+
+Results
+-------
+
+.. note ::
+
+  Bottom line (**even on my 6 years old laptop**):
+
+  * under normal conditions (16 concurrent clients), you get around 36k requests / second, at about 0.5ms latency;
+  * under stress conditions (512 concurrent clients), you get arround 32k requests / second, at about 15ms latency;
+
+.. note ::
+
+  Please note that the values under `Thread Stats` are reported per thread.
+  Therefore it is best to look at the first two values, i.e. `Requests/sec`.
+
+* 16 connections / 4 threads: ::
+
+    Requests/sec:  36084.51
+    Transfer/sec:     16.45MB
+
+      4 threads and 16 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   436.77us  223.21us   3.36ms   81.09%
+        Req/Sec     9.07k   499.08    10.27k    72.17%
+      Latency Distribution
+         50%  390.00us
+         75%  481.00us
+         90%  669.00us
+         99%    1.34ms
+      1082680 requests in 30.00s, 493.55MB read
+
+* 512 connections / 4 threads: ::
+
+    Requests/sec:  32773.77
+    Transfer/sec:     14.94MB
+
+      4 threads and 512 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    15.84ms   11.04ms  65.68ms   61.64%
+        Req/Sec     8.24k     1.76k   15.65k    70.95%
+      Latency Distribution
+         50%   15.91ms
+         75%   23.48ms
+         90%   29.63ms
+         99%   45.90ms
+      986092 requests in 30.09s, 449.52MB read
+
+* 2048 connections / 4 threads: ::
+
+    Requests/sec:  31132.31
+    Transfer/sec:     14.19MB
+
+      4 threads and 2048 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    98.56ms  163.64ms   4.12s    90.85%
+        Req/Sec     7.84k     1.83k   14.43k    68.36%
+      Latency Distribution
+         50%   57.15ms
+         75%   92.95ms
+         90%  248.46ms
+         99%  671.10ms
+      936780 requests in 30.09s, 427.04MB read
+      Socket errors: connect 0, read 0, write 1, timeout 0
+
+
+Notes
+-----
+
+The following benchmarks were executed as follows:
+
+* the machine was my personal laptop:  6 years old with an Intel Core i5 2520M (2 cores with 2 threads each), which during the benchmarks (due to a bad fan and dust) it kept entering into thermal throttling;  (i.e. the worst case scenario;)
+* the `cdb-http-server` was started with `GOMAXPROCS=4`;  (i.e. 4 threads handling the requests;)
+* the `cdb-http-server` was started with `--preload`;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
+* the benchmarking tool was wrk_;
+* both `cdb-http-server` and `wrk` tools were run on the same machine;
+* the benchmark was run over loopback networking (i.e. `127.0.0.1`);
+* the served file contains the content ``Hello, World!``;
+* the protocol was HTTP  (i.e. no TLS);
+
+
+
+
 Documentation
 =============
 
@@ -306,3 +392,5 @@ References
 .. [mmap] `Memory mapping @WikiPedia <https://goo.gl/3u6pXC>`_
 
 .. [HAProxy] `HAProxy Load Balancer <https://goo.gl/43dnu8>`_
+
+.. [wrk] `wrk -- modern HTTP benchmarking tool <https://goo.gl/BjpjND>`_
