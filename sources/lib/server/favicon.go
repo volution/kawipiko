@@ -1,6 +1,6 @@
 
 
-package lib
+package server
 
 
 import "encoding/base64"

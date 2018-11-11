@@ -17,7 +17,8 @@ import "time"
 // import "github.com/colinmarc/cdb"
 import cdb "github.com/cipriancraciun/go-cdb-lib"
 
-import . "../lib"
+import . "../lib/common"
+import . "../lib/server"
 
 
 

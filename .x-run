@@ -119,14 +119,27 @@
 
 
 
+<< go / build / debug
+	"${X_RUN}" ':: go / build / archiver / debug' "${@}"
+	"${X_RUN}" ':: go / build / server / debug' "${@}"
+	exit -- 0
+!!
+
+<< go / build / release
+	"${X_RUN}" ':: go / build / archiver / release' "${@}"
+	"${X_RUN}" ':: go / build / server / release' "${@}"
+	exit -- 0
+!!
+
+
+
+
 << publish
 	test "${#}" -eq 0
 	printf -- '[ii]  publishing to `https://data.volution.ro/ciprian/ad5264afc6e27e46b5d71837552cb3fd`...\n' >&2
 	exec -- rsync -a -v -- ./.outputs/publish/ ./.publish/
 	exit -- 1
 !!
-
-
 
 
 

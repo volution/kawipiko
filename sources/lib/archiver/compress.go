@@ -1,6 +1,6 @@
 
 
-package lib
+package archiver
 
 
 import "bytes"
