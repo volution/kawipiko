@@ -5,7 +5,7 @@ package main
 
 import "bytes"
 import "flag"
-import "io/ioutil"
+import "io"
 import "log"
 import "net/http"
 import "os"
@@ -247,7 +247,9 @@ func main_0 () (error) {
 	
 	var _bind string
 	var _archive string
-	var _preload bool
+	var _archiveMmap bool
+	var _archiveInmem bool
+	var _archivePreload bool
 	var _debug bool
 	
 	var _profileCpu string
@@ -258,7 +260,9 @@ func main_0 () (error) {
 		
 		_bind_0 := _flags.String ("bind", "", "<ip>:<port>")
 		_archive_0 := _flags.String ("archive", "", "<path>")
-		_preload_0 := _flags.Bool ("preload", false, "")
+		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "(memory-mapped archive file)")
+		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "(memory-loaded archive file)")
+		_archivePreload_0 := _flags.Bool ("archive-preload", false, "(preload archive file)")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		_profileCpu_0 := _flags.String ("profile-cpu", "", "<path>")
@@ -268,17 +272,27 @@ func main_0 () (error) {
 		
 		_bind = *_bind_0
 		_archive = *_archive_0
-		_preload = *_preload_0
+		_archiveMmap = *_archiveMmap_0
+		_archiveInmem = *_archiveInmem_0
+		_archivePreload = *_archivePreload_0
 		_debug = *_debug_0
 		
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
 		
 		if _bind == "" {
-			AbortError (nil, "[eefe1a38]  expected bind address argument!")
+			AbortError (nil, "[6edd9512]  expected bind address argument!")
 		}
 		if _archive == "" {
 			AbortError (nil, "[eefe1a38]  expected archive file argument!")
+		}
+		
+		if _archiveInmem && _archiveMmap {
+			AbortError (nil, "[a2101041]  archive 'memory-loaded' and 'memory-mapped' are mutually exclusive!")
+		}
+		if _archiveInmem && _archivePreload {
+			log.Printf ("[ww] [3e8a40e4]  archive 'memory-loaded' implies preloading!\n")
+			_archivePreload = false
 		}
 	}
 	
@@ -289,28 +303,84 @@ func main_0 () (error) {
 		if _cdbFile_0, _error := os.Open (_archive); _error == nil {
 			_cdbFile = _cdbFile_0
 		} else {
-			AbortError (_error, "[9e0b5ed3]  failed opening archive!")
+			AbortError (_error, "[9e0b5ed3]  failed opening archive file!")
 		}
 		
-		if _preload {
-			log.Printf ("[ii] [922ca187]  preloading archive...\n")
-			var _cdbData []byte
-			if _cdbData_0, _error := ioutil.ReadAll (_cdbFile); _error == nil {
-				_cdbData = _cdbData_0
-			} else {
-				AbortError (_error, "[73039784]  failed preloading archive!")
+		var _cdbFileSize int64
+		if _cdbFileStat, _error := _cdbFile.Stat (); _error == nil {
+			_cdbFileSize = _cdbFileStat.Size ()
+		} else {
+			AbortError (_error, "[0ccf0a3b]  failed opening archive file!")
+		}
+		if _cdbFileSize < 1024 {
+			AbortError (nil, "[6635a2a8]  failed opening archive:  file is too small (or empty)!")
+		}
+		if _cdbFileSize >= (2 * 1024 * 1024 * 1024) {
+			AbortError (nil, "[545bf6ce]  failed opening archive:  file is too large!")
+		}
+		
+		if _archivePreload {
+			log.Printf ("[ii] [13f4ebf7]  preloading archive...\n")
+			_buffer := [16 * 1024]byte {}
+			_loop : for {
+				switch _, _error := _cdbFile.Read (_buffer[:]); _error {
+					case io.EOF :
+						break _loop
+					case nil :
+						continue _loop
+					default :
+						AbortError (_error, "[a1c3b922]  failed preloading archive file...\n")
+				}
 			}
+		}
+		
+		if _archiveInmem || _archiveMmap {
+			
+			var _cdbData []byte
+			
+			if _archiveInmem {
+				
+				log.Printf ("[ii] [216e584b]  opening memory-loaded archive...\n")
+				
+				_cdbData = make ([]byte, _cdbFileSize)
+				if _, _error := io.ReadFull (_cdbFile, _cdbData); _error != nil {
+					AbortError (_error, "[73039784]  failed loading archive file!")
+				}
+				
+			} else if _archiveMmap {
+				
+				log.Printf ("[ii] [f47fae8a]  opening memory-mapped archive...\n")
+				
+				if _cdbData_0, _error := syscall.Mmap (int (_cdbFile.Fd ()), 0, int (_cdbFileSize), syscall.PROT_READ, syscall.MAP_SHARED); _error == nil {
+					_cdbData = _cdbData_0
+				} else {
+					AbortError (_error, "[c0e2632c]  failed mapping archive file!")
+				}
+				
+			} else {
+				panic ("e4fffcd8")
+			}
+			
+			if _error := _cdbFile.Close (); _error != nil {
+				AbortError (_error, "[5e0449c2]  failed closing archive file!")
+			}
+			
 			if _cdbReader_0, _error := cdb.NewFromBufferWithHasher (_cdbData, nil); _error == nil {
 				_cdbReader = _cdbReader_0
 			} else {
-				AbortError (_error, "[85234ba0]  failed opening archive!")
+				AbortError (_error, "[27e4813e]  failed opening archive!")
 			}
+			
 		} else {
+			
+			log.Printf ("[ww] [dd697a66]  using `read`-based archive (with significant performance impact)!\n")
+			
 			if _cdbReader_0, _error := cdb.NewFromReaderWithHasher (_cdbFile, nil); _error == nil {
 				_cdbReader = _cdbReader_0
 			} else {
-				AbortError (_error, "[85234ba0]  failed opening archive!")
+				AbortError (_error, "[35832022]  failed opening archive!")
 			}
+			
 		}
 	}
 	
@@ -323,7 +393,7 @@ func main_0 () (error) {
 	
 	
 	if _profileCpu != "" {
-		log.Printf ("[ii] [9196ee90]  profiling CPU to `%s`...\n", _profileCpu)
+		log.Printf ("[ii] [70c210f3]  profiling CPU to `%s`...\n", _profileCpu)
 		_stream, _error := os.Create (_profileCpu)
 		if _error != nil {
 			AbortError (_error, "[fd4e0009]  failed opening CPU profile!")

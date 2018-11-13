@@ -36,7 +36,7 @@ func FlagsParse (_flags *flag.FlagSet, _argumentsMin uint, _argumentsMax uint) (
 	_flagsNArg := uint (_flags.NArg ())
 	if _argumentsMin == _argumentsMax {
 		if _flagsNArg != _argumentsMin {
-			AbortError (nil, fmt.Sprintf ("[c451f1f8]  expected exactly `%d` positional arguments!", _argumentsMin))
+			AbortError (nil, fmt.Sprintf ("[b2ac515b]  expected exactly `%d` positional arguments!", _argumentsMin))
 		}
 	} else {
 		if _flagsNArg < _argumentsMin {
