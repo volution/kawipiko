@@ -5,11 +5,14 @@ package main
 
 import "bytes"
 import "flag"
-import "io"
 import "io/ioutil"
 import "log"
 import "net/http"
 import "os"
+import "os/signal"
+import "runtime"
+import "runtime/pprof"
+import "syscall"
 import "time"
 
 // import "github.com/colinmarc/cdb"
@@ -247,6 +250,9 @@ func main_0 () (error) {
 	var _preload bool
 	var _debug bool
 	
+	var _profileCpu string
+	var _profileMem string
+	
 	{
 		_flags := flag.NewFlagSet ("cdb-http-server", flag.ContinueOnError)
 		
@@ -255,12 +261,18 @@ func main_0 () (error) {
 		_preload_0 := _flags.Bool ("preload", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
+		_profileCpu_0 := _flags.String ("profile-cpu", "", "<path>")
+		_profileMem_0 := _flags.String ("profile-mem", "", "<path>")
+		
 		FlagsParse (_flags, 0, 0)
 		
 		_bind = *_bind_0
 		_archive = *_archive_0
 		_preload = *_preload_0
 		_debug = *_debug_0
+		
+		_profileCpu = *_profileCpu_0
+		_profileMem = *_profileMem_0
 		
 		if _bind == "" {
 			AbortError (nil, "[eefe1a38]  expected bind address argument!")
@@ -271,46 +283,109 @@ func main_0 () (error) {
 	}
 	
 	
-	var _cdbFile io.ReaderAt
+	var _cdbReader *cdb.CDB
 	{
-		var _file *os.File
-		if _file_0, _error := os.Open (_archive); _error == nil {
-			_file = _file_0
+		var _cdbFile *os.File
+		if _cdbFile_0, _error := os.Open (_archive); _error == nil {
+			_cdbFile = _cdbFile_0
 		} else {
 			AbortError (_error, "[9e0b5ed3]  failed opening archive!")
 		}
 		
 		if _preload {
 			log.Printf ("[ii] [922ca187]  preloading archive...\n")
-			if _data, _error := ioutil.ReadAll (_file); _error == nil {
-				_cdbFile = bytes.NewReader (_data)
+			var _cdbData []byte
+			if _cdbData_0, _error := ioutil.ReadAll (_cdbFile); _error == nil {
+				_cdbData = _cdbData_0
 			} else {
 				AbortError (_error, "[73039784]  failed preloading archive!")
 			}
+			if _cdbReader_0, _error := cdb.NewFromBufferWithHasher (_cdbData, nil); _error == nil {
+				_cdbReader = _cdbReader_0
+			} else {
+				AbortError (_error, "[85234ba0]  failed opening archive!")
+			}
 		} else {
-			_cdbFile = _file
+			if _cdbReader_0, _error := cdb.NewFromReaderWithHasher (_cdbFile, nil); _error == nil {
+				_cdbReader = _cdbReader_0
+			} else {
+				AbortError (_error, "[85234ba0]  failed opening archive!")
+			}
 		}
-	}
-	
-	var _cdbReader *cdb.CDB
-	if _cdbReader_0, _error := cdb.NewWithHasher (_cdbFile, nil); _error == nil {
-		_cdbReader = _cdbReader_0
-	} else {
-		AbortError (_error, "[85234ba0]  failed opening archive!")
 	}
 	
 	
 	_server := & server {
+			httpServer : nil,
 			cdbReader : _cdbReader,
 			debug : _debug,
 		}
 	
+	
+	if _profileCpu != "" {
+		log.Printf ("[ii] [9196ee90]  profiling CPU to `%s`...\n", _profileCpu)
+		_stream, _error := os.Create (_profileCpu)
+		if _error != nil {
+			AbortError (_error, "[fd4e0009]  failed opening CPU profile!")
+		}
+		_error = pprof.StartCPUProfile (_stream)
+		if _error != nil {
+			AbortError (_error, "[ac721629]  failed starting CPU profile!")
+		}
+		defer pprof.StopCPUProfile ()
+	}
+	if _profileMem != "" {
+		log.Printf ("[ii] [9196ee90]  profiling MEM to `%s`...\n", _profileMem)
+		_stream, _error := os.Create (_profileMem)
+		if _error != nil {
+			AbortError (_error, "[907d08b5]  failed opening MEM profile!")
+		}
+		_profile := pprof.Lookup ("heap")
+		defer func () {
+			runtime.GC ()
+			if _profile != nil {
+				if _error := _profile.WriteTo (_stream, 0); _error != nil {
+					AbortError (_error, "[4b1e5112]  failed writing MEM profile!")
+				}
+			} else {
+				AbortError (nil, "[385dc8f0]  failed loading MEM profile!")
+			}
+			_stream.Close ()
+		} ()
+	}
+	
+	
+	_httpServer := & fasthttp.Server {
+			Name : "cdb-http",
+			Handler : _server.HandleHTTP,
+			Concurrency : 4096,
+			MaxRequestsPerConn : 16 * 1024,
+			NoDefaultServerHeader : true,
+			NoDefaultContentType : true,
+		}
+	
+	_server.httpServer = _httpServer
+	
+	
+	{
+		_signals := make (chan os.Signal, 32)
+		signal.Notify (_signals, syscall.SIGINT, syscall.SIGTERM)
+		go func () () {
+			<- _signals
+			log.Printf ("[ii] [691cb695]  shutingdown...\n")
+			_server.httpServer.Shutdown ()
+		} ()
+	}
+	
+	
 	log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`;\n", _bind)
 	
-	if _error := fasthttp.ListenAndServe (_bind, _server.HandleHTTP); _error != nil {
+	if _error := _httpServer.ListenAndServe (_bind); _error != nil {
 		AbortError (_error, "[44f45c67]  failed starting server!")
 	}
 	
+	
+	defer log.Printf ("[ii] [a49175db]  done!\n")
 	return nil
 }
 
