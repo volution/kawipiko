@@ -264,6 +264,20 @@
 
 
 
+<< examples / fontawesome / serve
+	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
+			--archive ./.databases/fontawesome.cdb \
+			--bind 127.198.53.69:8080 \
+			--preload \
+			--debug \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+
+
+
 << examples / python-2.7.15-docs-html / archive / all
 	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / identity'
 	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / gzip'
