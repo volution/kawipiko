@@ -17,8 +17,8 @@ import cdb "github.com/cipriancraciun/go-cdb-lib"
 
 import "github.com/valyala/fasthttp"
 
-import . "../lib/common"
-import . "../lib/server"
+import . "github.com/cipriancraciun/go-cdb-http/lib/common"
+import . "github.com/cipriancraciun/go-cdb-http/lib/server"
 
 
 
