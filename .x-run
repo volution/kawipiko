@@ -29,6 +29,19 @@
 	exit -- 1
 !!
 
+<< go / build / server / debug / analyze
+	test "${#}" -eq 0
+	mkdir -p -- ./.outputs/binaries/debug
+	rm -f -- ./.outputs/binaries/debug/cdb-http-server
+	exec -- "${X_RUN[@]}" ':: go / tool' build \
+			-v \
+			-gcflags '-m' \
+			-o ./.outputs/binaries/debug/cdb-http-server \
+			-- ./sources/cmd/server.go \
+		#
+	exit -- 1
+!!
+
 << go / build / server / release
 	test "${#}" -eq 0
 	mkdir -p -- ./.outputs/binaries/release
@@ -440,8 +453,8 @@
 	"$( type -P -- wrk )" \
 			--threads 4 \
 			--connections 2048 \
-			--timeout 6s \
-			--duration 30s \
+			--timeout 1s \
+			--duration 6s \
 			--latency \
 			"${@}" \
 			-- http://127.9.185.194:8080/ \
@@ -461,8 +474,8 @@
 	"$( type -P -- wrk )" \
 			--threads 4 \
 			--connections 512 \
-			--timeout 6s \
-			--duration 30s \
+			--timeout 1s \
+			--duration 6s \
 			--latency \
 			"${@}" \
 			-- http://127.9.185.194:8080/ \
@@ -482,8 +495,8 @@
 	"$( type -P -- wrk )" \
 			--threads 4 \
 			--connections 16 \
-			--timeout 6s \
-			--duration 30s \
+			--timeout 1s \
+			--duration 6s \
 			--latency \
 			"${@}" \
 			-- http://127.9.185.194:8080/ \
