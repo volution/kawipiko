@@ -163,6 +163,7 @@
 	_packages=(
 			github.com/valyala/fasthttp
 			github.com/google/brotli/go/cbrotli
+			github.com/valyala/tcplisten
 		)
 	for _package in "${_packages[@]}" ; do
 		"${X_RUN[@]}" ':: go / tool' get -v -p 1 -d -- "${_package}"
@@ -314,9 +315,10 @@
 
 << examples / fontawesome / serve
 	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--archive ./.databases/fontawesome.cdb \
 			--bind 127.198.53.69:8080 \
-			--preload \
+			--archive ./.databases/fontawesome.cdb \
+			--archive-mmap \
+			--archive-preload \
 			--debug \
 			"${@}" \
 		#
@@ -337,6 +339,7 @@
 	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
 			--sources ./.databases/python-2.7.15-docs-html \
 			--archive ./.databases/python-2.7.15-docs-html.cdb \
+			--compress identity \
 			--debug \
 			"${@}" \
 		#
@@ -368,9 +371,10 @@
 
 << examples / python-2.7.15-docs-html / serve / identity
 	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--archive ./.databases/python-2.7.15-docs-html.cdb \
 			--bind 127.198.53.69:8080 \
-			--preload \
+			--archive ./.databases/python-2.7.15-docs-html.cdb \
+			--archive-mmap \
+			--archive-preload \
 			--debug \
 			"${@}" \
 		#
@@ -379,9 +383,10 @@
 
 << examples / python-2.7.15-docs-html / serve / gzip
 	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
 			--bind 127.198.53.69:8080 \
-			--preload \
+			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
+			--archive-mmap \
+			--archive-preload \
 			--debug \
 			"${@}" \
 		#
@@ -390,9 +395,10 @@
 
 << examples / python-2.7.15-docs-html / serve / brotli
 	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
 			--bind 127.198.53.69:8080 \
-			--preload \
+			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
+			--archive-mmap \
+			--archive-preload \
 			--debug \
 			"${@}" \
 		#
@@ -433,9 +439,10 @@
 
 << examples / jdk-11.0.1-docs-html / serve / gzip
 	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--archive ./.databases/jdk-11.0.1-docs-html-gzip.cdb \
 			--bind 127.198.53.69:8080 \
-			--preload \
+			--archive ./.databases/jdk-11.0.1-docs-html-gzip.cdb \
+			--archive-mmap \
+			--archive-preload \
 			--debug \
 			"${@}" \
 		#
@@ -444,9 +451,10 @@
 
 << examples / jdk-11.0.1-docs-html / serve / brotli
 	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--archive ./.databases/jdk-11.0.1-docs-html-brotli.cdb \
 			--bind 127.198.53.69:8080 \
-			--preload \
+			--archive ./.databases/jdk-11.0.1-docs-html-brotli.cdb \
+			--archive-mmap \
+			--archive-preload \
 			--debug \
 			"${@}" \
 		#
@@ -464,21 +472,38 @@
 	nice -n -19 -- \
 	ionice -c 2 -n 0 -- \
 	chrt -r 10 \
-	softlimit -o 16384 \
+	prlimit -n16384 -- \
 	sudo -u "${USER}" -n -E -P -- \
 	env -i \
 			GOMAXPROCS=4 \
 	./.outputs/binaries/release/cdb-http-server \
-			--archive ./examples/hello-world.cdb \
 			--bind 127.9.185.194:8080 \
-			--preload \
+			--archive ./examples/hello-world.cdb \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< benchmark / server / mmap
+	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+			--archive-mmap \
+			--archive-preload \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< benchmark / server / inmem
+	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+			--archive-inmem \
+			--archive-preload \
 			"${@}" \
 		#
 	exit -- 1
 !!
 
 << benchmark / server / profile / cpu
-	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+	exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' \
 			--profile-cpu ./.outputs/server-cpu.txt \
 			"${@}" \
 		#
@@ -486,7 +511,7 @@
 !!
 
 << benchmark / server / profile / mem
-	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+	exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' \
 			--profile-mem ./.outputs/server-mem.txt \
 			"${@}" \
 		#
@@ -494,11 +519,13 @@
 !!
 
 << benchmark / server / profile / cpu / analyze
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/cdb-http-server
 	exec -- go tool pprof "${@}" -- ./.outputs/server-cpu.txt
 	exit -- 1
 !!
 
 << benchmark / server / profile / mem / analyze
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/cdb-http-server
 	exec -- go tool pprof "${@}" ./.outputs/server-mem.txt
 	exit -- 1
 !!
@@ -511,7 +538,7 @@
 	nice -n -19 -- \
 	ionice -c 2 -n 0 -- \
 	chrt -r 10 \
-	softlimit -o 16384 \
+	prlimit -n16384 -- \
 	sudo -u "${USER}" -n -E -P -- \
 	env -i \
 	"$( type -P -- wrk )" \
