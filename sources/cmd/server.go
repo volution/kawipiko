@@ -426,12 +426,29 @@ func main_0 () (error) {
 	
 	
 	_httpServer := & fasthttp.Server {
+			
 			Name : "cdb-http",
 			Handler : _server.HandleHTTP,
-			Concurrency : 4096,
-			MaxRequestsPerConn : 16 * 1024,
+			
 			NoDefaultServerHeader : true,
 			NoDefaultContentType : true,
+			DisableHeaderNamesNormalizing : true,
+			
+			Concurrency : 4 * 1024,
+			MaxRequestsPerConn : 256 * 1024,
+			MaxRequestBodySize : 0,
+			GetOnly : true,
+			
+			ReadTimeout : 6 * time.Second,
+			WriteTimeout : 6 * time.Second,
+			MaxKeepaliveDuration : 60 * time.Second,
+			
+			ReadBufferSize : 8 * 1024,
+			WriteBufferSize : 64 * 1024,
+			
+			TCPKeepalive : true,
+			TCPKeepalivePeriod : 6 * time.Second,
+			
 		}
 	
 	_server.httpServer = _httpServer
