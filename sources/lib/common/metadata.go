@@ -36,6 +36,7 @@ func MetadataEncode (_metadata map[string]string) ([]byte, error) {
 
 
 
+
 func MetadataDecode (_data []byte) ([][2]string, error) {
 	_metadata := make ([][2]string, 0, 16)
 	for _, _data := range bytes.Split (_data, []byte ("\n")) {
@@ -51,6 +52,8 @@ func MetadataDecode (_data []byte) ([][2]string, error) {
 	}
 	return _metadata, nil
 }
+
+
 
 
 var metadataKeyRegex *regexp.Regexp = regexp.MustCompile (`\A[a-z0-9](?:[a-z0-9-]?[a-z]+)*\z`)

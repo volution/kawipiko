@@ -17,6 +17,8 @@ import "time"
 // import "github.com/colinmarc/cdb"
 import cdb "github.com/cipriancraciun/go-cdb-lib"
 
+import "github.com/valyala/fasthttp"
+
 import . "../lib/common"
 import . "../lib/server"
 
@@ -29,12 +31,15 @@ type server struct {
 }
 
 
-func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.Request) () {
+func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
+	_uri := _context.URI ()
+	_request := &_context.Request
+	_requestHeaders := &_request.Header
+	_response := &_context.Response
+	_responseHeaders := &_response.Header
 	
 	_timestamp := time.Now ()
 	_timestampHttp := _timestamp.Format (http.TimeFormat)
-	
-	_responseHeaders := _response.Header ()
 	
 	// _responseHeaders.Set ("Content-Security-Policy", "upgrade-insecure-requests")
 	_responseHeaders.Set ("Referrer-Policy", "strict-origin-when-cross-origin")
@@ -46,12 +51,12 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	_responseHeaders.Set ("last-modified", _timestampHttp)
 	_responseHeaders.Set ("age", "0")
 	
-	_method := _request.Method
-	_path := _request.URL.Path
+	_method := string (_requestHeaders.Method ())
+	_path := string (_uri.Path ())
 	
 	if _method != http.MethodGet {
 		log.Printf ("[ww] [bce7a75b] invalid method `%s` for `%s`!", _method, _path)
-		_server.ServeError (_response, http.StatusMethodNotAllowed, nil)
+		_server.ServeError (_context, http.StatusMethodNotAllowed, nil)
 		return
 	}
 	
@@ -68,7 +73,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 					_fingerprint = string (_value)
 					if (_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries) {
 						if (_path == _path_0) && (_path != "/") {
-							_server.ServeRedirect (_response, http.StatusTemporaryRedirect, _path + "/")
+							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path + "/")
 							return
 						}
 					}
@@ -89,7 +94,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 								_fingerprint = string (_value)
 								break _found
 							} else {
-								_server.ServeError (_response, http.StatusInternalServerError, _error)
+								_server.ServeError (_context, http.StatusInternalServerError, _error)
 								return
 							}
 						}
@@ -97,7 +102,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 					break _found
 				}
 			} else {
-				_server.ServeError (_response, http.StatusInternalServerError, _error)
+				_server.ServeError (_context, http.StatusInternalServerError, _error)
 				return
 			}
 		}
@@ -105,15 +110,15 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	if _fingerprint == "" {
 		if _path != "/favicon.ico" {
 			log.Printf ("[ww] [7416f61d]  not found for `%s`!", _path)
-			_server.ServeError (_response, http.StatusNotFound, nil)
+			_server.ServeError (_context, http.StatusNotFound, nil)
 		} else {
 			_data, _dataContentType := FaviconData ()
 			_responseHeaders.Set ("content-type", _dataContentType)
 			_responseHeaders.Set ("content-encoding", "identity")
 			_responseHeaders.Set ("etag", "f00f5f99bb3d45ef9806547fe5fe031a")
 			_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
-			_response.WriteHeader (http.StatusOK)
-			_response.Write (_data)
+			_response.SetStatusCode (http.StatusOK)
+			_response.SetBody (_data)
 		}
 		return
 	}
@@ -125,11 +130,11 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 			if _value != nil {
 				_data = _value
 			} else {
-				_server.ServeError (_response, http.StatusInternalServerError, fmt.Errorf ("[0165c193]  missing data content:  `%s`", _fingerprint))
+				_server.ServeError (_context, http.StatusInternalServerError, fmt.Errorf ("[0165c193]  missing data content:  `%s`", _fingerprint))
 				return
 			}
 		} else {
-			_server.ServeError (_response, http.StatusInternalServerError, _error)
+			_server.ServeError (_context, http.StatusInternalServerError, _error)
 			return
 		}
 	}
@@ -142,15 +147,15 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 				if _metadata_0, _error := MetadataDecode (_value); _error == nil {
 					_metadata = _metadata_0
 				} else {
-					_server.ServeError (_response, http.StatusInternalServerError, _error)
+					_server.ServeError (_context, http.StatusInternalServerError, _error)
 					return
 				}
 			} else {
-				_server.ServeError (_response, http.StatusInternalServerError, fmt.Errorf ("[e8702411]  missing data metadata:  `%s`", _fingerprint))
+				_server.ServeError (_context, http.StatusInternalServerError, fmt.Errorf ("[e8702411]  missing data metadata:  `%s`", _fingerprint))
 				return
 			}
 		} else {
-			_server.ServeError (_response, http.StatusInternalServerError, _error)
+			_server.ServeError (_context, http.StatusInternalServerError, _error)
 			return
 		}
 	}
@@ -164,21 +169,22 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	}
 	_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
 	
-	_response.WriteHeader (http.StatusOK)
-	_response.Write (_data)
+	_response.SetStatusCode (http.StatusOK)
+	_response.SetBody (_data)
 }
 
 
 
 
-func (_server *server) ServeRedirect (_response http.ResponseWriter, _status uint, _urlRaw string) () {
-	_responseHeaders := _response.Header ()
+func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uint, _urlRaw string) () {
+	_response := &_context.Response
+	_responseHeaders := &_response.Header
 	
 	var _url string
 	if _url_0, _error := url.Parse (_urlRaw); _error == nil {
 		_url = _url_0.String ()
 	} else {
-		_server.ServeError (_response, http.StatusInternalServerError, _error)
+		_server.ServeError (_context, http.StatusInternalServerError, _error)
 		return
 	}
 	
@@ -188,20 +194,21 @@ func (_server *server) ServeRedirect (_response http.ResponseWriter, _status uin
 	_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
 	_responseHeaders.Set ("location", _url)
 	
-	_response.WriteHeader (int (_status))
-	_response.Write ([]byte (fmt.Sprintf ("[%d] %s", _status, _url)))
+	_response.SetStatusCode (int (_status))
+	_response.SetBody ([]byte (fmt.Sprintf ("[%d] %s", _status, _url)))
 }
 
 
-func (_server *server) ServeError (_response http.ResponseWriter, _status uint, _error error) () {
-	_responseHeaders := _response.Header ()
+func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, _error error) () {
+	_response := &_context.Response
+	_responseHeaders := &_response.Header
 	
 	_responseHeaders.Set ("content-type", MimeTypeText)
 	_responseHeaders.Set ("content-encoding", "identity")
 	_responseHeaders.Set ("cache-control", "no-cache")
 	
-	_response.WriteHeader (int (_status))
-	_response.Write ([]byte (fmt.Sprintf ("[%d]", _status)))
+	_response.SetStatusCode (int (_status))
+	_response.SetBody ([]byte (fmt.Sprintf ("[%d]", _status)))
 	
 	LogError (_error, "")
 }
@@ -283,7 +290,7 @@ func main_0 () (error) {
 		log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`", _bind)
 	}
 	
-	if _error := http.ListenAndServe (_bind, _server); _error != nil {
+	if _error := fasthttp.ListenAndServe (_bind, _server.HandleHTTP); _error != nil {
 		AbortError (_error, "[44f45c67]  failed starting server!")
 	}
 	
