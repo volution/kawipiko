@@ -24,17 +24,20 @@ import . "github.com/cipriancraciun/go-cdb-http/lib/server"
 
 
 type server struct {
+	httpServer *fasthttp.Server
 	cdbReader *cdb.CDB
 	debug bool
 }
 
 
+
+
 func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	_uri := _context.URI ()
-	_request := &_context.Request
-	_requestHeaders := &_request.Header
+	// _request := &_context.Request
+	_requestHeaders := &_context.Request.Header
 	_response := &_context.Response
-	_responseHeaders := &_response.Header
+	_responseHeaders := &_context.Response.Header
 	
 	_keyBuffer := [1024]byte {}
 	_pathNewBuffer := [1024]byte {}
@@ -81,7 +84,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 			_key = append (_key, _namespace ...)
 			_key = append (_key, ':')
 			_key = append (_key, _path_0 ...)
-			if _value, _error := _server.cdbReader.Get (_key); _error == nil {
+			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 				if _value != nil {
 					_fingerprint = _value
 					if (_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries) {
@@ -109,7 +112,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 							}
 							_key = append (_key, '/')
 							_key = append (_key, _indexName ...)
-							if _value, _error := _server.cdbReader.Get (_key); _error == nil {
+							if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 								_fingerprint = _value
 								break _found
 							} else {
@@ -149,7 +152,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 		_key = append (_key, NamespaceDataContent ...)
 		_key = append (_key, ':')
 		_key = append (_key, _fingerprint ...)
-		if _value, _error := _server.cdbReader.Get (_key); _error == nil {
+		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 			if _value != nil {
 				_data = _value
 			} else {
@@ -163,16 +166,14 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	
-	var _metadata [][2]string
 	{
 		_key := _keyBuffer[:0]
 		_key = append (_key, NamespaceDataMetadata ...)
 		_key = append (_key, ':')
 		_key = append (_key, _fingerprint ...)
-		if _value, _error := _server.cdbReader.Get (_key); _error == nil {
+		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 			if _value != nil {
-				if _metadata_0, _error := MetadataDecode (_value); _error == nil {
-					_metadata = _metadata_0
+				if _error := MetadataDecodeIterate (_value, _responseHeaders.SetBytesKV); _error == nil {
 				} else {
 					_server.ServeError (_context, http.StatusInternalServerError, _error)
 					return
@@ -192,9 +193,6 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 		// log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _path)
 	}
 	
-	for _, _metadata := range _metadata {
-		_responseHeaders.Set (_metadata[0], _metadata[1])
-	}
 	_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
 	
 	_response.SetStatusCode (http.StatusOK)
@@ -206,7 +204,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 
 func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uint, _path []byte) () {
 	_response := &_context.Response
-	_responseHeaders := &_response.Header
+	_responseHeaders := &_context.Response.Header
 	
 	_responseHeaders.Set ("content-type", MimeTypeText)
 	_responseHeaders.Set ("content-encoding", "identity")
@@ -221,7 +219,7 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 
 func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, _error error) () {
 	_response := &_context.Response
-	_responseHeaders := &_response.Header
+	_responseHeaders := &_context.Response.Header
 	
 	_responseHeaders.Set ("content-type", MimeTypeText)
 	_responseHeaders.Set ("content-encoding", "identity")
