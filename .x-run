@@ -29,19 +29,6 @@
 	exit -- 1
 !!
 
-<< go / build / server / debug / analyze
-	test "${#}" -eq 0
-	mkdir -p -- ./.outputs/binaries/debug
-	rm -f -- ./.outputs/binaries/debug/cdb-http-server
-	exec -- "${X_RUN[@]}" ':: go / tool' build \
-			-v \
-			-gcflags '-m' \
-			-o ./.outputs/binaries/debug/cdb-http-server \
-			-- ./sources/cmd/server.go \
-		#
-	exit -- 1
-!!
-
 << go / build / server / release
 	test "${#}" -eq 0
 	mkdir -p -- ./.outputs/binaries/release
@@ -49,6 +36,20 @@
 			-v \
 			-ldflags '-s' \
 			-o ./.outputs/binaries/release/cdb-http-server \
+			-- ./sources/cmd/server.go \
+		#
+	exit -- 1
+!!
+
+<< go / build / server / release / analyze
+	test "${#}" -eq 0
+	mkdir -p -- ./.outputs/binaries/debug
+	rm -f -- ./.outputs/binaries/debug/cdb-http-server
+	exec -- "${X_RUN[@]}" ':: go / tool' build \
+			-v \
+			-ldflags '-s' \
+			-gcflags '-m' \
+			-o ./.outputs/binaries/debug/cdb-http-server \
 			-- ./sources/cmd/server.go \
 		#
 	exit -- 1
@@ -159,8 +160,26 @@
 
 << go / dependencies / update
 	test "${#}" -eq 0
-	exec -- "${X_RUN[@]}" ':: go / tool' get -v -d -- ./sources/...
-	exit -- 1
+	_packages=(
+			github.com/valyala/fasthttp
+			github.com/google/brotli/go/cbrotli
+		)
+	for _package in "${_packages[@]}" ; do
+		"${X_RUN[@]}" ':: go / tool' get -v -p 1 -d -- "${_package}"
+	done
+	exit -- 0
+!!
+
+<< go / dependencies / clean
+	test "${#}" -eq 0
+	if test -e ./.outputs/go ; then
+		exec -- rm -R -f -- \
+				./.outputs/go \
+			#
+		exit -- 1
+	else
+		exit -- 0
+	fi
 !!
 
 
@@ -169,9 +188,25 @@
 	test "${#}" -ge 1
 	
 	test -d ./.outputs
+	_sources="$( exec -- readlink -e -- ./sources )"
+	_vendor="$( exec -- readlink -e -- ./vendor )"
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	
 	export -- GOPATH="${_outputs}/go"
+	export -- GOBIN="${_outputs}/go/bin"
+	export -- GOTMPDIR="${_outputs}/go/tmp"
+	export -- GOCACHE="${_outputs}/go/cache"
+	
+	for _folder in "${GOPATH}" "${GOBIN}" "${GOTMPDIR}" "${GOTMPDIR}" "${GOCACHE}" ; do
+		if test ! -e "${_folder}" ; then
+			mkdir -- "${_folder}"
+		fi
+	done
+	
+	if test ! -e "${GOPATH}/src" ; then
+		ln -s -T -- "${_vendor}" "${GOPATH}/src"
+	fi
+	
 	exec -- go "${@}"
 	
 	exit -- 1
@@ -430,6 +465,7 @@
 	ionice -c 2 -n 0 -- \
 	chrt -r 10 \
 	softlimit -o 16384 \
+	sudo -u "${USER}" -n -E -P -- \
 	env -i \
 			GOMAXPROCS=4 \
 	./.outputs/binaries/release/cdb-http-server \
@@ -441,7 +477,34 @@
 	exit -- 1
 !!
 
-<< benchmark / client / 2048
+<< benchmark / server / profile / cpu
+	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+			--profile-cpu ./.outputs/server-cpu.txt \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< benchmark / server / profile / mem
+	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+			--profile-mem ./.outputs/server-mem.txt \
+			"${@}" \
+		#
+	exit -- 1
+!!
+
+<< benchmark / server / profile / cpu / analyze
+	exec -- go tool pprof "${@}" -- ./.outputs/server-cpu.txt
+	exit -- 1
+!!
+
+<< benchmark / server / profile / mem / analyze
+	exec -- go tool pprof "${@}" ./.outputs/server-mem.txt
+	exit -- 1
+!!
+
+
+<< benchmark / client
 	exec -- \
 	sudo -u root -n -E -P -- \
 	taskset -c 1,2,3 \
@@ -449,58 +512,42 @@
 	ionice -c 2 -n 0 -- \
 	chrt -r 10 \
 	softlimit -o 16384 \
+	sudo -u "${USER}" -n -E -P -- \
 	env -i \
 	"$( type -P -- wrk )" \
-			--threads 4 \
-			--connections 2048 \
 			--timeout 1s \
 			--duration 6s \
 			--latency \
 			"${@}" \
 			-- http://127.9.185.194:8080/ \
-	#
+		#
+	exit -- 1
+!!
+
+<< benchmark / client / 2048
+	exec -- "${X_RUN[@]}" ':: benchmark / client' \
+			--threads 4 \
+			--connections 2048 \
+			"${@}" \
+		#
 	exit -- 1
 !!
 
 << benchmark / client / 512
-	exec -- \
-	sudo -u root -n -E -P -- \
-	taskset -c 1,2,3 \
-	nice -n -19 -- \
-	ionice -c 2 -n 0 -- \
-	chrt -r 10 \
-	softlimit -o 16384 \
-	env -i \
-	"$( type -P -- wrk )" \
+	exec -- "${X_RUN[@]}" ':: benchmark / client' \
 			--threads 4 \
 			--connections 512 \
-			--timeout 1s \
-			--duration 6s \
-			--latency \
 			"${@}" \
-			-- http://127.9.185.194:8080/ \
-	#
+		#
 	exit -- 1
 !!
 
 << benchmark / client / 16
-	exec -- \
-	sudo -u root -n -E -P -- \
-	taskset -c 1,2,3 \
-	nice -n -19 -- \
-	ionice -c 2 -n 0 -- \
-	chrt -r 10 \
-	softlimit -o 16384 \
-	env -i \
-	"$( type -P -- wrk )" \
+	exec -- "${X_RUN[@]}" ':: benchmark / client' \
 			--threads 4 \
 			--connections 16 \
-			--timeout 1s \
-			--duration 6s \
-			--latency \
 			"${@}" \
-			-- http://127.9.185.194:8080/ \
-	#
+		#
 	exit -- 1
 !!
 
