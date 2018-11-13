@@ -14,6 +14,7 @@ import "os"
 func Main (_main func () (error)) () {
 	
 	log.SetFlags (0)
+	log.SetPrefix (fmt.Sprintf ("[%8d] ", os.Getpid ()))
 	
 	if _error := _main (); _error == nil {
 		os.Exit (0)
