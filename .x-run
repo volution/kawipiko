@@ -270,23 +270,6 @@
 !!
 
 
-<< workspace / initialize / databases
-	
-	test "${#}" -eq 0
-	
-	if test -d ./.databases ; then
-		exit -- 0
-	fi
-	
-	test -d ./.outputs
-	mkdir -- ./.outputs/databases
-	
-	ln -s -f -T -- ./.outputs/databases ./.databases
-	
-	exit -- 0
-!!
-
-
 
 
 << sources / grep / codes
@@ -311,78 +294,6 @@
 
 
 
-:: examples / server / hello-world :: exec -- "${X_RUN[@]}" ':: examples / server' ./examples/hello-world.cdb "${@}"
-:: examples / server / cdnjs.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/cdnjs.cdb "${@}"
-:: examples / server / fontawesome.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/fontawesome.cdb "${@}"
-:: examples / server / python-2.7.15-docs-html.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/python-2.7.15-docs-html.cdb "${@}"
-:: examples / server / jdk-11.0.1-docs-html.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/jdk-11.0.1-docs-html.cdb "${@}"
-
-<< examples / server
-	test "${#}" -ge 1
-	_archive="${1}"
-	shift -- 1
-	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--bind 127.198.53.69:8080 \
-			--archive "${_archive}" \
-			--archive-mmap \
-			--archive-preload \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-<< examples / open / firefox
-	test "${#}" -eq 0
-	exec -- x-www 'firefox-guest:*' open http://127.198.53.69:8080/
-	exit -- 1
-!!
-
-<< examples / open / chromium
-	test "${#}" -eq 0
-	exec -- x-www 'chromium-guest:*' open http://127.198.53.69:8080/
-	exit -- 1
-!!
-
-<< examples / open / curl
-	if test "${#}" -ge 1 ; then
-		_path="${1}"
-		_path="${_path#/}"
-		shift -- 1
-	else
-		_path=''
-	fi
-	exec -- env -i "$( type -P -- curl )" \
-			--silent \
-			--compressed \
-			"${@}" \
-			-- "http://127.198.53.69:8080/${_path}" \
-		#
-	exit -- 1
-!!
-
-<< examples / benchmark
-	if test "${#}" -ge 1 ; then
-		_path="${1}"
-		_path="${_path#/}"
-		shift -- 1
-	else
-		_path=''
-	fi
-	exec -- env -i "$( type -P -- wrk )" \
-			--timeout 1s \
-			--duration 6s \
-			--latency \
-			--threads 1 \
-			--connections 1 \
-			"${@}" \
-			-- "http://127.198.53.69:8080/${_path}" \
-		#
-	exit -- 1
-!!
-
-
-
-
 << benchmark / server
 	"${X_RUN[@]}" ':: go / build / server / release'
 	exec -- \
@@ -396,7 +307,7 @@
 	env -i \
 	./.outputs/binaries/release/cdb-http-server \
 			--bind 127.9.185.194:8080 \
-			--archive ./.databases/random.cdb \
+			--archive ./.archives/random.cdb \
 			"${@}" \
 		#
 	exit -- 1
@@ -455,9 +366,13 @@
 
 << benchmark / client
 	if test "${#}" -ge 1 ; then
-		_path="${1}"
-		_path="${_path#/}"
-		shift -- 1
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
 	else
 		_path=''
 	fi
@@ -471,7 +386,7 @@
 	sudo -u "${USER}" -n -E -P -- \
 	env -i \
 	"$( type -P -- wrk )" \
-			--timeout 1s \
+			--timeout 6s \
 			--duration 6s \
 			--latency \
 			"${@}" \
@@ -480,30 +395,76 @@
 	exit -- 1
 !!
 
+<< benchmark / client / paths
+	test "${#}" -ge 1
+	_paths="${1}"
+	shift -- 1
+	exec -- \
+	sudo -u root -n -E -P -- \
+	taskset -c 1,2,3 \
+	nice -n -19 -- \
+	ionice -c 2 -n 0 -- \
+	chrt -r 10 \
+	prlimit -n16384 -- \
+	sudo -u "${USER}" -n -E -P -- \
+	env -i \
+	"$( type -P -- wrk )" \
+			--timeout 6s \
+			--duration 6s \
+			--latency \
+			--script ../go-cdb-http-examples/sources/wrk-paths-from-file.lua \
+			"${@}" \
+			-- "http://127.9.185.194:8080/" \
+			"${_paths}" \
+		#
+	exit -- 1
+!!
+
 
 << benchmark / client / 2048
 	exec -- "${X_RUN[@]}" ':: benchmark / client' \
+			"${@}" \
 			--threads 4 \
 			--connections 2048 \
-			"${@}" \
 		#
 	exit -- 1
 !!
 
 << benchmark / client / 512
 	exec -- "${X_RUN[@]}" ':: benchmark / client' \
+			"${@}" \
 			--threads 4 \
 			--connections 512 \
-			"${@}" \
 		#
 	exit -- 1
 !!
 
 << benchmark / client / 16
 	exec -- "${X_RUN[@]}" ':: benchmark / client' \
+			"${@}" \
 			--threads 4 \
 			--connections 16 \
+		#
+	exit -- 1
+!!
+
+<< benchmark / curl
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
+	else
+		_path=''
+	fi
+	exec -- env -i "$( type -P -- curl )" \
+			--silent \
+			--compressed \
 			"${@}" \
+			-- "http://127.9.185.194:8080/${_path}" \
 		#
 	exit -- 1
 !!
