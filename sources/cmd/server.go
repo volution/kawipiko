@@ -101,7 +101,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 				if _value != nil {
 					_fingerprint = _value
 					if (_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries) {
-						if !_pathHasSlash {
+						if !_pathIsRoot && !_pathHasSlash {
 							_path = append (_path, '/')
 							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path)
 							return
@@ -117,7 +117,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 						} {
 							_key := _keyBuffer[:0]
 							_key = append (_key, NamespaceFilesContent ...)
-							_key = append (_key, '/')
+							_key = append (_key, ':')
 							if !_pathIsRoot {
 								_key = append (_key, _path_0 ...)
 							}
@@ -332,7 +332,7 @@ func main_0 () (error) {
 	
 	debug.SetGCPercent (50)
 	debug.SetMaxThreads (128)
-	debug.SetMaxStack (128 * 1024 * 1024)
+	debug.SetMaxStack (16 * 1024)
 	
 	_httpServerReduceMemory := false
 	
