@@ -15,6 +15,7 @@ import "net/http"
 import "path/filepath"
 import "os"
 import "sort"
+import "syscall"
 
 // import "github.com/colinmarc/cdb"
 import cdb "github.com/cipriancraciun/go-cdb-lib"
@@ -28,6 +29,7 @@ import . "github.com/cipriancraciun/go-cdb-http/lib/archiver"
 type context struct {
 	cdbWriter *cdb.Writer
 	storedData map[string]bool
+	storedFiles map[[2]uint64]string
 	compress string
 	debug bool
 }
@@ -37,15 +39,50 @@ type context struct {
 
 func archiveFile (_context *context, _pathResolved string, _pathInArchive string, _name string, _stat os.FileInfo) (error) {
 	
-	var _data []byte
-	if _data_0, _error := ioutil.ReadFile (_pathResolved); _error == nil {
-		_data = _data_0
+	var _file *os.File
+	if _file_0, _error := os.Open (_pathResolved); _error == nil {
+		_file = _file_0
 	} else {
 		return _error
 	}
 	
-	if _, _error := archiveData (_context, NamespaceFilesContent, _pathInArchive, _name, _data, ""); _error != nil {
-		return _error
+	defer _file.Close ()
+	
+	var _fileId [2]uint64
+	if _stat, _error := _file.Stat (); _error == nil {
+		_stat := _stat.Sys()
+		if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
+			_fileId = [2]uint64 { _stat.Dev, _stat.Ino }
+		} else {
+			return fmt.Errorf ("[6578d2d7]  failed `stat`-ing!")
+		}
+	}
+	
+	_fingerprint, _wasStored := _context.storedFiles[_fileId]
+	
+	if ! _wasStored {
+		
+		var _data []byte
+		if _data_0, _error := ioutil.ReadAll (_file); _error == nil {
+			_data = _data_0
+		} else {
+			return _error
+		}
+		
+		var _fingerprint string
+		if _fingerprint_0, _, _error := archiveData (_context, NamespaceFilesContent, _pathInArchive, _name, _data, ""); _error == nil {
+			_fingerprint = _fingerprint_0
+		} else {
+			return _error
+		}
+		
+		_context.storedFiles[_fileId] = _fingerprint
+		
+	} else {
+		
+		if _error := archiveDataReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
+			return _error
+		}
 	}
 	
 	return nil
@@ -88,7 +125,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 		}
 	
 	if _data, _error := json.Marshal (&_folder); _error == nil {
-		if _, _error := archiveData (_context, NamespaceFoldersEntries, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+		if _, _, _error := archiveData (_context, NamespaceFoldersEntries, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
 			return _error
 		}
 	} else {
@@ -101,7 +138,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 
 
 
-func archiveData (_context *context, _namespace string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, error) {
+func archiveData (_context *context, _namespace string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, string, error) {
 	
 	_fingerprintRaw := sha256.Sum256 (_data)
 	_fingerprint := hex.EncodeToString (_fingerprintRaw[:])
@@ -109,7 +146,7 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 	_wasStored, _ := _context.storedData[_fingerprint]
 	
 	if (_dataType == "") && (_name != "") {
-		_extension := filepath.Ext (_pathInArchive)
+		_extension := filepath.Ext (_name)
 		if _extension != "" {
 			_extension = _extension[1:]
 		}
@@ -139,7 +176,7 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 		if _metadataRaw_0, _error := MetadataEncode (_metadata); _error == nil {
 			_metadataRaw = _metadataRaw_0
 		} else {
-			return "", _error
+			return "", "", _error
 		}
 		
 		{
@@ -148,7 +185,7 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 				log.Printf ("[  ] ++ %s", _key)
 			}
 			if _error := _context.cdbWriter.Put ([]byte (_key), _data); _error != nil {
-				return "", _error
+				return "", "", _error
 			}
 		}
 		
@@ -158,10 +195,25 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 				log.Printf ("[  ] ++ %s", _key)
 			}
 			if _error := _context.cdbWriter.Put ([]byte (_key), _metadataRaw); _error != nil {
-				return "", _error
+				return "", "", _error
 			}
 		}
+		
+		_context.storedData[_fingerprint] = true
+		
+	} else {
+		log.Printf ("[  ] == %s", _fingerprint)
 	}
+	
+	if _error := archiveDataReference (_context, _namespace, _pathInArchive, _fingerprint); _error != nil {
+		return "", "", _error
+	}
+	
+	return _fingerprint, _dataType, nil
+}
+
+
+func archiveDataReference (_context *context, _namespace string, _pathInArchive string, _fingerprint string) (error) {
 	
 	if _namespace != "" {
 		_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
@@ -169,11 +221,11 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 			log.Printf ("[  ] ++ %s %s", _key, _fingerprint)
 		}
 		if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprint)); _error != nil {
-			return "", _error
+			return _error
 		}
 	}
 	
-	return _dataType, nil
+	return nil
 }
 
 
@@ -335,6 +387,7 @@ func main_0 () (error) {
 	_context := & context {
 			cdbWriter : _cdbWriter,
 			storedData : make (map[string]bool, 16 * 1024),
+			storedFiles : make (map[[2]uint64]string, 16 * 1024),
 			compress : _compress,
 			debug : _debug,
 		}
