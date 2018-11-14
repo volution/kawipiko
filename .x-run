@@ -5,15 +5,13 @@
 
 << go / execute / server / debug
 	"${X_RUN[@]}" ':: go / build / server / debug'
-	export -- GOMAXPROCS=2
-	exec -- ./.outputs/binaries/debug/cdb-http-server "${@}"
+	exec -- env -i ./.outputs/binaries/debug/cdb-http-server "${@}"
 	exit -- 1
 !!
 
 << go / execute / server / release
 	"${X_RUN[@]}" ':: go / build / server / release'
-	export -- GOMAXPROCS=2
-	exec -- ./.outputs/binaries/release/cdb-http-server "${@}"
+	exec -- env -i ./.outputs/binaries/release/cdb-http-server "${@}"
 	exit -- 1
 !!
 
@@ -78,13 +76,13 @@
 
 << go / execute / archiver / debug
 	"${X_RUN[@]}" ':: go / build / archiver / debug'
-	exec -- ./.outputs/binaries/debug/cdb-http-archiver "${@}"
+	exec -- env -i ./.outputs/binaries/debug/cdb-http-archiver "${@}"
 	exit -- 1
 !!
 
 << go / execute / archiver / release
 	"${X_RUN[@]}" ':: go / build / archiver / release'
-	exec -- ./.outputs/binaries/release/cdb-http-archiver "${@}"
+	exec -- env -i ./.outputs/binaries/release/cdb-http-archiver "${@}"
 	exit -- 1
 !!
 
@@ -306,157 +304,78 @@
 
 << documentation / readme / server
 	test "${#}" -eq 0
-	exec -- ./.python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
+	exec -- env -i ./.python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
 	exit -- 1
 !!
 
 
 
 
-<< examples / fontawesome / serve
+:: examples / server / hello-world :: exec -- "${X_RUN[@]}" ':: examples / server' ./examples/hello-world.cdb "${@}"
+:: examples / server / cdnjs.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/cdnjs.cdb "${@}"
+:: examples / server / fontawesome.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/fontawesome.cdb "${@}"
+:: examples / server / python-2.7.15-docs-html.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/python-2.7.15-docs-html.cdb "${@}"
+:: examples / server / jdk-11.0.1-docs-html.cdb :: exec -- "${X_RUN[@]}" ':: examples / server' ./.databases/jdk-11.0.1-docs-html.cdb "${@}"
+
+<< examples / server
+	test "${#}" -ge 1
+	_archive="${1}"
+	shift -- 1
 	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
 			--bind 127.198.53.69:8080 \
-			--archive ./.databases/fontawesome.cdb \
+			--archive "${_archive}" \
 			--archive-mmap \
 			--archive-preload \
-			--debug \
 			"${@}" \
 		#
 	exit -- 1
 !!
 
-
-
-
-<< examples / python-2.7.15-docs-html / archive / all
-	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / identity'
-	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / gzip'
-	"${X_RUN[@]}" ':: examples / python-2.7.15-docs-html / archive / brotli'
-	exit -- 0
+<< examples / open / firefox
+	test "${#}" -eq 0
+	exec -- x-www 'firefox-guest:*' open http://127.198.53.69:8080/
+	exit -- 1
 !!
 
-<< examples / python-2.7.15-docs-html / archive / identity
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
-			--sources ./.databases/python-2.7.15-docs-html \
-			--archive ./.databases/python-2.7.15-docs-html.cdb \
-			--compress identity \
-			--debug \
+<< examples / open / chromium
+	test "${#}" -eq 0
+	exec -- x-www 'chromium-guest:*' open http://127.198.53.69:8080/
+	exit -- 1
+!!
+
+<< examples / open / curl
+	if test "${#}" -ge 1 ; then
+		_path="${1}"
+		_path="${_path#/}"
+		shift -- 1
+	else
+		_path=''
+	fi
+	exec -- env -i "$( type -P -- curl )" \
+			--silent \
+			--compressed \
 			"${@}" \
+			-- "http://127.198.53.69:8080/${_path}" \
 		#
 	exit -- 1
 !!
 
-<< examples / python-2.7.15-docs-html / archive / gzip
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
-			--sources ./.databases/python-2.7.15-docs-html \
-			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
-			--compress gzip \
-			--debug \
+<< examples / benchmark
+	if test "${#}" -ge 1 ; then
+		_path="${1}"
+		_path="${_path#/}"
+		shift -- 1
+	else
+		_path=''
+	fi
+	exec -- env -i "$( type -P -- wrk )" \
+			--timeout 1s \
+			--duration 6s \
+			--latency \
+			--threads 1 \
+			--connections 1 \
 			"${@}" \
-		#
-	exit -- 1
-!!
-
-<< examples / python-2.7.15-docs-html / archive / brotli
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
-			--sources ./.databases/python-2.7.15-docs-html \
-			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
-			--compress brotli \
-			--debug \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-
-<< examples / python-2.7.15-docs-html / serve / identity
-	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--bind 127.198.53.69:8080 \
-			--archive ./.databases/python-2.7.15-docs-html.cdb \
-			--archive-mmap \
-			--archive-preload \
-			--debug \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-<< examples / python-2.7.15-docs-html / serve / gzip
-	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--bind 127.198.53.69:8080 \
-			--archive ./.databases/python-2.7.15-docs-html-gzip.cdb \
-			--archive-mmap \
-			--archive-preload \
-			--debug \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-<< examples / python-2.7.15-docs-html / serve / brotli
-	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--bind 127.198.53.69:8080 \
-			--archive ./.databases/python-2.7.15-docs-html-brotli.cdb \
-			--archive-mmap \
-			--archive-preload \
-			--debug \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-
-
-
-<< examples / jdk-11.0.1-docs-html / archive / all
-	"${X_RUN[@]}" ':: examples / jdk-11.0.1-docs-html / archive / gzip'
-	"${X_RUN[@]}" ':: examples / jdk-11.0.1-docs-html / archive / brotli'
-	exit -- 0
-!!
-
-<< examples / jdk-11.0.1-docs-html / archive / gzip
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
-			--sources ./.databases/jdk-11.0.1-docs-html \
-			--archive ./.databases/jdk-11.0.1-docs-html-gzip.cdb \
-			--compress gzip \
-			--debug \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-<< examples / jdk-11.0.1-docs-html / archive / brotli
-	exec -- "${X_RUN[@]}" ':: go / execute / archiver / release' \
-			--sources ./.databases/jdk-11.0.1-docs-html \
-			--archive ./.databases/jdk-11.0.1-docs-html-brotli.cdb \
-			--compress brotli \
-			--debug \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-
-<< examples / jdk-11.0.1-docs-html / serve / gzip
-	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--bind 127.198.53.69:8080 \
-			--archive ./.databases/jdk-11.0.1-docs-html-gzip.cdb \
-			--archive-mmap \
-			--archive-preload \
-			--debug \
-			"${@}" \
-		#
-	exit -- 1
-!!
-
-<< examples / jdk-11.0.1-docs-html / serve / brotli
-	exec -- "${X_RUN[@]}" ':: go / execute / server / release' \
-			--bind 127.198.53.69:8080 \
-			--archive ./.databases/jdk-11.0.1-docs-html-brotli.cdb \
-			--archive-mmap \
-			--archive-preload \
-			--debug \
-			"${@}" \
+			-- "http://127.198.53.69:8080/${_path}" \
 		#
 	exit -- 1
 !!
@@ -475,14 +394,14 @@
 	prlimit -n16384 -- \
 	sudo -u "${USER}" -n -E -P -- \
 	env -i \
-			GOMAXPROCS=4 \
 	./.outputs/binaries/release/cdb-http-server \
 			--bind 127.9.185.194:8080 \
-			--archive ./examples/hello-world.cdb \
+			--archive ./.databases/random.cdb \
 			"${@}" \
 		#
 	exit -- 1
 !!
+
 
 << benchmark / server / mmap
 	exec -- "${X_RUN[@]}" ':: benchmark / server' \
@@ -501,6 +420,7 @@
 		#
 	exit -- 1
 !!
+
 
 << benchmark / server / profile / cpu
 	exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' \
@@ -531,7 +451,16 @@
 !!
 
 
+
+
 << benchmark / client
+	if test "${#}" -ge 1 ; then
+		_path="${1}"
+		_path="${_path#/}"
+		shift -- 1
+	else
+		_path=''
+	fi
 	exec -- \
 	sudo -u root -n -E -P -- \
 	taskset -c 1,2,3 \
@@ -546,10 +475,11 @@
 			--duration 6s \
 			--latency \
 			"${@}" \
-			-- http://127.9.185.194:8080/ \
+			-- "http://127.9.185.194:8080/${_path}" \
 		#
 	exit -- 1
 !!
+
 
 << benchmark / client / 2048
 	exec -- "${X_RUN[@]}" ':: benchmark / client' \
