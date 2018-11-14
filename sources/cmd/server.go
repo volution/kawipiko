@@ -76,12 +76,12 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	_pathHasSlash := !_pathIsRoot && (_path[_pathLen - 1] == '/')
 	
 	if ! bytes.Equal ([]byte (http.MethodGet), _method) {
-		// log.Printf ("[ww] [bce7a75b] invalid method `%s` for `%s`!\n", _method, _path)
+		log.Printf ("[ww] [bce7a75b] invalid method `%s` for `%s`!\n", _requestHeaders.Method (), _requestHeaders.RequestURI ())
 		_server.ServeError (_context, http.StatusMethodNotAllowed, nil)
 		return
 	}
 	if (_pathLen == 0) || (_path[0] != '/') {
-		// log.Printf ("[ww] [fa6b1923] invalid path `%s`!\n", _path)
+		log.Printf ("[ww] [fa6b1923] invalid path `%s`!\n", _requestHeaders.RequestURI ())
 		_server.ServeError (_context, http.StatusBadRequest, nil)
 		return
 	}
@@ -143,7 +143,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	
 	if _fingerprint == nil {
 		if ! bytes.Equal ([]byte ("/favicon.ico"), _path) {
-			// log.Printf ("[ww] [7416f61d]  not found `%s`!\n", _path)
+			log.Printf ("[ww] [7416f61d]  not found `%s`!\n", _requestHeaders.RequestURI ())
 			_server.ServeError (_context, http.StatusNotFound, nil)
 		} else {
 			_data, _dataContentType := FaviconData ()
@@ -167,7 +167,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 			if _value != nil {
 				_data = _value
 			} else {
-				// log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", _fingerprint)
+				log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", _requestHeaders.RequestURI ())
 				_server.ServeError (_context, http.StatusInternalServerError, nil)
 				return
 			}
@@ -190,7 +190,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 					return
 				}
 			} else {
-				// log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", _fingerprint)
+				log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", _requestHeaders.RequestURI ())
 				_server.ServeError (_context, http.StatusInternalServerError, nil)
 				return
 			}
@@ -201,7 +201,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if _server.debug {
-		// log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _path)
+		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _requestHeaders.RequestURI ())
 	}
 	
 	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
