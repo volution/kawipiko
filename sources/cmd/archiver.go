@@ -131,9 +131,9 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 		}
 		
 		_metadata := make (map[string]string, 16)
-		_metadata["content-type"] = _dataType
-		_metadata["content-encoding"] = _dataEncoding
-		_metadata["etag"] = _fingerprint
+		_metadata["Content-Type"] = _dataType
+		_metadata["Content-Encoding"] = _dataEncoding
+		_metadata["ETag"] = _fingerprint
 		
 		var _metadataRaw []byte
 		if _metadataRaw_0, _error := MetadataEncode (_metadata); _error == nil {

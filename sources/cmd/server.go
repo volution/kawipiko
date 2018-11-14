@@ -13,6 +13,7 @@ import "net/http"
 import "os"
 import "os/signal"
 import "runtime"
+import "runtime/debug"
 import "runtime/pprof"
 import "sync"
 import "syscall"
@@ -40,31 +41,36 @@ type server struct {
 
 
 func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
-	_uri := _context.URI ()
 	// _request := &_context.Request
 	_requestHeaders := &_context.Request.Header
 	_response := &_context.Response
 	_responseHeaders := &_context.Response.Header
 	
 	_keyBuffer := [1024]byte {}
-	_pathNewBuffer := [1024]byte {}
+	_pathBuffer := [1024]byte {}
 	_timestampBuffer := [128]byte {}
 	
 	_timestamp := time.Now ()
 	_timestampHttp := _timestamp.AppendFormat (_timestampBuffer[:0], http.TimeFormat)
 	
-	// _responseHeaders.Set ("Content-Security-Policy", "upgrade-insecure-requests")
-	_responseHeaders.Set ("Referrer-Policy", "strict-origin-when-cross-origin")
-	_responseHeaders.Set ("X-Frame-Options", "SAMEORIGIN")
-	_responseHeaders.Set ("X-content-type-Options", "nosniff")
-	_responseHeaders.Set ("X-XSS-Protection", "1; mode=block")
+	// _responseHeaders.SetCanonical ([]byte ("Content-Security-Policy"), []byte ("upgrade-insecure-requests"))
+	_responseHeaders.SetCanonical ([]byte ("Referrer-Policy"), []byte ("strict-origin-when-cross-origin"))
+	_responseHeaders.SetCanonical ([]byte ("X-Frame-Options"), []byte ("SAMEORIGIN"))
+	_responseHeaders.SetCanonical ([]byte ("X-content-type-Options"), []byte ("nosniff"))
+	_responseHeaders.SetCanonical ([]byte ("X-XSS-Protection"), []byte ("1; mode=block"))
 	
-	_responseHeaders.SetBytesV ("date", _timestampHttp)
-	_responseHeaders.SetBytesV ("last-modified", _timestampHttp)
-	_responseHeaders.Set ("age", "0")
+	_responseHeaders.SetCanonical ([]byte ("Date"), _timestampHttp)
+	_responseHeaders.SetCanonical ([]byte ("Last-Modified"), _timestampHttp)
+	_responseHeaders.SetCanonical ([]byte ("Age"), []byte ("0"))
 	
 	_method := _requestHeaders.Method ()
-	_path := _uri.Path ()
+	
+	_path := append (_pathBuffer[:0], _requestHeaders.RequestURI () ...)
+	if _pathLimit := bytes.IndexByte (_path, '?'); _pathLimit > 0 {
+		_path = _path[: _pathLimit]
+	}
+	// FIXME:  Decode path according to `decodeArgAppendNoPlus`!
+	
 	_pathLen := len (_path)
 	_pathIsRoot := _pathLen == 1
 	_pathHasSlash := !_pathIsRoot && (_path[_pathLen - 1] == '/')
@@ -96,10 +102,8 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 					_fingerprint = _value
 					if (_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries) {
 						if !_pathHasSlash {
-							_pathNew := _pathNewBuffer[:0]
-							_pathNew = append (_pathNew, _path_0 ...)
-							_pathNew = append (_pathNew, '/')
-							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _pathNew)
+							_path = append (_path, '/')
+							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path)
 							return
 						}
 					}
@@ -143,10 +147,10 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 			_server.ServeError (_context, http.StatusNotFound, nil)
 		} else {
 			_data, _dataContentType := FaviconData ()
-			_responseHeaders.Set ("content-type", _dataContentType)
-			_responseHeaders.Set ("content-encoding", "identity")
-			_responseHeaders.Set ("etag", "f00f5f99bb3d45ef9806547fe5fe031a")
-			_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
+			_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (_dataContentType))
+			_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+			_responseHeaders.SetCanonical ([]byte ("ETag"), []byte ("f00f5f99bb3d45ef9806547fe5fe031a"))
+			_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
 			_response.SetStatusCode (http.StatusOK)
 			_response.SetBody (_data)
 		}
@@ -180,7 +184,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 		_key = append (_key, _fingerprint ...)
 		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 			if _value != nil {
-				if _error := MetadataDecodeIterate (_value, _responseHeaders.SetBytesKV); _error == nil {
+				if _error := MetadataDecodeIterate (_value, _responseHeaders.SetCanonical); _error == nil {
 				} else {
 					_server.ServeError (_context, http.StatusInternalServerError, _error)
 					return
@@ -200,10 +204,16 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 		// log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _path)
 	}
 	
-	_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
+	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
 	
 	_response.SetStatusCode (http.StatusOK)
-	_response.SetBody (_data)
+	
+	_dataSize := len (_data)
+	if _dataSize <= 32 * 1024 {
+		_response.SetBody (_data)
+	} else {
+		_response.SetBodyStream (bytes.NewReader (_data), _dataSize)
+	}
 }
 
 
@@ -213,11 +223,11 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 	_response := &_context.Response
 	_responseHeaders := &_context.Response.Header
 	
-	_responseHeaders.Set ("content-type", MimeTypeText)
-	_responseHeaders.Set ("content-encoding", "identity")
-	_responseHeaders.Set ("etag", "7aa652d8d607b85808c87c1c2105fbb5")
-	_responseHeaders.Set ("cache-control", "public, immutable, max-age=3600")
-	_responseHeaders.SetBytesV ("location", _path)
+	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
+	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+	_responseHeaders.SetCanonical ([]byte ("ETag"), []byte ("7aa652d8d607b85808c87c1c2105fbb5"))
+	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+	_responseHeaders.SetCanonical ([]byte ("Location"), _path)
 	
 	_response.SetStatusCode (int (_status))
 	// _response.SetBody ([]byte (fmt.Sprintf ("[%d] %s", _status, _path)))
@@ -228,9 +238,9 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	_response := &_context.Response
 	_responseHeaders := &_context.Response.Header
 	
-	_responseHeaders.Set ("content-type", MimeTypeText)
-	_responseHeaders.Set ("content-encoding", "identity")
-	_responseHeaders.Set ("cache-control", "no-cache")
+	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
+	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
 	
 	_response.SetStatusCode (int (_status))
 	// _response.SetBody ([]byte (fmt.Sprintf ("[%d]", _status)))
@@ -319,6 +329,18 @@ func main_0 () (error) {
 	
 	
 	runtime.GOMAXPROCS (int (_threads))
+	
+	debug.SetGCPercent (50)
+	debug.SetMaxThreads (128)
+	debug.SetMaxStack (128 * 1024 * 1024)
+	
+	_httpServerReduceMemory := false
+	
+	if false {
+		if _error := syscall.Setrlimit (syscall.RLIMIT_DATA, & syscall.Rlimit { Max : 4 * 1024 * 1024 * 1024 }); _error != nil {
+			AbortError (_error, "[f661b4fe]  failed to configure limits!")
+		}
+	}
 	
 	
 	if _processes > 1 {
@@ -549,19 +571,21 @@ func main_0 () (error) {
 			DisableHeaderNamesNormalizing : true,
 			
 			Concurrency : 4 * 1024,
-			MaxRequestsPerConn : 256 * 1024,
-			MaxRequestBodySize : 0,
-			GetOnly : true,
+			
+			ReadBufferSize : 8 * 1024,
+			WriteBufferSize : 32 * 1024,
 			
 			ReadTimeout : 6 * time.Second,
 			WriteTimeout : 6 * time.Second,
-			MaxKeepaliveDuration : 60 * time.Second,
-			
-			ReadBufferSize : 8 * 1024,
-			WriteBufferSize : 64 * 1024,
+			MaxKeepaliveDuration : 360 * time.Second,
+			MaxRequestsPerConn : 256 * 1024,
+			MaxRequestBodySize : 8 * 1024,
+			GetOnly : true,
 			
 			TCPKeepalive : true,
 			TCPKeepalivePeriod : 6 * time.Second,
+			
+			ReduceMemoryUsage : _httpServerReduceMemory,
 			
 		}
 	
