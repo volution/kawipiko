@@ -88,48 +88,19 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	
 	var _fingerprint []byte
 	{
-		_path_0 := _path
-		if _pathHasSlash {
-			_path_0 = _path[: _pathLen - 1]
-		}
-		_found : for _, _namespace := range []string {NamespaceFilesContent, NamespaceFoldersContent, NamespaceFoldersEntries} {
+		_found : for _, _namespace := range []string {NamespaceFilesContent, NamespaceFoldersContent} {
 			_key := _keyBuffer[:0]
 			_key = append (_key, _namespace ...)
 			_key = append (_key, ':')
-			_key = append (_key, _path_0 ...)
+			_key = append (_key, _path ...)
 			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 				if _value != nil {
 					_fingerprint = _value
-					if (_namespace == NamespaceFoldersContent) || (_namespace == NamespaceFoldersEntries) {
+					if (_namespace == NamespaceFoldersContent) {
 						if !_pathIsRoot && !_pathHasSlash {
 							_path = append (_path, '/')
 							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path)
 							return
-						}
-					}
-					if _namespace == NamespaceFoldersEntries {
-						for _, _indexName := range []string {
-								"index.html", "index.htm",
-								"index.xhtml", "index.xht",
-								"index.txt",
-								"index.json",
-								"index.xml",
-						} {
-							_key := _keyBuffer[:0]
-							_key = append (_key, NamespaceFilesContent ...)
-							_key = append (_key, ':')
-							if !_pathIsRoot {
-								_key = append (_key, _path_0 ...)
-							}
-							_key = append (_key, '/')
-							_key = append (_key, _indexName ...)
-							if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-								_fingerprint = _value
-								break _found
-							} else {
-								_server.ServeError (_context, http.StatusInternalServerError, _error)
-								return
-							}
 						}
 					}
 					break _found

@@ -6,8 +6,7 @@ package common
 
 
 const NamespaceFilesContent = "files:content"
-const NamespaceFoldersContent = "folders:content"
-const NamespaceFoldersEntries = "folders:entries"
+const NamespaceFoldersContent = "folders:entries"
 
 const NamespaceDataContent = "data:content"
 const NamespaceDataMetadata = "data:metadata"

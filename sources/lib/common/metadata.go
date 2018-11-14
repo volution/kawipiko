@@ -6,15 +6,27 @@ package common
 import "bytes"
 import "fmt"
 import "regexp"
+import "sort"
 
 
 
 
 func MetadataEncode (_metadata map[string]string) ([]byte, error) {
 	
+	_metadataArray := make ([][2]string, 0, len (_metadata))
+	for _key, _value := range _metadata {
+		_metadataArray = append (_metadataArray, [2]string {_key, _value})
+	}
+	sort.Slice (_metadataArray,
+			func (i int, j int) (bool) {
+				return _metadataArray[i][0] < _metadataArray[j][0]
+			})
+	
 	_buffer := & bytes.Buffer {}
 	
-	for _key, _value := range _metadata {
+	for _, _metadata := range _metadataArray {
+		_key := _metadata[0]
+		_value := _metadata[1]
 		if ! metadataKeyRegex.MatchString (_key) {
 			return nil, fmt.Errorf ("[2f761e02]  invalid metadata key:  `%s`", _key)
 		}

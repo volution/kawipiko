@@ -37,7 +37,7 @@ type context struct {
 
 
 
-func archiveFile (_context *context, _pathResolved string, _pathInArchive string, _name string, _stat os.FileInfo) (error) {
+func archiveFile (_context *context, _pathResolved string, _pathInArchive string, _name string) (error) {
 	
 	var _file *os.File
 	if _file_0, _error := os.Open (_pathResolved); _error == nil {
@@ -100,7 +100,8 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 	}
 	
 	type Folder struct {
-		Entries []Entry `json:"entries"`
+		Entries []Entry `json:"entries",omitempty`
+		Indices []string `json:"indices",omitempty`
 	}
 	
 	_entries := make ([]Entry, 0, len (_names))
@@ -120,12 +121,42 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 		_entries = append (_entries, _entry)
 	}
 	
+	_indexNames := make ([]string, 0, 4)
+	var _indexNameFirst string
+	for _, _indexName := range IndexNames {
+		_indexNameFound := sort.SearchStrings (_names, _indexName)
+		if _indexNameFound == len (_names) {
+			continue
+		}
+		if _names[_indexNameFound] != _indexName {
+			continue
+		}
+		_stat := _stats[_indexName]
+		_statMode := _stat.Mode ()
+		if ! _statMode.IsRegular () {
+			continue
+		}
+		if _indexNameFirst == "" {
+			_indexNameFirst = _indexName
+		}
+		_indexNames = append (_indexNames, _indexName)
+	}
+	if _indexNameFirst != "" {
+		_indexPathResolved := filepath.Join (_pathResolved, _indexNameFirst)
+		_indexPathInArchive := _pathInArchive + "/"
+		if _pathInArchive == "/" {
+			_indexPathInArchive = "/"
+		}
+		archiveFile (_context, _indexPathResolved, _indexPathInArchive, _indexNameFirst)
+	}
+	
 	_folder := Folder {
 			Entries : _entries,
+			Indices : _indexNames,
 		}
 	
 	if _data, _error := json.Marshal (&_folder); _error == nil {
-		if _, _, _error := archiveData (_context, NamespaceFoldersEntries, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+		if _, _, _error := archiveData (_context, NamespaceFoldersContent, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
 			return _error
 		}
 	} else {
@@ -202,7 +233,9 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 		_context.storedData[_fingerprint] = true
 		
 	} else {
-		log.Printf ("[  ] == %s", _fingerprint)
+		if _context.debug {
+			log.Printf ("[  ] == %s", _fingerprint)
+		}
 	}
 	
 	if _error := archiveDataReference (_context, _namespace, _pathInArchive, _fingerprint); _error != nil {
@@ -231,7 +264,7 @@ func archiveDataReference (_context *context, _namespace string, _pathInArchive 
 
 
 
-func walkPath (_context *context, _path string, _prefix string, _name string, _recursed map[string]uint) (error) {
+func walkPath (_context *context, _path string, _prefix string, _name string, _recursed map[string]uint) (os.FileInfo, error) {
 	
 	if _recursed == nil {
 		_recursed = make (map[string]uint, 128)
@@ -243,7 +276,7 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 	if _stat_0, _error := os.Lstat (_path); _error == nil {
 		_stat = _stat_0
 	} else {
-		return _error
+		return nil, _error
 	}
 	
 	_isSymlink := false
@@ -252,7 +285,7 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		if _stat_0, _error := os.Stat (_path); _error == nil {
 			_stat = _stat_0
 		} else {
-			return _error
+			return nil, _error
 		}
 	}
 	
@@ -261,7 +294,7 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		if _resolved, _error := filepath.EvalSymlinks (_path); _error == nil {
 			_pathResolved = _resolved
 		} else {
-			return _error
+			return nil, _error
 		}
 	} else {
 		_pathResolved = _path
@@ -276,14 +309,14 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		if _context.debug {
 			log.Printf ("[  ] ## %s\n", _pathInArchive)
 		}
-		return archiveFile (_context, _pathResolved, _pathInArchive, _name, _stat)
+		return _stat, archiveFile (_context, _pathResolved, _pathInArchive, _name)
 		
 	} else if _stat.Mode () .IsDir () {
 		
 		_wasRecursed, _ := _recursed[_pathResolved]
 		if _wasRecursed > 0 {
 			log.Printf ("[ww] [2e1744c9]  detected directory loop for `%s` resolving to `%s`;  ignoring!\n", _path, _pathResolved)
-			return nil
+			return _stat, nil
 		}
 		_recursed[_pathResolved] = _wasRecursed + 1
 		
@@ -303,15 +336,16 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 						for _, _stat := range _buffer {
 							_name := _stat.Name ()
 							_names = append (_names, _name)
-							_stats[_name] = _stat
-							if _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed); _error != nil {
-								return _error
+							if _stat, _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed); _error == nil {
+								_stats[_name] = _stat
+							} else {
+								return nil, _error
 							}
 						}
 					case io.EOF :
 						break _loop
 					default :
-						return _error
+						return nil, _error
 				}
 			}
 		}
@@ -326,14 +360,14 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 			log.Printf ("[  ] <> %s\n", _pathInArchive)
 		}
 		if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _names, _stats); _error != nil {
-			return _error
+			return nil, _error
 		}
 		
 		_recursed[_pathResolved] = _wasRecursed
-		return nil
+		return _stat, nil
 		
 	} else {
-		return fmt.Errorf ("[d9b836d7]  unexpected file type for `%s`:  `%s`!", _path, _stat.Mode ())
+		return nil, fmt.Errorf ("[d9b836d7]  unexpected file type for `%s`:  `%s`!", _path, _stat.Mode ())
 	}
 }
 
@@ -392,7 +426,7 @@ func main_0 () (error) {
 			debug : _debug,
 		}
 	
-	if _error := walkPath (_context, _sourcesFolder, "/", "", nil); _error != nil {
+	if _, _error := walkPath (_context, _sourcesFolder, "/", "", nil); _error != nil {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
 	}
 	
