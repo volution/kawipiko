@@ -255,8 +255,10 @@ Fetch the sources
 ::
 
     git clone \
+        --depth 1 \
+        --recurse-submodules --shallow-submodules \
         https://github.com/cipriancraciun/go-cdb-http.git \
-        ./go-cdb-http
+        /tmp/go-cdb-http/src
 
 
 Compile the binaries
@@ -264,23 +266,24 @@ Compile the binaries
 
 Prepare the Go environment: ::
 
-    export -- GOPATH=/tmp/go-cdb-http/go
-
-    go get -v -d ./go-cdb-http/sources/...
+    mkdir /tmp/go-cdb-http/go
+    ln -s -T ../src/vendor /tmp/go-cdb-http/go/src
 
 Compile the Go binnaries: ::
 
-    export -- GOPATH=/tmp/go-cdb-http/go
+    export GOPATH=/tmp/go-cdb-http/go
+
+    mkdir /tmp/go-cdb-http/bin
 
     go build \
         -ldflags '-s' \
-        -o /tmp/go-cdb-http/cdb-http-archiver \
-        ./go-cdb-http/sources/cmd/archiver.go
+        -o /tmp/go-cdb-http/bin/cdb-http-archiver \
+        /tmp/go-cdb-http/src/sources/cmd/archiver.go
 
     go build \
         -ldflags '-s' \
-        -o /tmp/go-cdb-http/cdb-http-server \
-        ./go-cdb-http/sources/cmd/server.go
+        -o /tmp/go-cdb-http/bin/cdb-http-server \
+        /tmp/go-cdb-http/src/sources/cmd/server.go
 
 
 Deploy the binaries
@@ -290,8 +293,8 @@ Deploy the binaries
 
 ::
 
-    cp /tmp/go-cdb-http/cdb-http-archiver /usr/local/bin
-    cp /tmp/go-cdb-http/cdb-http-server /usr/local/bin
+    cp /tmp/go-cdb-http/bin/cdb-http-archiver /usr/local/bin
+    cp /tmp/go-cdb-http/bin/cdb-http-server /usr/local/bin
 
 
 
