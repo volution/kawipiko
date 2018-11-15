@@ -271,7 +271,7 @@ func archiveDataReference (_context *context, _namespace string, _pathInArchive 
 
 
 
-func walkPath (_context *context, _path string, _prefix string, _name string, _recursed map[string]uint) (os.FileInfo, error) {
+func walkPath (_context *context, _path string, _prefix string, _name string, _recursed map[string]uint, _recurse bool) (os.FileInfo, error) {
 	
 	if _recursed == nil {
 		_recursed = make (map[string]uint, 128)
@@ -285,6 +285,7 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 	} else {
 		return nil, _error
 	}
+	_statMode := _stat.Mode ()
 	
 	_isSymlink := false
 	if (_stat.Mode () & os.ModeSymlink) != 0 {
@@ -294,6 +295,11 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		} else {
 			return nil, _error
 		}
+	}
+	_statMode = _stat.Mode ()
+	
+	if ! _recurse {
+		return _stat, nil
 	}
 	
 	var _pathResolved string
@@ -311,14 +317,18 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		log.Printf ("[  ] ~~ %s -> %s\n", _pathInArchive, _pathResolved)
 	}
 	
-	if _stat.Mode () .IsRegular () {
+	
+	if _statMode.IsRegular () {
 		
 		if _context.debug {
 			log.Printf ("[  ] ## %s\n", _pathInArchive)
 		}
-		return _stat, archiveFile (_context, _pathResolved, _pathInArchive, _name)
+		if _error := archiveFile (_context, _pathResolved, _pathInArchive, _name); _error != nil {
+			return _stat, _error
+		}
+		return _stat, nil
 		
-	} else if _stat.Mode () .IsDir () {
+	} else if _statMode.IsDir () {
 		
 		_wasRecursed, _ := _recursed[_pathResolved]
 		if _wasRecursed > 0 {
@@ -327,13 +337,12 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		}
 		_recursed[_pathResolved] = _wasRecursed + 1
 		
-		if _context.debug {
-			log.Printf ("[  ] >> %s\n", _pathInArchive)
-		}
-		
 		_names := make ([]string, 0, 16)
 		_stats := make (map[string]os.FileInfo, 16)
 		
+		if _context.debug {
+			log.Printf ("[  ] *> %s\n", _pathInArchive)
+		}
 		if _stream, _error := os.Open (_path); _error == nil {
 			defer _stream.Close ()
 			_prefix = filepath.Join (_prefix, _name)
@@ -343,7 +352,7 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 						for _, _stat := range _buffer {
 							_name := _stat.Name ()
 							_names = append (_names, _name)
-							if _stat, _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed); _error == nil {
+							if _stat, _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed, false); _error == nil {
 								_stats[_name] = _stat
 							} else {
 								return nil, _error
@@ -356,12 +365,11 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 				}
 			}
 		}
+		if _context.debug {
+			log.Printf ("[  ] *< %s\n", _pathInArchive)
+		}
 		
 		sort.Strings (_names)
-		
-		if _context.debug {
-			log.Printf ("[  ] << %s\n", _pathInArchive)
-		}
 		
 		if _context.debug {
 			log.Printf ("[  ] <> %s\n", _pathInArchive)
@@ -370,11 +378,46 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 			return nil, _error
 		}
 		
+		if _context.debug {
+			log.Printf ("[  ] >> %s\n", _pathInArchive)
+		}
+		
+		for _, _name := range _names {
+			_stat := _stats[_name]
+			_statMode := _stat.Mode ()
+			if _statMode.IsRegular () {
+				if _, _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed, true); _error != nil {
+					return _stat, _error
+				}
+			}
+		}
+		for _, _name := range _names {
+			_stat := _stats[_name]
+			_statMode := _stat.Mode ()
+			if _statMode.IsDir () {
+				if _, _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed, true); _error != nil {
+					return _stat, _error
+				}
+			}
+		}
+		for _, _name := range _names {
+			_stat := _stats[_name]
+			_statMode := _stat.Mode ()
+			if ! _statMode.IsRegular () && ! _statMode.IsDir () {
+				if _, _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed, true); _error != nil {
+					return _stat, _error
+				}
+			}
+		}
+		if _context.debug {
+			log.Printf ("[  ] << %s\n", _pathInArchive)
+		}
+		
 		_recursed[_pathResolved] = _wasRecursed
 		return _stat, nil
 		
 	} else {
-		return nil, fmt.Errorf ("[d9b836d7]  unexpected file type for `%s`:  `%s`!", _path, _stat.Mode ())
+		return nil, fmt.Errorf ("[d9b836d7]  unexpected file type for `%s`:  `%s`!", _path, _statMode)
 	}
 }
 
@@ -454,7 +497,7 @@ cdb-http-archiver
 			debug : _debug,
 		}
 	
-	if _, _error := walkPath (_context, _sourcesFolder, "/", "", nil); _error != nil {
+	if _, _error := walkPath (_context, _sourcesFolder, "/", "", nil, true); _error != nil {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
 	}
 	
