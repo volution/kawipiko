@@ -294,7 +294,26 @@
 
 
 
+:: benchmark / server / 1x1 :: exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 1 --threads 1
+:: benchmark / server / 2x1 :: exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 2 --threads 1
+:: benchmark / server / 1x2 :: exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 1 --threads 2
+:: benchmark / server / 2x2 :: exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 2 --threads 2
+
+
 << benchmark / server
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_archive="${1}"
+			shift -- 1
+		else
+			_archive=''
+		fi
+	else
+		_archive=''
+	fi
+	if test -z "${_archive}" ; then
+		_archive=./.archives/hello-world.cdb
+	fi
 	"${X_RUN[@]}" ':: go / build / server / release'
 	exec -- \
 	sudo -u root -n -E -P -- \
@@ -307,27 +326,26 @@
 	env -i \
 	./.outputs/binaries/release/cdb-http-server \
 			--bind 127.9.185.194:8080 \
-			--archive ./.archives/random.cdb \
+			--archive "${_archive}" \
 			"${@}" \
 		#
 	exit -- 1
 !!
 
-
 << benchmark / server / mmap
 	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+			"${@}" \
 			--archive-mmap \
 			--archive-preload \
-			"${@}" \
 		#
 	exit -- 1
 !!
 
 << benchmark / server / inmem
 	exec -- "${X_RUN[@]}" ':: benchmark / server' \
+			"${@}" \
 			--archive-inmem \
 			--archive-preload \
-			"${@}" \
 		#
 	exit -- 1
 !!
@@ -335,16 +353,16 @@
 
 << benchmark / server / profile / cpu
 	exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' \
-			--profile-cpu ./.outputs/server-cpu.txt \
 			"${@}" \
+			--profile-cpu ./.outputs/server-cpu.txt \
 		#
 	exit -- 1
 !!
 
 << benchmark / server / profile / mem
 	exec -- "${X_RUN[@]}" ':: benchmark / server / mmap' \
-			--profile-mem ./.outputs/server-mem.txt \
 			"${@}" \
+			--profile-mem ./.outputs/server-mem.txt \
 		#
 	exit -- 1
 !!
@@ -362,6 +380,20 @@
 !!
 
 
+
+
+:: benchmark / client / 2048 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 2048
+:: benchmark / client / 1024 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 1024
+:: benchmark / client / 512 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 512
+:: benchmark / client / 256 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 256
+:: benchmark / client / 128 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 128
+:: benchmark / client / 64 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 64
+:: benchmark / client / 32 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 32
+:: benchmark / client / 16 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 16
+:: benchmark / client / 8 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 8
+:: benchmark / client / 4 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 4
+:: benchmark / client / 2 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 2
+:: benchmark / client / 1 :: exec -- "${X_RUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 1
 
 
 << benchmark / client
@@ -386,6 +418,8 @@
 	sudo -u "${USER}" -n -E -P -- \
 	env -i \
 	"$( type -P -- wrk )" \
+			--threads 1 \
+			--connections 1 \
 			--timeout 6s \
 			--duration 6s \
 			--latency \
@@ -394,6 +428,7 @@
 		#
 	exit -- 1
 !!
+
 
 << benchmark / client / paths
 	test "${#}" -ge 1
@@ -409,6 +444,8 @@
 	sudo -u "${USER}" -n -E -P -- \
 	env -i \
 	"$( type -P -- wrk )" \
+			--threads 1 \
+			--connections 1 \
 			--timeout 6s \
 			--duration 6s \
 			--latency \
@@ -420,33 +457,6 @@
 	exit -- 1
 !!
 
-
-<< benchmark / client / 2048
-	exec -- "${X_RUN[@]}" ':: benchmark / client' \
-			"${@}" \
-			--threads 4 \
-			--connections 2048 \
-		#
-	exit -- 1
-!!
-
-<< benchmark / client / 512
-	exec -- "${X_RUN[@]}" ':: benchmark / client' \
-			"${@}" \
-			--threads 4 \
-			--connections 512 \
-		#
-	exit -- 1
-!!
-
-<< benchmark / client / 16
-	exec -- "${X_RUN[@]}" ':: benchmark / client' \
-			"${@}" \
-			--threads 4 \
-			--connections 16 \
-		#
-	exit -- 1
-!!
 
 << benchmark / curl
 	if test "${#}" -ge 1 ; then
