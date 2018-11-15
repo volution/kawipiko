@@ -390,9 +390,20 @@ func main_0 () (error) {
 	{
 		_flags := flag.NewFlagSet ("cdb-http-archiver", flag.ContinueOnError)
 		
-		_sourcesFolder_0 := _flags.String ("sources", "", "<path>")
-		_archiveFile_0 := _flags.String ("archive", "", "<path>")
-		_compress_0 := _flags.String ("compress", "", "gzip | brotli | identity")
+		_flags.Usage = func () () {
+			fmt.Fprintf (os.Stderr, "%s",
+`
+cdb-http-archiver
+	--sources <path>
+	--archive <path>
+	--compress <gzip | brotli | identity>
+	--debug
+`)
+		}
+		
+		_sourcesFolder_0 := _flags.String ("sources", "", "")
+		_archiveFile_0 := _flags.String ("archive", "", "")
+		_compress_0 := _flags.String ("compress", "", "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)

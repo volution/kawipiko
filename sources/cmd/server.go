@@ -271,17 +271,33 @@ func main_0 () (error) {
 	{
 		_flags := flag.NewFlagSet ("cdb-http-server", flag.ContinueOnError)
 		
-		_bind_0 := _flags.String ("bind", "", "<ip>:<port>")
-		_archive_0 := _flags.String ("archive", "", "<path>")
-		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "(memory-loaded archive file)")
-		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "(memory-mapped archive file)")
-		_archivePreload_0 := _flags.Bool ("archive-preload", false, "(preload archive file)")
+		_flags.Usage = func () () {
+			fmt.Fprintf (os.Stderr, "%s",
+`
+cdb-http-server
+	--archive <path>
+	--archive-inmem      (memory-loaded archive file)
+	--archive-mmap       (memory-mapped archive file)
+	--archive-preload    (preload archive file)
+	--bind <ip>:<port>
+	--processes <count>  (of slave processes)
+	--threads <count>    (of threads per process)
+	--profile-cpu <path>
+	--profile-mem <path>
+	--debug
+`)
+		}
+		
+		_bind_0 := _flags.String ("bind", "", "")
+		_archive_0 := _flags.String ("archive", "", "")
+		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "")
+		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "")
+		_archivePreload_0 := _flags.Bool ("archive-preload", false, "")
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
+		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
+		_profileMem_0 := _flags.String ("profile-mem", "", "")
 		_debug_0 := _flags.Bool ("debug", false, "")
-		
-		_profileCpu_0 := _flags.String ("profile-cpu", "", "<path>")
-		_profileMem_0 := _flags.String ("profile-mem", "", "<path>")
 		
 		FlagsParse (_flags, 0, 0)
 		

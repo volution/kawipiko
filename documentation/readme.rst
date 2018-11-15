@@ -135,12 +135,9 @@ The project provides two binaries:
 ::
 
     Usage of cdb-http-archiver:
-    --sources string
-          <path>
-    --archive string
-          <path>
-    --compress string
-          gzip | brotli
+    --sources <path>
+    --archive <path>
+    --compress <gzip | brotli | identity>
     --debug
 
 
@@ -156,11 +153,15 @@ The project provides two binaries:
 ::
 
     Usage of cdb-http-server:
-    --archive string
-          <path>
-    --bind string
-          <ip>:<port>
-    --preload
+    --archive <path>
+    --archive-inmem      (memory-loaded archive file)
+    --archive-mmap       (memory-mapped archive file)
+    --archive-preload    (preload archive file)
+    --bind <ip>:<port>
+    --processes <count>  (of slave processes)
+    --threads <count>    (of threads per process)
+    --profile-cpu <path>
+    --profile-mem <path>
     --debug
 
 
