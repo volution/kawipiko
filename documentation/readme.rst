@@ -138,6 +138,8 @@ The project provides two binaries:
     --sources <path>
     --archive <path>
     --compress <gzip | brotli | identity>
+    --exclude-index
+    --include-metadata
     --debug
 
 

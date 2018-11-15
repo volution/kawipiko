@@ -31,6 +31,8 @@ type context struct {
 	storedData map[string]bool
 	storedFiles map[[2]uint64]string
 	compress string
+	includeIndex bool
+	includeMetadata bool
 	debug bool
 }
 
@@ -105,62 +107,67 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 	}
 	
 	_entries := make ([]Entry, 0, len (_names))
-	for _, _name := range _names {
-		_entry := Entry {
-				Name : _name,
-				Type : "unknown",
+	if _context.includeMetadata {
+		for _, _name := range _names {
+			_entry := Entry {
+					Name : _name,
+					Type : "unknown",
+				}
+			_stat := _stats[_name]
+			_statMode := _stat.Mode ()
+			if _statMode.IsRegular () {
+				_entry.Type = "file"
+				_entry.Size = uint64 (_stat.Size ())
+			} else if _statMode.IsDir () {
+				_entry.Type = "folder"
 			}
-		_stat := _stats[_name]
-		_statMode := _stat.Mode ()
-		if _statMode.IsRegular () {
-			_entry.Type = "file"
-			_entry.Size = uint64 (_stat.Size ())
-		} else if _statMode.IsDir () {
-			_entry.Type = "folder"
+			_entries = append (_entries, _entry)
 		}
-		_entries = append (_entries, _entry)
 	}
 	
 	_indexNames := make ([]string, 0, 4)
-	var _indexNameFirst string
-	for _, _indexName := range IndexNames {
-		_indexNameFound := sort.SearchStrings (_names, _indexName)
-		if _indexNameFound == len (_names) {
-			continue
+	if _context.includeIndex {
+		var _indexNameFirst string
+		for _, _indexName := range IndexNames {
+			_indexNameFound := sort.SearchStrings (_names, _indexName)
+			if _indexNameFound == len (_names) {
+				continue
+			}
+			if _names[_indexNameFound] != _indexName {
+				continue
+			}
+			_stat := _stats[_indexName]
+			_statMode := _stat.Mode ()
+			if ! _statMode.IsRegular () {
+				continue
+			}
+			if _indexNameFirst == "" {
+				_indexNameFirst = _indexName
+			}
+			_indexNames = append (_indexNames, _indexName)
 		}
-		if _names[_indexNameFound] != _indexName {
-			continue
+		if _indexNameFirst != "" {
+			_indexPathResolved := filepath.Join (_pathResolved, _indexNameFirst)
+			_indexPathInArchive := _pathInArchive + "/"
+			if _pathInArchive == "/" {
+				_indexPathInArchive = "/"
+			}
+			archiveFile (_context, _indexPathResolved, _indexPathInArchive, _indexNameFirst)
 		}
-		_stat := _stats[_indexName]
-		_statMode := _stat.Mode ()
-		if ! _statMode.IsRegular () {
-			continue
-		}
-		if _indexNameFirst == "" {
-			_indexNameFirst = _indexName
-		}
-		_indexNames = append (_indexNames, _indexName)
-	}
-	if _indexNameFirst != "" {
-		_indexPathResolved := filepath.Join (_pathResolved, _indexNameFirst)
-		_indexPathInArchive := _pathInArchive + "/"
-		if _pathInArchive == "/" {
-			_indexPathInArchive = "/"
-		}
-		archiveFile (_context, _indexPathResolved, _indexPathInArchive, _indexNameFirst)
 	}
 	
-	_folder := Folder {
-			Entries : _entries,
-			Indices : _indexNames,
-		}
-	
-	if _data, _error := json.Marshal (&_folder); _error == nil {
-		if _, _, _error := archiveData (_context, NamespaceFoldersContent, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+	if _context.includeMetadata {
+		_folder := Folder {
+				Entries : _entries,
+				Indices : _indexNames,
+			}
+		if _data, _error := json.Marshal (&_folder); _error == nil {
+			if _, _, _error := archiveData (_context, NamespaceFoldersContent, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+				return _error
+			}
+		} else {
 			return _error
 		}
-	} else {
-		return _error
 	}
 	
 	return nil
@@ -385,6 +392,8 @@ func main_0 () (error) {
 	var _sourcesFolder string
 	var _archiveFile string
 	var _compress string
+	var _includeIndex bool
+	var _includeMetadata bool
 	var _debug bool
 	
 	{
@@ -397,6 +406,8 @@ cdb-http-archiver
 	--sources <path>
 	--archive <path>
 	--compress <gzip | brotli | identity>
+	--exclude-index
+	--include-metadata
 	--debug
 `)
 		}
@@ -404,6 +415,8 @@ cdb-http-archiver
 		_sourcesFolder_0 := _flags.String ("sources", "", "")
 		_archiveFile_0 := _flags.String ("archive", "", "")
 		_compress_0 := _flags.String ("compress", "", "")
+		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
+		_includeMetadata_0 := _flags.Bool ("include-metadata", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)
@@ -411,6 +424,8 @@ cdb-http-archiver
 		_sourcesFolder = *_sourcesFolder_0
 		_archiveFile = *_archiveFile_0
 		_compress = *_compress_0
+		_includeIndex = ! *_excludeIndex_0
+		_includeMetadata = *_includeMetadata_0
 		_debug = *_debug_0
 		
 		if _sourcesFolder == "" {
@@ -434,6 +449,8 @@ cdb-http-archiver
 			storedData : make (map[string]bool, 16 * 1024),
 			storedFiles : make (map[[2]uint64]string, 16 * 1024),
 			compress : _compress,
+			includeIndex : _includeIndex,
+			includeMetadata : _includeMetadata,
 			debug : _debug,
 		}
 	
