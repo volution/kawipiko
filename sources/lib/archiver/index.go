@@ -3,7 +3,7 @@
 package archiver
 
 
-var IndexNames []string = []string {
+var IndexNames = []string {
 		"index.html", "index.htm",
 		"index.xhtml", "index.xht",
 		"index.txt",

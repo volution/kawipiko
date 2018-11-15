@@ -94,6 +94,6 @@ func MetadataDecodeIterate (_data []byte, _callback func ([]byte, []byte) ()) (e
 
 
 
-var metadataKeyRegex *regexp.Regexp = regexp.MustCompile (`\A(?:[A-Z0-9](?:[a-z0-9]?[a-z]+)(?:-[A-Z0-9](?:[a-z0-9]?[a-z]+))*)|ETag\z`)
-var metadataValueRegex *regexp.Regexp = regexp.MustCompile (`\A[[:graph:]](?: ?[[:graph:]]+)*\z`)
+var metadataKeyRegex = regexp.MustCompile (`\A(?:[A-Z0-9](?:[a-z0-9]?[a-z]+)(?:-[A-Z0-9](?:[a-z0-9]?[a-z]+))*)|ETag\z`)
+var metadataValueRegex = regexp.MustCompile (`\A[[:graph:]](?: ?[[:graph:]]+)*\z`)
 

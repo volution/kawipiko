@@ -5,18 +5,36 @@ package server
 
 import "encoding/base64"
 
+import . "github.com/cipriancraciun/go-cdb-http/lib/common"
 
 
 
-func FaviconData () ([]byte, string) {
-	_data, _ := base64.StdEncoding.DecodeString (FaviconDataBase64)
-	return _data, "image/vnd.microsoft.icon"
+
+var HeartbeatContentType = MimeTypeText
+var HeartbeatContentEncoding = "identity"
+var HeartbeatDataOk = []byte ("OK\n")
+var HeartbeatDataNok = []byte ("NOK\n")
+
+
+var FaviconContentType = "image/vnd.microsoft.icon"
+var FaviconContentEncoding = "identity"
+var FaviconData = MustDecodeBase64 (faviconDataBase64)
+
+
+
+
+func MustDecodeBase64 (_data string) ([]byte) {
+	if _data, _error := base64.StdEncoding.DecodeString (_data); _error == nil {
+		return _data
+	} else {
+		panic (_error)
+	}
 }
 
 
 
 
-var FaviconDataBase64 = `
+var faviconDataBase64 = `
 AAABAAMAMDAAAAEAIACoJQAANgAAACAgAAABACAAqBAAAN4lAAAQEAAAAQAgAGgEAACGNgAAKAAA
 ADAAAABgAAAAAQAgAAAAAAAAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA

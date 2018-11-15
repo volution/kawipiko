@@ -21,7 +21,7 @@ const MimeTypeXhtml = "application/xhtml+xml; charset=utf-8"
 const MimeTypeRaw = "application/octet-stream"
 
 
-var MimeTypesByExtension map[string]string = map[string]string {
+var MimeTypesByExtension = map[string]string {
 		
 		"txt" : MimeTypeText,
 		"csv" : MimeTypeCsv,

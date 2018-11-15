@@ -18,6 +18,7 @@ import "runtime/pprof"
 import "sync"
 import "syscall"
 import "time"
+import "unsafe"
 
 // import "github.com/colinmarc/cdb"
 import cdb "github.com/cipriancraciun/go-cdb-lib"
@@ -40,11 +41,12 @@ type server struct {
 
 
 
-func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
-	// _request := &_context.Request
-	_requestHeaders := &_context.Request.Header
-	_response := &_context.Response
-	_responseHeaders := &_context.Response.Header
+func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
+	
+	// _request := (*fasthttp.Request) (NoEscape (unsafe.Pointer (&_context.Request)))
+	_requestHeaders := (*fasthttp.RequestHeader) (NoEscape (unsafe.Pointer (&_context.Request.Header)))
+	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
 	_keyBuffer := [1024]byte {}
 	_pathBuffer := [1024]byte {}
@@ -53,15 +55,7 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	_timestamp := time.Now ()
 	_timestampHttp := _timestamp.AppendFormat (_timestampBuffer[:0], http.TimeFormat)
 	
-	// _responseHeaders.SetCanonical ([]byte ("Content-Security-Policy"), []byte ("upgrade-insecure-requests"))
-	_responseHeaders.SetCanonical ([]byte ("Referrer-Policy"), []byte ("strict-origin-when-cross-origin"))
-	_responseHeaders.SetCanonical ([]byte ("X-Frame-Options"), []byte ("SAMEORIGIN"))
-	_responseHeaders.SetCanonical ([]byte ("X-content-type-Options"), []byte ("nosniff"))
-	_responseHeaders.SetCanonical ([]byte ("X-XSS-Protection"), []byte ("1; mode=block"))
-	
 	_responseHeaders.SetCanonical ([]byte ("Date"), _timestampHttp)
-	_responseHeaders.SetCanonical ([]byte ("Last-Modified"), _timestampHttp)
-	_responseHeaders.SetCanonical ([]byte ("Age"), []byte ("0"))
 	
 	_method := _requestHeaders.Method ()
 	
@@ -77,14 +71,29 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	
 	if ! bytes.Equal ([]byte (http.MethodGet), _method) {
 		log.Printf ("[ww] [bce7a75b] invalid method `%s` for `%s`!\n", _requestHeaders.Method (), _requestHeaders.RequestURI ())
-		_server.ServeError (_context, http.StatusMethodNotAllowed, nil)
+		_server.ServeError (_context, http.StatusMethodNotAllowed, nil, true)
 		return
 	}
 	if (_pathLen == 0) || (_path[0] != '/') {
 		log.Printf ("[ww] [fa6b1923] invalid path `%s`!\n", _requestHeaders.RequestURI ())
-		_server.ServeError (_context, http.StatusBadRequest, nil)
+		_server.ServeError (_context, http.StatusBadRequest, nil, true)
 		return
 	}
+	
+	if bytes.HasPrefix (_path, []byte ("/__/")) {
+		if bytes.Equal (_path, []byte ("/__/heartbeat")) || bytes.HasPrefix (_path, []byte ("/__/heartbeat/")) {
+			_server.ServeStatic (_context, http.StatusOK, HeartbeatDataOk, HeartbeatContentType, HeartbeatContentEncoding, false)
+		} else {
+			_server.ServeError (_context, http.StatusNotFound, nil, true)
+		}
+		return
+	}
+	
+	// _responseHeaders.SetCanonical ([]byte ("Content-Security-Policy"), []byte ("upgrade-insecure-requests"))
+	_responseHeaders.SetCanonical ([]byte ("Referrer-Policy"), []byte ("strict-origin-when-cross-origin"))
+	_responseHeaders.SetCanonical ([]byte ("X-Frame-Options"), []byte ("SAMEORIGIN"))
+	_responseHeaders.SetCanonical ([]byte ("X-content-type-Options"), []byte ("nosniff"))
+	_responseHeaders.SetCanonical ([]byte ("X-XSS-Protection"), []byte ("1; mode=block"))
 	
 	var _fingerprint []byte
 	{
@@ -99,14 +108,14 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 					if (_namespace == NamespaceFoldersContent) {
 						if !_pathIsRoot && !_pathHasSlash {
 							_path = append (_path, '/')
-							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path)
+							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
 							return
 						}
 					}
 					break _found
 				}
 			} else {
-				_server.ServeError (_context, http.StatusInternalServerError, _error)
+				_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 				return
 			}
 		}
@@ -115,15 +124,9 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	if _fingerprint == nil {
 		if ! bytes.Equal ([]byte ("/favicon.ico"), _path) {
 			log.Printf ("[ww] [7416f61d]  not found `%s`!\n", _requestHeaders.RequestURI ())
-			_server.ServeError (_context, http.StatusNotFound, nil)
+			_server.ServeError (_context, http.StatusNotFound, nil, true)
 		} else {
-			_data, _dataContentType := FaviconData ()
-			_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (_dataContentType))
-			_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
-			_responseHeaders.SetCanonical ([]byte ("ETag"), []byte ("f00f5f99bb3d45ef9806547fe5fe031a"))
-			_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
-			_response.SetStatusCode (http.StatusOK)
-			_response.SetBody (_data)
+			_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
 		}
 		return
 	}
@@ -139,11 +142,11 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 				_data = _value
 			} else {
 				log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", _requestHeaders.RequestURI ())
-				_server.ServeError (_context, http.StatusInternalServerError, nil)
+				_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 				return
 			}
 		} else {
-			_server.ServeError (_context, http.StatusInternalServerError, _error)
+			_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 			return
 		}
 	}
@@ -157,16 +160,16 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 			if _value != nil {
 				if _error := MetadataDecodeIterate (_value, _responseHeaders.SetCanonical); _error == nil {
 				} else {
-					_server.ServeError (_context, http.StatusInternalServerError, _error)
+					_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 					return
 				}
 			} else {
 				log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-				_server.ServeError (_context, http.StatusInternalServerError, nil)
+				_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 				return
 			}
 		} else {
-			_server.ServeError (_context, http.StatusInternalServerError, _error)
+			_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 			return
 		}
 	}
@@ -178,43 +181,66 @@ func (_server *server) HandleHTTP (_context *fasthttp.RequestCtx) () {
 	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
 	
 	_response.SetStatusCode (http.StatusOK)
-	
-	_dataSize := len (_data)
-	if _dataSize <= 32 * 1024 {
-		_response.SetBody (_data)
-	} else {
-		_response.SetBodyStream (bytes.NewReader (_data), _dataSize)
-	}
+	_response.SetBodyRaw (_data)
 }
 
 
 
 
-func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uint, _path []byte) () {
-	_response := &_context.Response
-	_responseHeaders := &_context.Response.Header
+func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint, _data []byte, _contentType string, _contentEncoding string, _cache bool) () {
 	
-	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
+	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
+	
+	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (_contentType))
+	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte (_contentEncoding))
+	
+	if _cache {
+		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+	} else {
+		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
+	}
+	
+	_response.SetStatusCode (int (_status))
+	_response.SetBodyRaw (_data)
+}
+
+
+func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uint, _path []byte, _cache bool) () {
+	
+	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
+	
 	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
-	_responseHeaders.SetCanonical ([]byte ("ETag"), []byte ("7aa652d8d607b85808c87c1c2105fbb5"))
-	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
 	_responseHeaders.SetCanonical ([]byte ("Location"), _path)
 	
+	if _cache {
+		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+	} else {
+		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
+	}
+	
+	// _responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
 	_response.SetStatusCode (int (_status))
-	// _response.SetBody ([]byte (fmt.Sprintf ("[%d] %s", _status, _path)))
+	// _response.SetBodyRaw ([]byte (fmt.Sprintf ("[%d] %s", _status, _path)))
 }
 
 
-func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, _error error) () {
-	_response := &_context.Response
-	_responseHeaders := &_context.Response.Header
+func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, _error error, _cache bool) () {
 	
-	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
-	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
-	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
+	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
+	if _cache {
+		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+	} else {
+		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
+	}
+	
+	// _responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
+	// _responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
 	_response.SetStatusCode (int (_status))
-	// _response.SetBody ([]byte (fmt.Sprintf ("[%d]", _status)))
+	// _response.SetBodyRaw ([]byte (fmt.Sprintf ("[%d]", _status)))
 	
 	LogError (_error, "")
 }
@@ -404,7 +430,7 @@ func main_0 () (error) {
 	
 	var _cdbReader *cdb.CDB
 	{
-		log.Printf ("[ii] [3b788396]  opening archive `%s`...\n", _archive)
+		log.Printf ("[ii] [3b788396]  opening archive file `%s`...\n", _archive)
 		
 		var _cdbFile *os.File
 		if _cdbFile_0, _error := os.Open (_archive); _error == nil {
@@ -413,21 +439,25 @@ func main_0 () (error) {
 			AbortError (_error, "[9e0b5ed3]  failed opening archive file!")
 		}
 		
-		var _cdbFileSize int64
-		if _cdbFileStat, _error := _cdbFile.Stat (); _error == nil {
-			_cdbFileSize = _cdbFileStat.Size ()
-		} else {
-			AbortError (_error, "[0ccf0a3b]  failed opening archive file!")
-		}
-		if _cdbFileSize < 1024 {
-			AbortError (nil, "[6635a2a8]  failed opening archive:  file is too small (or empty)!")
-		}
-		if _cdbFileSize >= (2 * 1024 * 1024 * 1024) {
-			AbortError (nil, "[545bf6ce]  failed opening archive:  file is too large!")
+		var _cdbFileSize int
+		{
+			var _cdbFileSize_0 int64
+			if _cdbFileStat, _error := _cdbFile.Stat (); _error == nil {
+				_cdbFileSize_0 = _cdbFileStat.Size ()
+			} else {
+				AbortError (_error, "[0ccf0a3b]  failed opening archive file!")
+			}
+			if _cdbFileSize_0 < 1024 {
+				AbortError (nil, "[6635a2a8]  failed opening archive:  file is too small (or empty)!")
+			}
+			if _cdbFileSize_0 >= (2 * 1024 * 1024 * 1024) {
+				AbortError (nil, "[545bf6ce]  failed opening archive:  file is too large!")
+			}
+			_cdbFileSize = int (_cdbFileSize_0)
 		}
 		
 		if _archivePreload {
-			log.Printf ("[ii] [13f4ebf7]  preloading archive...\n")
+			log.Printf ("[ii] [13f4ebf7]  preloading archive file...\n")
 			_buffer := [16 * 1024]byte {}
 			_loop : for {
 				switch _, _error := _cdbFile.Read (_buffer[:]); _error {
@@ -462,6 +492,18 @@ func main_0 () (error) {
 					_cdbData = _cdbData_0
 				} else {
 					AbortError (_error, "[c0e2632c]  failed mapping archive file!")
+				}
+				
+				if _archivePreload {
+					log.Printf ("[ii] [d96b06c9]  preloading memory-loaded archive...\n")
+					_buffer := [16 * 1024]byte {}
+					_bufferOffset := 0
+					for {
+						if _bufferOffset == _cdbFileSize {
+							break
+						}
+						_bufferOffset += copy (_buffer[:], _cdbData[_bufferOffset:])
+					}
 				}
 				
 			} else {
@@ -535,7 +577,7 @@ func main_0 () (error) {
 	_httpServer := & fasthttp.Server {
 			
 			Name : "cdb-http",
-			Handler : _server.HandleHTTP,
+			Handler : _server.Serve,
 			
 			NoDefaultServerHeader : true,
 			NoDefaultContentType : true,
@@ -543,14 +585,14 @@ func main_0 () (error) {
 			
 			Concurrency : 4 * 1024,
 			
-			ReadBufferSize : 8 * 1024,
-			WriteBufferSize : 32 * 1024,
+			ReadBufferSize : 2 * 1024,
+			WriteBufferSize : 2 * 1024,
 			
 			ReadTimeout : 6 * time.Second,
 			WriteTimeout : 6 * time.Second,
 			MaxKeepaliveDuration : 360 * time.Second,
 			MaxRequestsPerConn : 256 * 1024,
-			MaxRequestBodySize : 8 * 1024,
+			MaxRequestBodySize : 2 * 1024,
 			GetOnly : true,
 			
 			TCPKeepalive : true,

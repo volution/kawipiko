@@ -42,5 +42,5 @@ func LogError (_error error, _message string) () {
 }
 
 
-var logErrorMessageProper *regexp.Regexp = regexp.MustCompile (`\A\[[0-9a-f]{8}\] [^\n]+\z`)
+var logErrorMessageProper = regexp.MustCompile (`\A\[[0-9a-f]{8}\] [^\n]+\z`)
 
