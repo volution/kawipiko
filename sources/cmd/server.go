@@ -70,12 +70,12 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_pathHasSlash := !_pathIsRoot && (_path[_pathLen - 1] == '/')
 	
 	if ! bytes.Equal ([]byte (http.MethodGet), _method) {
-		log.Printf ("[ww] [bce7a75b] invalid method `%s` for `%s`!\n", _requestHeaders.Method (), _requestHeaders.RequestURI ())
+		log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", _requestHeaders.Method (), _requestHeaders.RequestURI ())
 		_server.ServeError (_context, http.StatusMethodNotAllowed, nil, true)
 		return
 	}
 	if (_pathLen == 0) || (_path[0] != '/') {
-		log.Printf ("[ww] [fa6b1923] invalid path `%s`!\n", _requestHeaders.RequestURI ())
+		log.Printf ("[ww] [fa6b1923]  invalid path `%s`!\n", _requestHeaders.RequestURI ())
 		_server.ServeError (_context, http.StatusBadRequest, nil, true)
 		return
 	}
@@ -263,7 +263,9 @@ func main_0 () (error) {
 	var _archivePreload bool
 	var _processes uint
 	var _threads uint
+	var _slave uint
 	var _debug bool
+	var _isFirst bool
 	
 	var _profileCpu string
 	var _profileMem string
@@ -295,6 +297,7 @@ cdb-http-server
 		_archivePreload_0 := _flags.Bool ("archive-preload", false, "")
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
+		_slave_0 := _flags.Uint ("slave", 0, "")
 		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
 		_profileMem_0 := _flags.String ("profile-mem", "", "")
 		_debug_0 := _flags.Bool ("debug", false, "")
@@ -308,6 +311,7 @@ cdb-http-server
 		_archivePreload = *_archivePreload_0
 		_processes = *_processes_0
 		_threads = *_threads_0
+		_slave = *_slave_0
 		_debug = *_debug_0
 		
 		_profileCpu = *_profileCpu_0
@@ -367,7 +371,6 @@ cdb-http-server
 		_processName := os.Args[0]
 		_processArguments := make ([]string, 0, len (os.Args))
 		_processArguments = append (_processArguments,
-				_processName,
 				"--bind", _bind,
 				"--archive", _archive,
 			)
@@ -396,14 +399,19 @@ cdb-http-server
 			}
 		
 		for _processIndex, _ := range _processesPid {
+			_processArguments := append ([]string { _processName, "--slave", fmt.Sprintf ("%d", _processIndex + 1) }, _processArguments ...)
 			if _processPid, _error := os.StartProcess (_processName, _processArguments, _processAttributes); _error == nil {
 				_processesJoin.Add (1)
 				_processesPid[_processIndex] = _processPid
-				log.Printf ("[ii] [63cb22f8]  sub-process `%d` started;\n", _processPid.Pid)
+				if _debug {
+					log.Printf ("[ii] [63cb22f8]  sub-process `%d` started (with `%d` threads);\n", _processPid.Pid, _threads)
+				}
 				go func (_index int, _processPid *os.Process) () {
 					if _processStatus, _error := _processPid.Wait (); _error == nil {
 						if _processStatus.Success () {
-							log.Printf ("[ii] [66b60b81]  sub-process `%d` succeeded;\n", _processPid.Pid)
+							if _debug {
+								log.Printf ("[ii] [66b60b81]  sub-process `%d` succeeded;\n", _processPid.Pid)
+							}
 						} else {
 							log.Printf ("[ww] [5d25046b]  sub-process `%d` failed:  `%s`;  ignoring!\n", _processPid.Pid, _processStatus)
 						}
@@ -424,7 +432,9 @@ cdb-http-server
 			go func () () {
 				for {
 					_signal := <- _signals
-					log.Printf ("[ii] [a9243ecb]  signaling sub-processes...\n")
+					if _debug {
+						log.Printf ("[ii] [a9243ecb]  signaling sub-processes...\n")
+					}
 					for _, _processPid := range _processesPid {
 						if _processPid != nil {
 							if _error := _processPid.Signal (_signal); _error != nil {
@@ -438,15 +448,27 @@ cdb-http-server
 		
 		_processesJoin.Wait ()
 		
-		log.Printf ("[ii] [b949bafc]  sub-processes terminated;\n")
+		if _debug {
+			log.Printf ("[ii] [b949bafc]  sub-processes terminated;\n")
+		}
 		
 		return nil
 	}
 	
 	
+	if _slave <= 1 {
+		_isFirst = true
+	}
+	if _slave == 0 {
+		log.Printf ("[ii] [6602a54a]  starting (with `%d` threads)...\n", _threads)
+	}
+	
+	
 	var _cdbReader *cdb.CDB
 	{
-		log.Printf ("[ii] [3b788396]  opening archive file `%s`...\n", _archive)
+		if _debug || _isFirst {
+			log.Printf ("[ii] [3b788396]  opening archive file `%s`...\n", _archive)
+		}
 		
 		var _cdbFile *os.File
 		if _cdbFile_0, _error := os.Open (_archive); _error == nil {
@@ -473,7 +495,9 @@ cdb-http-server
 		}
 		
 		if _archivePreload {
-			log.Printf ("[ii] [13f4ebf7]  preloading archive file...\n")
+			if _debug {
+				log.Printf ("[ii] [13f4ebf7]  preloading archive file...\n")
+			}
 			_buffer := [16 * 1024]byte {}
 			_loop : for {
 				switch _, _error := _cdbFile.Read (_buffer[:]); _error {
@@ -493,7 +517,9 @@ cdb-http-server
 			
 			if _archiveInmem {
 				
-				log.Printf ("[ii] [216e584b]  opening memory-loaded archive...\n")
+				if _debug {
+					log.Printf ("[ii] [216e584b]  opening memory-loaded archive...\n")
+				}
 				
 				_cdbData = make ([]byte, _cdbFileSize)
 				if _, _error := io.ReadFull (_cdbFile, _cdbData); _error != nil {
@@ -502,7 +528,9 @@ cdb-http-server
 				
 			} else if _archiveMmap {
 				
-				log.Printf ("[ii] [f47fae8a]  opening memory-mapped archive...\n")
+				if _debug {
+					log.Printf ("[ii] [f47fae8a]  opening memory-mapped archive...\n")
+				}
 				
 				if _cdbData_0, _error := syscall.Mmap (int (_cdbFile.Fd ()), 0, int (_cdbFileSize), syscall.PROT_READ, syscall.MAP_SHARED); _error == nil {
 					_cdbData = _cdbData_0
@@ -511,7 +539,9 @@ cdb-http-server
 				}
 				
 				if _archivePreload {
-					log.Printf ("[ii] [d96b06c9]  preloading memory-loaded archive...\n")
+					if _debug {
+						log.Printf ("[ii] [d96b06c9]  preloading memory-loaded archive...\n")
+					}
 					_buffer := [16 * 1024]byte {}
 					_bufferOffset := 0
 					for {
@@ -538,7 +568,9 @@ cdb-http-server
 			
 		} else {
 			
-			log.Printf ("[ww] [dd697a66]  using `read`-based archive (with significant performance impact)!\n")
+			if _debug || _isFirst {
+				log.Printf ("[ww] [dd697a66]  using `read`-based archive (with significant performance impact)!\n")
+			}
 			
 			if _cdbReader_0, _error := cdb.NewFromReaderWithHasher (_cdbFile, nil); _error == nil {
 				_cdbReader = _cdbReader_0
@@ -626,13 +658,17 @@ cdb-http-server
 		signal.Notify (_signals, syscall.SIGINT, syscall.SIGTERM)
 		go func () () {
 			<- _signals
-			log.Printf ("[ii] [691cb695]  shutingdown...\n")
+			if _debug {
+				log.Printf ("[ii] [691cb695]  shutingdown...\n")
+			}
 			_server.httpServer.Shutdown ()
 		} ()
 	}
 	
 	
-	log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`;\n", _bind)
+	if _debug || _isFirst {
+		log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`;\n", _bind)
+	}
 	
 	var _httpListener net.Listener
 	if _httpListener_0, _error := reuseport.Listen ("tcp4", _bind); _error == nil {
@@ -646,7 +682,9 @@ cdb-http-server
 	}
 	
 	
-	defer log.Printf ("[ii] [a49175db]  done!\n")
+	if _debug {
+		defer log.Printf ("[ii] [a49175db]  done!\n")
+	}
 	return nil
 }
 
