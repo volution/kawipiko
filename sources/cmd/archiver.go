@@ -392,7 +392,7 @@ func main_0 () (error) {
 		
 		_sourcesFolder_0 := _flags.String ("sources", "", "<path>")
 		_archiveFile_0 := _flags.String ("archive", "", "<path>")
-		_compress_0 := _flags.String ("compress", "", "gzip | brotli")
+		_compress_0 := _flags.String ("compress", "", "gzip | brotli | identity")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)

@@ -31,7 +31,11 @@ func FlagsParse (_flags *flag.FlagSet, _argumentsMin uint, _argumentsMax uint) (
 	_arguments := os.Args[1:]
 	
 	if _error := _flags.Parse (_arguments); _error != nil {
-		AbortError (_error, fmt.Sprintf ("[8fae7a93]  failed parsing arguments:  `%v`!", _arguments))
+		if _error == flag.ErrHelp {
+			os.Exit (0)
+		} else {
+			AbortError (_error, fmt.Sprintf ("[8fae7a93]  failed parsing arguments:  `%v`!", _arguments))
+		}
 	}
 	
 	_flagsNArg := uint (_flags.NArg ())
