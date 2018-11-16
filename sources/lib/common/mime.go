@@ -36,5 +36,11 @@ var MimeTypesByExtension = map[string]string {
 		"xslt" : MimeTypeXml,
 		"xhtml" : MimeTypeXhtml,
 		
+		"svg" : "image/svg+xml",
+		"png" : "image/png",
+		"gif" : "image/gif",
+		"jpeg" : "image/jpeg",
+		"jpg" : "image/jpeg",
+		
 	}
 
