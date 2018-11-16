@@ -56,36 +56,33 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 		if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
 			_fileId = [2]uint64 { _stat.Dev, _stat.Ino }
 		} else {
-			return fmt.Errorf ("[6578d2d7]  failed `stat`-ing!")
+			return fmt.Errorf ("[6578d2d7]  failed `stat`-ing:  `%s`!", _pathResolved)
 		}
 	}
 	
 	_fingerprint, _wasStored := _context.storedFiles[_fileId]
 	
-	if ! _wasStored {
-		
-		var _data []byte
-		if _data_0, _error := ioutil.ReadAll (_file); _error == nil {
-			_data = _data_0
-		} else {
+	if _wasStored {
+		if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
 			return _error
 		}
-		
-		var _fingerprint string
-		if _fingerprint_0, _, _error := archiveData (_context, NamespaceFilesContent, _pathInArchive, _name, _data, ""); _error == nil {
-			_fingerprint = _fingerprint_0
-		} else {
-			return _error
-		}
-		
-		_context.storedFiles[_fileId] = _fingerprint
-		
-	} else {
-		
-		if _error := archiveDataReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
-			return _error
-		}
+		return nil
 	}
+	
+	var _data []byte
+	if _data_0, _error := ioutil.ReadAll (_file); _error == nil {
+		_data = _data_0
+	} else {
+		return _error
+	}
+	
+	if _fingerprint_0, _error := archiveReferenceAndData (_context, NamespaceFilesContent, _pathResolved, _pathInArchive, _name, _data, ""); _error != nil {
+		return _error
+	} else {
+		_fingerprint = _fingerprint_0
+	}
+	
+	_context.storedFiles[_fileId] = _fingerprint
 	
 	return nil
 }
@@ -156,18 +153,24 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 		}
 	}
 	
-	if _context.includeMetadata {
-		_folder := Folder {
-				Entries : _entries,
-				Indices : _indexNames,
-			}
-		if _data, _error := json.Marshal (&_folder); _error == nil {
-			if _, _, _error := archiveData (_context, NamespaceFoldersContent, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
-				return _error
-			}
-		} else {
-			return _error
+	if ! _context.includeMetadata {
+		return nil
+	}
+	
+	_folder := Folder {
+			Entries : _entries,
+			Indices : _indexNames,
 		}
+	
+	var _data []byte
+	if _data_0, _error := json.Marshal (&_folder); _error == nil {
+		_data = _data_0
+	} else {
+		return _error
+	}
+	
+	if _, _error := archiveReferenceAndData (_context, NamespaceFoldersContent, _pathResolved, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+		return _error
 	}
 	
 	return nil
@@ -176,12 +179,98 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 
 
 
-func archiveData (_context *context, _namespace string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, string, error) {
+func archiveReferenceAndData (_context *context, _namespace string, _pathResolved string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, error) {
+	
+	var _fingerprint string
+	var _dataMeta map[string]string
+	if _fingerprint_0, _data_0, _dataMeta_0, _error := prepareData (_context, _pathResolved, _pathInArchive, _name, _data, _dataType); _error != nil {
+		return "", _error
+	} else {
+		_fingerprint = _fingerprint_0
+		_data = _data_0
+		_dataMeta = _dataMeta_0
+	}
+	
+	if _error := archiveReference (_context, _namespace, _pathInArchive, _fingerprint); _error != nil {
+		return "", _error
+	}
+	
+	if (_data != nil) && (_dataMeta != nil) {
+		if _error := archiveData (_context, _fingerprint, _data, _dataMeta); _error != nil {
+			return "", _error
+		}
+	}
+	
+	return _fingerprint, nil
+}
+
+
+
+func archiveData (_context *context, _fingerprint string, _data []byte, _dataMeta map[string]string) (error) {
+	
+	if _wasStored, _ := _context.storedData[_fingerprint]; _wasStored {
+		return fmt.Errorf ("[256cde78]  data already stored:  `%s`!", _fingerprint)
+	}
+	
+	var _dataMetaRaw []byte
+	if _dataMetaRaw_0, _error := MetadataEncode (_dataMeta); _error == nil {
+		_dataMetaRaw = _dataMetaRaw_0
+	} else {
+		return _error
+	}
+	
+	{
+		_key := fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _fingerprint)
+		if _context.debug {
+			log.Printf ("[  ] blob-meta    ++ `%s`\n", _key)
+		}
+		if _error := _context.cdbWriter.Put ([]byte (_key), _dataMetaRaw); _error != nil {
+			return _error
+		}
+	}
+	
+	{
+		_key := fmt.Sprintf ("%s:%s", NamespaceDataContent, _fingerprint)
+		if _context.debug {
+			log.Printf ("[  ] blob-data    ++ `%s`\n", _key)
+		}
+		if _error := _context.cdbWriter.Put ([]byte (_key), _data); _error != nil {
+			return _error
+		}
+	}
+	
+	_context.storedData[_fingerprint] = true
+	
+	return nil
+}
+
+
+
+
+func archiveReference (_context *context, _namespace string, _pathInArchive string, _fingerprint string) (error) {
+	
+	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
+	if _context.debug {
+		log.Printf ("[  ] reference    ++ `%s` :: `%s` -> `%s`\n", _namespace, _pathInArchive, _fingerprint)
+	}
+	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprint)); _error != nil {
+		return _error
+	}
+	
+	return nil
+}
+
+
+
+
+func prepareData (_context *context, _pathResolved string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, []byte, map[string]string, error) {
 	
 	_fingerprintRaw := sha256.Sum256 (_data)
 	_fingerprint := hex.EncodeToString (_fingerprintRaw[:])
 	
-	_wasStored, _ := _context.storedData[_fingerprint]
+	if _wasStored, _ := _context.storedData[_fingerprint]; _wasStored {
+		return _fingerprint, nil, nil, nil
+	}
 	
 	if (_dataType == "") && (_name != "") {
 		_extension := filepath.Ext (_name)
@@ -197,75 +286,56 @@ func archiveData (_context *context, _namespace string, _pathInArchive string, _
 		_dataType = MimeTypeRaw
 	}
 	
-	if ! _wasStored {
-		
-		var _dataEncoding string
+	_dataEncoding := "identity"
+	_dataUncompressedSize := len (_data)
+	_dataSize := _dataUncompressedSize
+	if _dataSize > 512 {
 		if _data_0, _dataEncoding_0, _error := Compress (_data, _context.compress); _error == nil {
-			_data = _data_0
-			_dataEncoding = _dataEncoding_0
-		}
-		
-		_metadata := make (map[string]string, 16)
-		_metadata["Content-Type"] = _dataType
-		_metadata["Content-Encoding"] = _dataEncoding
-		_metadata["ETag"] = _fingerprint
-		
-		var _metadataRaw []byte
-		if _metadataRaw_0, _error := MetadataEncode (_metadata); _error == nil {
-			_metadataRaw = _metadataRaw_0
+			if _dataEncoding_0 != "identity" {
+				_dataCompressedSize := len (_data_0)
+				_dataCompressedDelta := _dataUncompressedSize - _dataCompressedSize
+				_dataCompressedRatio := (_dataCompressedDelta * 100) / _dataUncompressedSize
+				_accepted := false
+				_accepted = _accepted || ((_dataUncompressedSize > (1024 * 1024)) && (_dataCompressedRatio >= 5))
+				_accepted = _accepted || ((_dataUncompressedSize > (64 * 1024)) && (_dataCompressedRatio >= 10))
+				_accepted = _accepted || ((_dataUncompressedSize > (32 * 1024)) && (_dataCompressedRatio >= 15))
+				_accepted = _accepted || ((_dataUncompressedSize > (16 * 1024)) && (_dataCompressedRatio >= 20))
+				_accepted = _accepted || ((_dataUncompressedSize > (8 * 1024)) && (_dataCompressedRatio >= 25))
+				_accepted = _accepted || ((_dataUncompressedSize > (4 * 1024)) && (_dataCompressedRatio >= 30))
+				_accepted = _accepted || ((_dataUncompressedSize > (2 * 1024)) && (_dataCompressedRatio >= 35))
+				_accepted = _accepted || ((_dataUncompressedSize > (1 * 1024)) && (_dataCompressedRatio >= 40))
+				_accepted = _accepted || (_dataCompressedRatio >= 90)
+				if _accepted {
+					_data = _data_0
+					_dataEncoding = _dataEncoding_0
+					_dataSize = _dataCompressedSize
+				}
+				if _dataSize < _dataUncompressedSize {
+					if _context.debug {
+						log.Printf ("[  ] compress          %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
+					}
+				} else {
+					if _context.debug {
+						log.Printf ("[  ] compress-NOK      %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
+					}
+				}
+			}
 		} else {
-			return "", "", _error
+			return "", nil, nil, _error
 		}
-		
-		{
-			_key := fmt.Sprintf ("%s:%s", NamespaceDataContent, _fingerprint)
-			if _context.debug {
-				log.Printf ("[  ] ++ %s", _key)
-			}
-			if _error := _context.cdbWriter.Put ([]byte (_key), _data); _error != nil {
-				return "", "", _error
-			}
-		}
-		
-		{
-			_key := fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _fingerprint)
-			if _context.debug {
-				log.Printf ("[  ] ++ %s", _key)
-			}
-			if _error := _context.cdbWriter.Put ([]byte (_key), _metadataRaw); _error != nil {
-				return "", "", _error
-			}
-		}
-		
-		_context.storedData[_fingerprint] = true
-		
 	} else {
-		if _context.debug {
-			log.Printf ("[  ] == %s", _fingerprint)
+		if _context.debug && (_context.compress != "identity") {
+			log.Printf ("[  ] compress-NOK         %8d          `%s`\n", _dataUncompressedSize, _pathInArchive)
 		}
 	}
 	
-	if _error := archiveDataReference (_context, _namespace, _pathInArchive, _fingerprint); _error != nil {
-		return "", "", _error
-	}
+	_dataMeta := make (map[string]string, 16)
+	_dataMeta["Content-Length"] = fmt.Sprintf ("%d", _dataSize)
+	_dataMeta["Content-Type"] = _dataType
+	_dataMeta["Content-Encoding"] = _dataEncoding
+	_dataMeta["ETag"] = _fingerprint
 	
-	return _fingerprint, _dataType, nil
-}
-
-
-func archiveDataReference (_context *context, _namespace string, _pathInArchive string, _fingerprint string) (error) {
-	
-	if _namespace != "" {
-		_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
-		if _context.debug {
-			log.Printf ("[  ] ++ %s %s", _key, _fingerprint)
-		}
-		if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprint)); _error != nil {
-			return _error
-		}
-	}
-	
-	return nil
+	return _fingerprint, _data, _dataMeta, nil
 }
 
 
@@ -314,14 +384,14 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 	}
 	
 	if _isSymlink && _context.debug {
-		log.Printf ("[  ] ~~ %s -> %s\n", _pathInArchive, _pathResolved)
+		log.Printf ("[  ] symlink      :: `%s` -> `%s`\n", _pathInArchive, _pathResolved)
 	}
 	
 	
 	if _statMode.IsRegular () {
 		
 		if _context.debug {
-			log.Printf ("[  ] ## %s\n", _pathInArchive)
+			log.Printf ("[  ] file         :: `%s`\n", _pathInArchive)
 		}
 		if _error := archiveFile (_context, _pathResolved, _pathInArchive, _name); _error != nil {
 			return _stat, _error
@@ -341,7 +411,7 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 		_stats := make (map[string]os.FileInfo, 16)
 		
 		if _context.debug {
-			log.Printf ("[  ] *> %s\n", _pathInArchive)
+			log.Printf ("[  ] folder       >> `%s`\n", _pathInArchive)
 		}
 		if _stream, _error := os.Open (_path); _error == nil {
 			defer _stream.Close ()
@@ -366,20 +436,20 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 			}
 		}
 		if _context.debug {
-			log.Printf ("[  ] *< %s\n", _pathInArchive)
+			log.Printf ("[  ] folder       << `%s`\n", _pathInArchive)
 		}
 		
 		sort.Strings (_names)
 		
 		if _context.debug {
-			log.Printf ("[  ] <> %s\n", _pathInArchive)
+			log.Printf ("[  ] folder       :: `%s`\n", _pathInArchive)
 		}
 		if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _names, _stats); _error != nil {
 			return nil, _error
 		}
 		
 		if _context.debug {
-			log.Printf ("[  ] >> %s\n", _pathInArchive)
+			log.Printf ("[  ] folder       >> `%s`\n", _pathInArchive)
 		}
 		
 		for _, _name := range _names {
@@ -410,7 +480,7 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 			}
 		}
 		if _context.debug {
-			log.Printf ("[  ] << %s\n", _pathInArchive)
+			log.Printf ("[  ] folder       << `%s`\n", _pathInArchive)
 		}
 		
 		_recursed[_pathResolved] = _wasRecursed
