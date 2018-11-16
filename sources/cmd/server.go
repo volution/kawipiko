@@ -97,15 +97,22 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	
 	var _fingerprint []byte
 	{
-		_found : for _, _namespace := range []string {NamespaceFilesContent, NamespaceFoldersContent} {
+		_found : for _, _namespaceAndPathPrefix := range [][2]string {
+				{NamespaceFilesContent, ""},
+				{NamespaceFilesContent, "/"},
+				{NamespaceFoldersContent, ""},
+		} {
+			_namespace := _namespaceAndPathPrefix[0]
+			_pathPrefix := _namespaceAndPathPrefix[1]
 			_key := _keyBuffer[:0]
 			_key = append (_key, _namespace ...)
 			_key = append (_key, ':')
 			_key = append (_key, _path ...)
+			_key = append (_key, _pathPrefix ...)
 			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 				if _value != nil {
 					_fingerprint = _value
-					if (_namespace == NamespaceFoldersContent) {
+					if ((_namespace == NamespaceFoldersContent) || (_pathPrefix == "/")) {
 						if !_pathIsRoot && !_pathHasSlash {
 							_path = append (_path, '/')
 							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
@@ -220,7 +227,8 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
 	}
 	
-	// _responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
+	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
+	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
 	_response.SetStatusCode (int (_status))
 	// _response.SetBodyRaw ([]byte (fmt.Sprintf ("[%d] %s", _status, _path)))
 }
@@ -237,8 +245,8 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
 	}
 	
-	// _responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
-	// _responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
+	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
 	_response.SetStatusCode (int (_status))
 	// _response.SetBodyRaw ([]byte (fmt.Sprintf ("[%d]", _status)))
 	
