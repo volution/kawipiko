@@ -82,9 +82,9 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 		}
 	}
 	
-	for _, _extension := range StripExtensions {
-		if strings.HasSuffix (_pathInArchive, _extension) {
-			_pathInArchive := _pathInArchive [: len (_pathInArchive) - len (_extension)]
+	for _, _suffix := range StripSuffixes {
+		if strings.HasSuffix (_pathInArchive, _suffix) {
+			_pathInArchive := _pathInArchive [: len (_pathInArchive) - len (_suffix)]
 			if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
 				return _error
 			}
@@ -96,10 +96,13 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 		return _error
 	}
 	
-	if ! _wasStored {
+	if (_data != nil) && (_dataMeta != nil) {
 		if _error := archiveData (_context, _fingerprint, _data, _dataMeta); _error != nil {
 			return _error
 		}
+	}
+	
+	if ! _wasStored {
 		_context.storedFiles[_fileId] = _fingerprint
 	}
 	
@@ -440,6 +443,12 @@ func walkPath (_context *context, _path string, _prefix string, _name string, _r
 					case nil :
 						for _, _stat := range _buffer {
 							_name := _stat.Name ()
+							if ShouldSkipName (_name) {
+								if _context.debug {
+									log.Printf ("[  ] skip         !! `%s`\n", filepath.Join (_prefix, _name))
+								}
+								continue
+							}
 							_names = append (_names, _name)
 							if _stat, _error := walkPath (_context, filepath.Join (_path, _name), _prefix, _name, _recursed, false); _error == nil {
 								_stats[_name] = _stat
