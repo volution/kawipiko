@@ -15,6 +15,7 @@ import "net/http"
 import "path/filepath"
 import "os"
 import "sort"
+import "strings"
 import "syscall"
 
 // import "github.com/colinmarc/cdb"
@@ -61,28 +62,46 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 	}
 	
 	_fingerprint, _wasStored := _context.storedFiles[_fileId]
+	var _data []byte
+	var _dataMeta map[string]string
 	
-	if _wasStored {
-		if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
+	if ! _wasStored {
+		
+		if _data_0, _error := ioutil.ReadAll (_file); _error == nil {
+			_data = _data_0
+		} else {
 			return _error
 		}
-		return nil
+		
+		if _fingerprint_0, _data_0, _dataMeta_0, _error := prepareData (_context, _pathResolved, _pathInArchive, _name, _data, ""); _error != nil {
+			return _error
+		} else {
+			_fingerprint = _fingerprint_0
+			_data = _data_0
+			_dataMeta = _dataMeta_0
+		}
 	}
 	
-	var _data []byte
-	if _data_0, _error := ioutil.ReadAll (_file); _error == nil {
-		_data = _data_0
-	} else {
+	for _, _extension := range StripExtensions {
+		if strings.HasSuffix (_pathInArchive, _extension) {
+			_pathInArchive := _pathInArchive [: len (_pathInArchive) - len (_extension)]
+			if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
+				return _error
+			}
+			break
+		}
+	}
+	
+	if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
 		return _error
 	}
 	
-	if _fingerprint_0, _error := archiveReferenceAndData (_context, NamespaceFilesContent, _pathResolved, _pathInArchive, _name, _data, ""); _error != nil {
-		return _error
-	} else {
-		_fingerprint = _fingerprint_0
+	if ! _wasStored {
+		if _error := archiveData (_context, _fingerprint, _data, _dataMeta); _error != nil {
+			return _error
+		}
+		_context.storedFiles[_fileId] = _fingerprint
 	}
-	
-	_context.storedFiles[_fileId] = _fingerprint
 	
 	return nil
 }

@@ -11,3 +11,9 @@ var IndexNames = []string {
 		"index.xml",
 	}
 
+var StripExtensions = []string {
+		".html", ".htm",
+		".xhtml", ".xht",
+		".txt",
+	}
+
