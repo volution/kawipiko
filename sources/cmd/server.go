@@ -84,10 +84,22 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	if bytes.HasPrefix (_path, []byte ("/__/")) {
 		if bytes.Equal (_path, []byte ("/__/heartbeat")) || bytes.HasPrefix (_path, []byte ("/__/heartbeat/")) {
 			_server.ServeStatic (_context, http.StatusOK, HeartbeatDataOk, HeartbeatContentType, HeartbeatContentEncoding, false)
+			return
+		} else if bytes.HasPrefix (_path, []byte ("/__/errors/banners/")) {
+			_code := _path[len ("/__/errors/banners/") :]
+			if _code, _error := strconv.Atoi (BytesToString (_code)); _error == nil {
+				_banner, _bannerFound := ErrorBanners[uint (_code)]
+				if (_code > 0) && _bannerFound {
+					_server.ServeStatic (_context, http.StatusOK, []byte (_banner), MimeTypeText, "identity", true)
+					return
+				}
+			}
+			_server.ServeError (_context, http.StatusNotFound, nil, true)
+			return
 		} else {
 			_server.ServeError (_context, http.StatusNotFound, nil, true)
+			return
 		}
-		return
 	}
 	
 	// _responseHeaders.SetCanonical ([]byte ("Content-Security-Policy"), []byte ("upgrade-insecure-requests"))
@@ -294,8 +306,8 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 	
 	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
 	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+	
 	_response.SetStatusCode (int (_status))
-	// _response.SetBodyRaw ([]byte (fmt.Sprintf ("[%d] %s", _status, _path)))
 }
 
 
@@ -312,8 +324,12 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	
 	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
 	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+	
+	if _banner, _bannerFound := ErrorBanners[_status]; _bannerFound {
+		_response.SetBodyRaw ([]byte (_banner))
+	}
+	
 	_response.SetStatusCode (int (_status))
-	// _response.SetBodyRaw ([]byte (fmt.Sprintf ("[%d]", _status)))
 	
 	LogError (_error, "")
 }
