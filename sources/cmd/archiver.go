@@ -413,7 +413,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 			log.Printf ("[  ] file         :: `%s`\n", _pathInArchive)
 		}
 		if _error := archiveFile (_context, _pathResolved, _pathInArchive, _name); _error != nil {
-			return _stat, _error
+			return nil, _error
 		}
 		return _stat, nil
 		
@@ -431,6 +431,8 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		_childsPathInArchive := make (map[string]string, 16)
 		_childsStat := make (map[string]os.FileInfo, 16)
 		
+		var _wildcardName string
+		
 		if _context.debug {
 			log.Printf ("[  ] folder       >> `%s`\n", _pathInArchive)
 		}
@@ -440,23 +442,33 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 				switch _buffer, _error := _stream.Readdir (128); _error {
 					case nil :
 						for _, _childStat := range _buffer {
+							
 							_childName := _childStat.Name ()
 							_childPathResolved := filepath.Join (_pathResolved, _childName)
 							_childPathInArchive := filepath.Join (_pathInArchive, _childName)
+							
+							if _childStat_0, _error := walkPath (_context, _childPathResolved, _childPathInArchive, _childName, _recursed, false); _error == nil {
+								_childStat = _childStat_0
+							} else {
+								return nil, _error
+							}
+							
+							_childsPathResolved[_childName] = _childPathResolved
+							_childsPathInArchive[_childName] = _childPathInArchive
+							_childsStat[_childName] = _childStat
+							
+							if strings.HasPrefix (_childName, "_wildcard.") {
+								_wildcardName = _childName
+								continue
+							}
 							if ShouldSkipName (_childName) {
 								if _context.debug {
 									log.Printf ("[  ] skip         !! `%s`\n", _childPathInArchive)
 								}
 								continue
 							}
+							
 							_childsName = append (_childsName, _childName)
-							_childsPathResolved[_childName] = _childPathResolved
-							_childsPathInArchive[_childName] = _childPathInArchive
-							if _childStat, _error := walkPath (_context, _childPathResolved, _childPathInArchive, _childName, _recursed, false); _error == nil {
-								_childsStat[_childName] = _childStat
-							} else {
-								return nil, _error
-							}
 						}
 					case io.EOF :
 						break _loop
@@ -478,27 +490,34 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 			return nil, _error
 		}
 		
+		if _wildcardName != "" {
+			_childPathInArchive := filepath.Join (_pathInArchive, "*")
+			if _, _error := walkPath (_context, _childsPathResolved[_wildcardName], _childPathInArchive, _wildcardName, _recursed, true); _error != nil {
+				return nil, _error
+			}
+		}
+		
 		if _context.debug {
 			log.Printf ("[  ] folder       >> `%s`\n", _pathInArchive)
 		}
 		for _, _childName := range _childsName {
 			if _childsStat[_childName] .Mode () .IsRegular () {
 				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true); _error != nil {
-					return _stat, _error
+					return nil, _error
 				}
 			}
 		}
 		for _, _childName := range _childsName {
 			if _childsStat[_childName] .Mode () .IsDir () {
 				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true); _error != nil {
-					return _stat, _error
+					return nil, _error
 				}
 			}
 		}
 		for _, _childName := range _childsName {
 			if (! _childsStat[_childName] .Mode () .IsRegular ()) && (! _childsStat[_childName] .Mode () .IsDir ()) {
 				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true); _error != nil {
-					return _stat, _error
+					return nil, _error
 				}
 			}
 		}
