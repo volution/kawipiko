@@ -15,6 +15,7 @@ import "os/signal"
 import "runtime"
 import "runtime/debug"
 import "runtime/pprof"
+import "strconv"
 import "sync"
 import "syscall"
 import "time"
@@ -96,30 +97,43 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_responseHeaders.SetCanonical ([]byte ("X-XSS-Protection"), []byte ("1; mode=block"))
 	
 	var _fingerprint []byte
-	{
-		_found : for _, _namespaceAndPathPrefix := range [][2]string {
-				{NamespaceFilesContent, ""},
-				{NamespaceFilesContent, "/"},
-				{NamespaceFoldersContent, ""},
+	
+	if _fingerprint == nil {
+		_loop_1 : for _, _namespaceAndPathSuffix := range [][2]string {
+					{NamespaceFilesContent, ""},
+					{NamespaceFilesContent, "/"},
+					{NamespaceFoldersContent, ""},
 		} {
-			_namespace := _namespaceAndPathPrefix[0]
-			_pathPrefix := _namespaceAndPathPrefix[1]
+			_namespace := _namespaceAndPathSuffix[0]
+			_pathSuffix := _namespaceAndPathSuffix[1]
+			
+			switch {
+				case !_pathIsRoot && !_pathHasSlash :
+					break
+				case _pathSuffix == "/" :
+					continue _loop_1
+				case _pathSuffix == "" :
+					break
+				case _pathSuffix[0] == '/' :
+					_pathSuffix = _pathSuffix[1:]
+			}
+			_pathSuffixHasSlash := (len (_pathSuffix) != 0) && (_pathSuffix[0] == '/')
+			
 			_key := _keyBuffer[:0]
 			_key = append (_key, _namespace ...)
 			_key = append (_key, ':')
 			_key = append (_key, _path ...)
-			_key = append (_key, _pathPrefix ...)
+			_key = append (_key, _pathSuffix ...)
+			
 			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 				if _value != nil {
 					_fingerprint = _value
-					if ((_namespace == NamespaceFoldersContent) || (_pathPrefix == "/")) {
-						if !_pathIsRoot && !_pathHasSlash {
-							_path = append (_path, '/')
-							_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
-							return
-						}
+					if ((_namespace == NamespaceFoldersContent) || _pathSuffixHasSlash) && (!_pathIsRoot && !_pathHasSlash) {
+						_path = append (_path, '/')
+						_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
+						return
 					}
-					break _found
+					break _loop_1
 				}
 			} else {
 				_server.ServeError (_context, http.StatusInternalServerError, _error, false)
@@ -129,14 +143,43 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if _fingerprint == nil {
-		if ! bytes.Equal ([]byte ("/favicon.ico"), _path) {
-			log.Printf ("[ww] [7416f61d]  not found `%s`!\n", _requestHeaders.RequestURI ())
-			_server.ServeError (_context, http.StatusNotFound, nil, true)
-		} else {
+		if bytes.Equal ([]byte ("/favicon.ico"), _path) {
 			_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
+			return
 		}
+	}
+	
+	if _fingerprint == nil {
+		_loop_2 : for
+				_pathLimit := bytes.LastIndexByte (_path, '/');
+				_pathLimit >= 0;
+				_pathLimit = bytes.LastIndexByte (_path[: _pathLimit], '/') {
+			
+			_key := _keyBuffer[:0]
+			_key = append (_key, NamespaceFilesContent ...)
+			_key = append (_key, ':')
+			_key = append (_key, _path[: _pathLimit] ...)
+			_key = append (_key, "/*" ...)
+			
+			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
+				if _value != nil {
+					_fingerprint = _value
+					break _loop_2
+				}
+			} else {
+				_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+				return
+			}
+		}
+	}
+	
+	if _fingerprint == nil {
+		log.Printf ("[ww] [7416f61d]  not found `%s`!\n", _requestHeaders.RequestURI ())
+		_server.ServeError (_context, http.StatusNotFound, nil, true)
 		return
 	}
+	
+	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
 	
 	var _data []byte
 	{
@@ -158,6 +201,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	
+	_responseStatus := http.StatusOK
 	{
 		_key := _keyBuffer[:0]
 		_key = append (_key, NamespaceDataMetadata ...)
@@ -165,8 +209,31 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		_key = append (_key, _fingerprint ...)
 		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 			if _value != nil {
-				if _error := MetadataDecodeIterate (_value, _responseHeaders.SetCanonical); _error == nil {
-				} else {
+				_handleHeader := func (_name []byte, _value []byte) {
+					switch {
+						case len (_name) == 0 : {
+							log.Printf ("[90009821]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+							_responseStatus = http.StatusInternalServerError
+						}
+						case _name[0] != '_' :
+							_responseHeaders.SetCanonical (_name, _value)
+						case bytes.Equal (_name, []byte ("_Status")) :
+							if _value, _error := strconv.Atoi (BytesToString (_value)); _error == nil {
+								if (_value >= 200) && (_value <= 599) {
+									_responseStatus = _value
+								} else {
+									log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+									_responseStatus = http.StatusInternalServerError
+								}
+							} else {
+								log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+								_responseStatus = http.StatusInternalServerError
+							}
+						default :
+							log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+					}
+				}
+				if _error := MetadataDecodeIterate (_value, _handleHeader); _error != nil {
 					_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 					return
 				}
@@ -185,9 +252,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _requestHeaders.RequestURI ())
 	}
 	
-	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
-	
-	_response.SetStatusCode (http.StatusOK)
+	_response.SetStatusCode (_responseStatus)
 	_response.SetBodyRaw (_data)
 }
 
