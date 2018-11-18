@@ -70,8 +70,8 @@ Results
 
 .. note ::
 
-  Please note that the values under `Thread Stats` are reported per thread.
-  Therefore it is best to look at the first two values, i.e. `Requests/sec`.
+  Please note that the values under ``Thread Stats`` are reported per thread.
+  Therefore it is best to look at the first two values, i.e. ``Requests/sec``.
 
 * 16 connections / 4 threads: ::
 
@@ -129,11 +129,11 @@ Notes
 The following benchmarks were executed as follows:
 
 * the machine was my personal laptop:  6 years old with an Intel Core i5 2520M (2 cores with 2 threads each), which during the benchmarks (due to a bad fan and dust) it kept entering into thermal throttling;  (i.e. the worst case scenario;)
-* the `kawipiko-server` was started with `GOMAXPROCS=4`;  (i.e. 4 threads handling the requests;)
-* the `kawipiko-server` was started with `--preload`;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
+* the ``kawipiko-server`` was started with ``GOMAXPROCS=4``;  (i.e. 4 threads handling the requests;)
+* the ``kawipiko-server`` was started with ``--archive-inmem``;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
 * the benchmarking tool was wrk_;
-* both `kawipiko-server` and `wrk` tools were run on the same machine;
-* the benchmark was run over loopback networking (i.e. `127.0.0.1`);
+* both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
+* the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
 * the served file contains the content ``Hello, World!``;
 * the protocol was HTTP  (i.e. no TLS);
 
@@ -211,7 +211,7 @@ Examples
         --sources ./python-3.7.1-docs-html \
         --debug
 
-* create the CDB archive (with `gzip` compression): ::
+* create the CDB archive (with ``gzip`` compression): ::
 
     kawipiko-archiver \
         --archive ./python-3.7.1-docs-gzip.cdb \
@@ -219,12 +219,13 @@ Examples
         --compress gzip \
         --debug
 
-* serve the CDB archive (with `gzip` compression): ::
+* serve the CDB archive (with ``gzip`` compression): ::
 
     kawipiko-server \
         --bind 127.0.0.1:8080 \
         --archive ./python-3.7.1-docs-gzip.cdb \
-        --preload \
+        --archive-mmap \
+        --archive-preload \
         --debug
 
 * compare sources and archive sizes: ::
@@ -335,11 +336,11 @@ The following is a list of the most important features:
 
 * (optionally)  the static content is compressed when the CDB database is created, thus no CPU cycles are used while serving requests;
 
-* (optionally)  the static content can be compressed with either `gzip` or Brotli_;
+* (optionally)  the static content can be compressed with either ``gzip`` or Brotli_;
 
 * (optionally)  in order to reduce the serving latency even further, one can preload the entire CDB database in memory, or alternatively mapping it in memory (mmap_);  this trades memory for CPU;
 
-* "atomic" site content changes;  because the entire site content is held in a single CDB database file, and because the file replacement is atomically achieved via the `rename` syscall (or the `mv` tool), all the site's resources are "changed" at the same time;
+* "atomic" site content changes;  because the entire site content is held in a single CDB database file, and because the file replacement is atomically achieved via the ``rename`` syscall (or the ``mv`` tool), all the site's resources are "changed" at the same time;
 
 
 
@@ -367,7 +368,7 @@ As stated in the `About`_ section, nothing comes for free, and in order to provi
 
 * the CDB database **maximum size is 2 GiB**;  (however if you have a site this large, you are probabbly doing something extreemly wrong;)
 
-* the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say `gzip`), the server will serve all resources compressed (i.e. `Content-Encoding : gzip`), regardless of what the browser accepts (i.e. `Accept-Encoding: gzip`);  the same applies for uncompressed content;  (however always using `gzip` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
+* the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding : gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
 
 * (TODO)  currently if the CDB database file changes, the server needs to be restarted in order to pickup the changed files;
 
@@ -426,3 +427,4 @@ References
 .. [HAProxy] `HAProxy Load Balancer <https://goo.gl/43dnu8>`_
 
 .. [wrk] `wrk -- modern HTTP benchmarking tool <https://goo.gl/BjpjND>`_
+
