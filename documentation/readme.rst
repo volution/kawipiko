@@ -1,7 +1,33 @@
 
-###############
-CDB HTTP server
-###############
+::
+
+    +---------------------------------------------------------------------------+
+    .                                                                           .
+    .   __                                                 __                   .
+    .  /\ \                              __            __ /\ \                  .
+    .  \ \ \/'\       __     __  __  __ /\_\   _____  /\_\\ \ \/'\      ___     .
+    .   \ \ , <     /'__`\  /\ \/\ \/\ \\/\ \ /\ '__`\\/\ \\ \ , <     / __`\   .
+    .    \ \ \\`\  /\ \L\.\_\ \ \_/ \_/ \\ \ \\ \ \L\ \\ \ \\ \ \\`\  /\ \L\ \  .
+    .     \ \_\ \_\\ \__/.\_\\ \___x___/' \ \_\\ \ ,__/ \ \_\\ \_\ \_\\ \____/  .
+    .      \/_/\/_/ \/__/\/_/ \/__//__/    \/_/ \ \ \/   \/_/ \/_/\/_/ \/___/   .
+    .                                            \ \_\                          .
+    .                                             \/_/                          .
+    .                                                                           .
+    .            _  _ ___ ___ ___     ____ ____ ____ _  _ ____ ____             .
+    .            |__|  |   |  |__]    [__  |___ |__/ |  | |___ |__/             .
+    .            |  |  |   |  |       ___] |___ |  \  \/  |___ |  \             .
+    .                                                                           .
+    .                                                                           .
+    +---------------------------------------------------------------------------+
+
+
+
+
+
+
+#############################################
+kawipiko -- blazingly fast static HTTP server
+#############################################
 
 
 .. contents::
@@ -103,10 +129,10 @@ Notes
 The following benchmarks were executed as follows:
 
 * the machine was my personal laptop:  6 years old with an Intel Core i5 2520M (2 cores with 2 threads each), which during the benchmarks (due to a bad fan and dust) it kept entering into thermal throttling;  (i.e. the worst case scenario;)
-* the `cdb-http-server` was started with `GOMAXPROCS=4`;  (i.e. 4 threads handling the requests;)
-* the `cdb-http-server` was started with `--preload`;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
+* the `kawipiko-server` was started with `GOMAXPROCS=4`;  (i.e. 4 threads handling the requests;)
+* the `kawipiko-server` was started with `--preload`;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
 * the benchmarking tool was wrk_;
-* both `cdb-http-server` and `wrk` tools were run on the same machine;
+* both `kawipiko-server` and `wrk` tools were run on the same machine;
 * the benchmark was run over loopback networking (i.e. `127.0.0.1`);
 * the served file contains the content ``Hello, World!``;
 * the protocol was HTTP  (i.e. no TLS);
@@ -119,22 +145,22 @@ Documentation
 
 The project provides two binaries:
 
-* ``cdb-http-server`` -- which serves the static content from the CDB database;
-* ``cdb-http-archiver`` -- which creates the CDB database from a source folder holding the static content;
+* ``kawipiko-server`` -- which serves the static content from the CDB database;
+* ``kawipiko-archiver`` -- which creates the CDB database from a source folder holding the static content;
 
 
 
 
-``cdb-http-archiver``
+``kawipiko-archiver``
 ---------------------
 
 ::
 
-    >> cdb-http-archiver --help
+    >> kawipiko-archiver --help
 
 ::
 
-    Usage of cdb-http-archiver:
+    Usage of kawipiko-archiver:
     --sources <path>
     --archive <path>
     --compress <gzip | brotli | identity>
@@ -145,16 +171,16 @@ The project provides two binaries:
 
 
 
-``cdb-http-server``
+``kawipiko-server``
 -------------------
 
 ::
 
-    >> cdb-http-server --help
+    >> kawipiko-server --help
 
 ::
 
-    Usage of cdb-http-server:
+    Usage of kawipiko-server:
     --archive <path>
     --archive-inmem      (memory-loaded archive file)
     --archive-mmap       (memory-mapped archive file)
@@ -180,14 +206,14 @@ Examples
 
 * create the CDB archive (without any compression): ::
 
-    cdb-http-archiver \
+    kawipiko-archiver \
         --archive ./python-3.7.1-docs.cdb \
         --sources ./python-3.7.1-docs-html \
         --debug
 
 * create the CDB archive (with `gzip` compression): ::
 
-    cdb-http-archiver \
+    kawipiko-archiver \
         --archive ./python-3.7.1-docs-gzip.cdb \
         --sources ./python-3.7.1-docs-html \
         --compress gzip \
@@ -195,7 +221,7 @@ Examples
 
 * serve the CDB archive (with `gzip` compression): ::
 
-    cdb-http-server \
+    kawipiko-server \
         --bind 127.0.0.1:8080 \
         --archive ./python-3.7.1-docs-gzip.cdb \
         --preload \
@@ -260,8 +286,8 @@ Fetch the sources
     git clone \
         --depth 1 \
         --recurse-submodules --shallow-submodules \
-        https://github.com/cipriancraciun/go-cdb-http.git \
-        /tmp/go-cdb-http/src
+        https://github.com/volution/kawipiko.git \
+        /tmp/kawipiko/src
 
 
 Compile the binaries
@@ -269,24 +295,24 @@ Compile the binaries
 
 Prepare the Go environment: ::
 
-    mkdir /tmp/go-cdb-http/go
-    ln -s -T ../src/vendor /tmp/go-cdb-http/go/src
+    mkdir /tmp/kawipiko/go
+    ln -s -T ../src/vendor /tmp/kawipiko/go/src
 
 Compile the Go binnaries: ::
 
-    export GOPATH=/tmp/go-cdb-http/go
+    export GOPATH=/tmp/kawipiko/go
 
-    mkdir /tmp/go-cdb-http/bin
-
-    go build \
-        -ldflags '-s' \
-        -o /tmp/go-cdb-http/bin/cdb-http-archiver \
-        /tmp/go-cdb-http/src/sources/cmd/archiver.go
+    mkdir /tmp/kawipiko/bin
 
     go build \
         -ldflags '-s' \
-        -o /tmp/go-cdb-http/bin/cdb-http-server \
-        /tmp/go-cdb-http/src/sources/cmd/server.go
+        -o /tmp/kawipiko/bin/kawipiko-archiver \
+        /tmp/kawipiko/src/sources/cmd/archiver.go
+
+    go build \
+        -ldflags '-s' \
+        -o /tmp/kawipiko/bin/kawipiko-server \
+        /tmp/kawipiko/src/sources/cmd/server.go
 
 
 Deploy the binaries
@@ -296,8 +322,8 @@ Deploy the binaries
 
 ::
 
-    cp /tmp/go-cdb-http/bin/cdb-http-archiver /usr/local/bin
-    cp /tmp/go-cdb-http/bin/cdb-http-server /usr/local/bin
+    cp /tmp/kawipiko/bin/kawipiko-archiver /usr/local/bin
+    cp /tmp/kawipiko/bin/kawipiko-server /usr/local/bin
 
 
 

@@ -2,7 +2,7 @@
 
 package server
 
-import . "github.com/cipriancraciun/go-cdb-http/lib/common"
+import . "github.com/volution/kawipiko/lib/common"
 
 
 
@@ -35,7 +35,7 @@ var AboutBannerData = (
 		"\n" +
 		"  |  Documentation, issues and sources:\n" +
 		"  |      * https://bit.ly/kawipiko\n" +
-		"  |      * https://github.com/cipriancraciun/go-cdb-http\n" +
+		"  |      * https://github.com/volution/kawipiko\n" +
 		"\n" +
 		"  |  Authors:\n" +
 		"  |      * Ciprian Dorin Craciun\n" +

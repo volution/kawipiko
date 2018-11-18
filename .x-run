@@ -5,13 +5,13 @@
 
 << go / execute / server / debug
 	"${X_RUN[@]}" ':: go / build / server / debug'
-	exec -- env -i ./.outputs/binaries/debug/cdb-http-server "${@}"
+	exec -- env -i ./.outputs/binaries/debug/kawipiko-server "${@}"
 	exit -- 1
 !!
 
 << go / execute / server / release
 	"${X_RUN[@]}" ':: go / build / server / release'
-	exec -- env -i ./.outputs/binaries/release/cdb-http-server "${@}"
+	exec -- env -i ./.outputs/binaries/release/kawipiko-server "${@}"
 	exit -- 1
 !!
 
@@ -21,7 +21,7 @@
 	mkdir -p -- ./.outputs/binaries/debug
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
-			-o ./.outputs/binaries/debug/cdb-http-server \
+			-o ./.outputs/binaries/debug/kawipiko-server \
 			-- ./sources/cmd/server.go \
 		#
 	exit -- 1
@@ -33,7 +33,7 @@
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
 			-ldflags '-s' \
-			-o ./.outputs/binaries/release/cdb-http-server \
+			-o ./.outputs/binaries/release/kawipiko-server \
 			-- ./sources/cmd/server.go \
 		#
 	exit -- 1
@@ -42,12 +42,12 @@
 << go / build / server / release / analyze
 	test "${#}" -eq 0
 	mkdir -p -- ./.outputs/binaries/debug
-	rm -f -- ./.outputs/binaries/debug/cdb-http-server
+	rm -f -- ./.outputs/binaries/debug/kawipiko-server
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
 			-ldflags '-s' \
 			-gcflags '-m' \
-			-o ./.outputs/binaries/debug/cdb-http-server \
+			-o ./.outputs/binaries/debug/kawipiko-server \
 			-- ./sources/cmd/server.go \
 		#
 	exit -- 1
@@ -65,8 +65,8 @@
 		mkdir -- ./.outputs/publish/bin
 	fi
 	cp -T -- \
-		./.outputs/binaries/release/cdb-http-server \
-		./.outputs/publish/binaries/cdb-http-server \
+		./.outputs/binaries/release/kawipiko-server \
+		./.outputs/publish/binaries/kawipiko-server \
 	#
 	exit -- 0
 !!
@@ -76,13 +76,13 @@
 
 << go / execute / archiver / debug
 	"${X_RUN[@]}" ':: go / build / archiver / debug'
-	exec -- env -i ./.outputs/binaries/debug/cdb-http-archiver "${@}"
+	exec -- env -i ./.outputs/binaries/debug/kawipiko-archiver "${@}"
 	exit -- 1
 !!
 
 << go / execute / archiver / release
 	"${X_RUN[@]}" ':: go / build / archiver / release'
-	exec -- env -i ./.outputs/binaries/release/cdb-http-archiver "${@}"
+	exec -- env -i ./.outputs/binaries/release/kawipiko-archiver "${@}"
 	exit -- 1
 !!
 
@@ -92,7 +92,7 @@
 	mkdir -p -- ./.outputs/binaries/debug
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
-			-o ./.outputs/binaries/debug/cdb-http-archiver \
+			-o ./.outputs/binaries/debug/kawipiko-archiver \
 			-- ./sources/cmd/archiver.go \
 		#
 	exit -- 1
@@ -104,7 +104,7 @@
 	exec -- "${X_RUN[@]}" ':: go / tool' build \
 			-v \
 			-ldflags '-s' \
-			-o ./.outputs/binaries/release/cdb-http-archiver \
+			-o ./.outputs/binaries/release/kawipiko-archiver \
 			-- ./sources/cmd/archiver.go \
 		#
 	exit -- 1
@@ -122,8 +122,8 @@
 		mkdir -- ./.outputs/publish/bin
 	fi
 	cp -T -- \
-		./.outputs/binaries/release/cdb-http-archiver \
-		./.outputs/publish/binaries/cdb-http-archiver \
+		./.outputs/binaries/release/kawipiko-archiver \
+		./.outputs/publish/binaries/kawipiko-archiver \
 	#
 	exit -- 0
 !!
@@ -324,7 +324,7 @@
 	prlimit -n16384 -- \
 	sudo -u "${USER}" -n -E -P -- \
 	env -i \
-	./.outputs/binaries/release/cdb-http-server \
+	./.outputs/binaries/release/kawipiko-server \
 			--bind 127.9.185.194:8080 \
 			--archive "${_archive}" \
 			"${@}" \
@@ -368,13 +368,13 @@
 !!
 
 << benchmark / server / profile / cpu / analyze
-	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/cdb-http-server
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
 	exec -- go tool pprof "${@}" -- ./.outputs/server-cpu.txt
 	exit -- 1
 !!
 
 << benchmark / server / profile / mem / analyze
-	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/cdb-http-server
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
 	exec -- go tool pprof "${@}" ./.outputs/server-mem.txt
 	exit -- 1
 !!
@@ -449,7 +449,7 @@
 			--timeout 6s \
 			--duration 6s \
 			--latency \
-			--script ../go-cdb-http-examples/sources/wrk-paths-from-file.lua \
+			--script ../kawipiko-examples/sources/wrk-paths-from-file.lua \
 			"${@}" \
 			-- "http://127.9.185.194:8080/" \
 			"${_paths}" \

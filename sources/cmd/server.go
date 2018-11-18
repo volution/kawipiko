@@ -27,8 +27,8 @@ import cdb "github.com/cipriancraciun/go-cdb-lib"
 import "github.com/valyala/fasthttp"
 import "github.com/valyala/fasthttp/reuseport"
 
-import . "github.com/cipriancraciun/go-cdb-http/lib/common"
-import . "github.com/cipriancraciun/go-cdb-http/lib/server"
+import . "github.com/volution/kawipiko/lib/common"
+import . "github.com/volution/kawipiko/lib/server"
 
 
 
@@ -363,7 +363,7 @@ func main_0 () (error) {
 	var _profileMem string
 	
 	{
-		_flags := flag.NewFlagSet ("cdb-http-server", flag.ContinueOnError)
+		_flags := flag.NewFlagSet ("kawipiko-server", flag.ContinueOnError)
 		
 		_flags.Usage = func () () {
 			fmt.Fprintf (os.Stderr, "%s",
@@ -372,7 +372,7 @@ func main_0 () (error) {
 
   |  Documentation, issues and sources:
   |      * https://bit.ly/kawipiko
-  |      * https://github.com/cipriancraciun/go-cdb-http
+  |      * https://github.com/volution/kawipiko
 
   |  Authors:
   |      * Ciprian Dorin Craciun
@@ -388,7 +388,7 @@ func main_0 () (error) {
 
   -----------------------------------------------------------
 
-  cdb-http-server
+  kawipiko-server
 
     --archive <path>
     --archive-inmem      (memory-loaded archive file)
@@ -742,7 +742,7 @@ func main_0 () (error) {
 	
 	_httpServer := & fasthttp.Server {
 			
-			Name : "cdb-http",
+			Name : "kawipiko",
 			Handler : _server.Serve,
 			
 			NoDefaultServerHeader : true,

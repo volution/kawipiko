@@ -21,8 +21,8 @@ import "syscall"
 // import "github.com/colinmarc/cdb"
 import cdb "github.com/cipriancraciun/go-cdb-lib"
 
-import . "github.com/cipriancraciun/go-cdb-http/lib/common"
-import . "github.com/cipriancraciun/go-cdb-http/lib/archiver"
+import . "github.com/volution/kawipiko/lib/common"
+import . "github.com/volution/kawipiko/lib/archiver"
 
 
 
@@ -552,7 +552,7 @@ func main_0 () (error) {
 	var _debug bool
 	
 	{
-		_flags := flag.NewFlagSet ("cdb-http-archiver", flag.ContinueOnError)
+		_flags := flag.NewFlagSet ("kawipiko-archiver", flag.ContinueOnError)
 		
 		_flags.Usage = func () () {
 			fmt.Fprintf (os.Stderr, "%s",
@@ -561,7 +561,7 @@ func main_0 () (error) {
 
   |  Documentation, issues and sources:
   |      * https://bit.ly/kawipiko
-  |      * https://github.com/cipriancraciun/go-cdb-http
+  |      * https://github.com/volution/kawipiko
 
   |  Authors:
   |      * Ciprian Dorin Craciun
@@ -577,7 +577,7 @@ func main_0 () (error) {
 
   -----------------------------------------------------------
 
-  cdb-http-archiver
+  kawipiko-archiver
 
     --sources <path>
 

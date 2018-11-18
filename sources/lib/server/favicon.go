@@ -5,7 +5,7 @@ package server
 
 import "encoding/base64"
 
-import . "github.com/cipriancraciun/go-cdb-http/lib/common"
+import . "github.com/volution/kawipiko/lib/common"
 
 
 
