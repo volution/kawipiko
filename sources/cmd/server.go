@@ -85,12 +85,15 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		if bytes.Equal (_path, []byte ("/__/heartbeat")) || bytes.HasPrefix (_path, []byte ("/__/heartbeat/")) {
 			_server.ServeStatic (_context, http.StatusOK, HeartbeatDataOk, HeartbeatContentType, HeartbeatContentEncoding, false)
 			return
+		} else if bytes.Equal (_path, []byte ("/__/about")) {
+			_server.ServeStatic (_context, http.StatusOK, []byte (AboutBannerData), AboutBannerContentType, AboutBannerContentEncoding, true)
+			return
 		} else if bytes.HasPrefix (_path, []byte ("/__/errors/banners/")) {
 			_code := _path[len ("/__/errors/banners/") :]
 			if _code, _error := strconv.Atoi (BytesToString (_code)); _error == nil {
-				_banner, _bannerFound := ErrorBanners[uint (_code)]
+				_banner, _bannerFound := ErrorBannersData[uint (_code)]
 				if (_code > 0) && _bannerFound {
-					_server.ServeStatic (_context, http.StatusOK, []byte (_banner), MimeTypeText, "identity", true)
+					_server.ServeStatic (_context, http.StatusOK, []byte (_banner), ErrorBannerContentType, ErrorBannerContentEncoding, true)
 					return
 				}
 			}
@@ -322,10 +325,10 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
 	}
 	
-	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
-	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (ErrorBannerContentType))
+	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte (ErrorBannerContentEncoding))
 	
-	if _banner, _bannerFound := ErrorBanners[_status]; _bannerFound {
+	if _banner, _bannerFound := ErrorBannersData[_status]; _bannerFound {
 		_response.SetBodyRaw ([]byte (_banner))
 	}
 	
