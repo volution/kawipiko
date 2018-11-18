@@ -368,17 +368,43 @@ func main_0 () (error) {
 		_flags.Usage = func () () {
 			fmt.Fprintf (os.Stderr, "%s",
 `
-cdb-http-server
-	--archive <path>
-	--archive-inmem      (memory-loaded archive file)
-	--archive-mmap       (memory-mapped archive file)
-	--archive-preload    (preload archive file)
-	--bind <ip>:<port>
-	--processes <count>  (of slave processes)
-	--threads <count>    (of threads per process)
-	--profile-cpu <path>
-	--profile-mem <path>
-	--debug
+  ====  kawipiko -- blazingly fast static HTTP server  ====
+
+  |  Documentation, issues and sources:
+  |      * https://bit.ly/kawipiko
+  |      * https://github.com/cipriancraciun/go-cdb-http
+
+  |  Authors:
+  |      * Ciprian Dorin Craciun
+  |          ciprian@volution.ro
+  |          ciprian.craciun@gmail.com
+  |          https://volution.ro/ciprian
+
+  |  Leverages:
+  |      * https://github.com/valyala/fasthttp
+  |      * https://github.com/colinmarc/cdb
+  |      * https://cr.yp.to/cdb.html
+  |      * https://golang.org/
+
+  -----------------------------------------------------------
+
+  cdb-http-server
+
+    --archive <path>
+    --archive-inmem      (memory-loaded archive file)
+    --archive-mmap       (memory-mapped archive file)
+    --archive-preload    (preload archive file)
+
+    --bind <ip>:<port>
+
+    --processes <count>  (of slave processes)
+    --threads <count>    (of threads per process)
+
+    --profile-cpu <path>
+    --profile-mem <path>
+
+    --debug
+
 `)
 		}
 		

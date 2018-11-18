@@ -557,13 +557,37 @@ func main_0 () (error) {
 		_flags.Usage = func () () {
 			fmt.Fprintf (os.Stderr, "%s",
 `
-cdb-http-archiver
-	--sources <path>
-	--archive <path>
-	--compress <gzip | brotli | identity>
-	--exclude-index
-	--include-metadata
-	--debug
+  ====  kawipiko -- blazingly fast static HTTP server  ====
+
+  |  Documentation, issues and sources:
+  |      * https://bit.ly/kawipiko
+  |      * https://github.com/cipriancraciun/go-cdb-http
+
+  |  Authors:
+  |      * Ciprian Dorin Craciun
+  |          ciprian@volution.ro
+  |          ciprian.craciun@gmail.com
+  |          https://volution.ro/ciprian
+
+  |  Leverages:
+  |      * https://github.com/valyala/fasthttp
+  |      * https://github.com/colinmarc/cdb
+  |      * https://cr.yp.to/cdb.html
+  |      * https://golang.org/
+
+  -----------------------------------------------------------
+
+  cdb-http-archiver
+
+    --sources <path>
+
+    --archive <path>
+    --compress <gzip | brotli | identity>
+    --exclude-index
+    --include-metadata
+
+    --debug
+
 `)
 		}
 		
