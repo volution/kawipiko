@@ -94,7 +94,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			return
 		} else if bytes.HasPrefix (_path, []byte ("/__/errors/banners/")) {
 			_code := _path[len ("/__/errors/banners/") :]
-			if _code, _error := strconv.Atoi (BytesToString (_code)); _error == nil {
+			if _code, _error := strconv.Atoi (BytesToString (*NoEscapeBytes (&_code))); _error == nil {
 				_banner, _bannerFound := ErrorBannersData[uint (_code)]
 				if (_code > 0) && _bannerFound {
 					_server.ServeStatic (_context, http.StatusOK, _banner, ErrorBannerContentType, ErrorBannerContentEncoding, true)

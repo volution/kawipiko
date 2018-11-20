@@ -53,6 +53,14 @@
 	exit -- 1
 !!
 
+<< go / build / server / release / analyze / escapes
+	"${X_RUN[@]}" ':: go / build / server / release / analyze' "${@}" \
+		2>&1 \
+	| grep -F -e ' escapes ' \
+	| LC_ALL=C sort -n -k 2,2 -t ':'
+	exit -- 0
+!!
+
 
 << go / build / server / release / publish
 	test "${#}" -eq 0
