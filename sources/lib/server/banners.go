@@ -10,7 +10,7 @@ import . "github.com/volution/kawipiko/lib/common"
 var AboutBannerContentType = MimeTypeText
 var AboutBannerContentEncoding = "identity"
 
-var AboutBannerData = (
+var AboutBannerData = []byte (
 		"+---------------------------------------------------------------------------+\n" +
 		".                                                                           .\n" +
 		".   __                                                 __                   .\n" +
@@ -57,10 +57,10 @@ var AboutBannerData = (
 var ErrorBannerContentType = MimeTypeText
 var ErrorBannerContentEncoding = "identity"
 
-var ErrorBannersData = map[uint]string {
+var ErrorBannersData = map[uint][]byte {
 		
 		
-		100 : (
+		100 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -84,7 +84,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		101 : (
+		101 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -112,7 +112,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		102 : (
+		102 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -136,7 +136,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		103 : (
+		103 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -160,7 +160,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		200 : (
+		200 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -184,7 +184,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		201 : (
+		201 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -208,7 +208,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		202 : (
+		202 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -232,7 +232,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		203 : (
+		203 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -260,7 +260,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		204 : (
+		204 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -284,7 +284,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		205 : (
+		205 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -308,7 +308,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		206 : (
+		206 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -332,7 +332,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		207 : (
+		207 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -356,7 +356,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		208 : (
+		208 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -384,7 +384,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		226 : (
+		226 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -408,7 +408,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		300 : (
+		300 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -432,7 +432,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		301 : (
+		301 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -460,7 +460,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		302 : (
+		302 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -484,7 +484,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		303 : (
+		303 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -508,7 +508,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		304 : (
+		304 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -532,7 +532,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		305 : (
+		305 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -556,7 +556,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		306 : (
+		306 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -580,7 +580,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		307 : (
+		307 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -608,7 +608,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		308 : (
+		308 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -636,7 +636,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		400 : (
+		400 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -660,7 +660,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		401 : (
+		401 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -684,7 +684,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		402 : (
+		402 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -708,7 +708,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		403 : (
+		403 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -732,7 +732,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		404 : (
+		404 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -756,7 +756,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		405 : (
+		405 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -784,7 +784,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		406 : (
+		406 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -808,7 +808,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		407 : (
+		407 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -840,7 +840,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		408 : (
+		408 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -864,7 +864,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		409 : (
+		409 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -888,7 +888,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		410 : (
+		410 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -912,7 +912,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		411 : (
+		411 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -936,7 +936,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		412 : (
+		412 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -964,7 +964,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		413 : (
+		413 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -992,7 +992,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		414 : (
+		414 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1016,7 +1016,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		415 : (
+		415 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1044,7 +1044,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		416 : (
+		416 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1072,7 +1072,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		417 : (
+		417 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1100,7 +1100,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		421 : (
+		421 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1128,7 +1128,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		422 : (
+		422 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1156,7 +1156,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		423 : (
+		423 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1180,7 +1180,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		424 : (
+		424 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1208,7 +1208,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		425 : (
+		425 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1232,7 +1232,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		426 : (
+		426 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1256,7 +1256,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		428 : (
+		428 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1284,7 +1284,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		429 : (
+		429 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1312,7 +1312,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		431 : (
+		431 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1340,7 +1340,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		451 : (
+		451 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1368,7 +1368,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		500 : (
+		500 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1396,7 +1396,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		501 : (
+		501 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1420,7 +1420,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		502 : (
+		502 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1444,7 +1444,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		503 : (
+		503 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1472,7 +1472,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		504 : (
+		504 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1496,7 +1496,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		505 : (
+		505 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1524,7 +1524,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		506 : (
+		506 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1552,7 +1552,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		507 : (
+		507 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1580,7 +1580,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		508 : (
+		508 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1604,7 +1604,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		510 : (
+		510 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +
@@ -1628,7 +1628,7 @@ var ErrorBannersData = map[uint]string {
 			""),
 		
 		
-		511 : (
+		511 : []byte (
 			"+---------------------------------------------------------------------------+\n" +
 			"|  kawipiko -- blazingly fast static HTTP server | https://bit.ly/kawipiko  |\n" +
 			"+---------------------------------------------------------------------------+\n" +

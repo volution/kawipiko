@@ -36,6 +36,9 @@ import . "github.com/volution/kawipiko/lib/server"
 type server struct {
 	httpServer *fasthttp.Server
 	cdbReader *cdb.CDB
+	cachedFileFingerprints map[string][]byte
+	cachedDataMeta map[string][]byte
+	cachedDataContent map[string][]byte
 	debug bool
 }
 
@@ -60,7 +63,8 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	
 	_method := _requestHeaders.Method ()
 	
-	_path := append (_pathBuffer[:0], _requestHeaders.RequestURI () ...)
+	_path := _pathBuffer[:0]
+	_path = append (_path, _requestHeaders.RequestURI () ...)
 	if _pathLimit := bytes.IndexByte (_path, '?'); _pathLimit > 0 {
 		_path = _path[: _pathLimit]
 	}
@@ -93,7 +97,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			if _code, _error := strconv.Atoi (BytesToString (_code)); _error == nil {
 				_banner, _bannerFound := ErrorBannersData[uint (_code)]
 				if (_code > 0) && _bannerFound {
-					_server.ServeStatic (_context, http.StatusOK, []byte (_banner), ErrorBannerContentType, ErrorBannerContentEncoding, true)
+					_server.ServeStatic (_context, http.StatusOK, _banner, ErrorBannerContentType, ErrorBannerContentEncoding, true)
 					return
 				}
 			}
@@ -134,25 +138,32 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			}
 			_pathSuffixHasSlash := (len (_pathSuffix) != 0) && (_pathSuffix[0] == '/')
 			
-			_key := _keyBuffer[:0]
-			_key = append (_key, _namespace ...)
-			_key = append (_key, ':')
-			_key = append (_key, _path ...)
-			_key = append (_key, _pathSuffix ...)
-			
-			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-				if _value != nil {
-					_fingerprints = _value
-					if ((_namespace == NamespaceFoldersContent) || _pathSuffixHasSlash) && (!_pathIsRoot && !_pathHasSlash) {
-						_path = append (_path, '/')
-						_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
-						return
-					}
-					break _loop_1
-				}
+			if _server.cachedFileFingerprints != nil {
+				_key := _keyBuffer[:0]
+				_key = append (_key, _path ...)
+				_key = append (_key, _pathSuffix ...)
+				_fingerprints, _ = _server.cachedFileFingerprints[BytesToString (_key)]
 			} else {
-				_server.ServeError (_context, http.StatusInternalServerError, _error, false)
-				return
+				_key := _keyBuffer[:0]
+				_key = append (_key, _namespace ...)
+				_key = append (_key, ':')
+				_key = append (_key, _path ...)
+				_key = append (_key, _pathSuffix ...)
+				if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
+					_fingerprints = _value
+				} else {
+					_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+					return
+				}
+			}
+			
+			if _fingerprints != nil {
+				if ((_namespace == NamespaceFoldersContent) || _pathSuffixHasSlash) && (!_pathIsRoot && !_pathHasSlash) {
+					_path = append (_path, '/')
+					_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
+					return
+				}
+				break _loop_1
 			}
 		}
 	}
@@ -170,20 +181,27 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 				_pathLimit >= 0;
 				_pathLimit = bytes.LastIndexByte (_path[: _pathLimit], '/') {
 			
-			_key := _keyBuffer[:0]
-			_key = append (_key, NamespaceFilesContent ...)
-			_key = append (_key, ':')
-			_key = append (_key, _path[: _pathLimit] ...)
-			_key = append (_key, "/*" ...)
-			
-			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-				if _value != nil {
-					_fingerprints = _value
-					break _loop_2
-				}
+			if _server.cachedFileFingerprints != nil {
+				_key := _keyBuffer[:0]
+				_key = append (_key, _path[: _pathLimit] ...)
+				_key = append (_key, "/*" ...)
+				_fingerprints, _ = _server.cachedFileFingerprints[BytesToString (_key)]
 			} else {
-				_server.ServeError (_context, http.StatusInternalServerError, _error, false)
-				return
+				_key := _keyBuffer[:0]
+				_key = append (_key, NamespaceFilesContent ...)
+				_key = append (_key, ':')
+				_key = append (_key, _path[: _pathLimit] ...)
+				_key = append (_key, "/*" ...)
+				if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
+					_fingerprints = _value
+				} else {
+					_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+					return
+				}
+			}
+			
+			if _fingerprints != nil {
+				break _loop_2
 			}
 		}
 	}
@@ -199,76 +217,80 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
-	_fingerprintContent := _fingerprints[:64]
-	_fingerprintMeta := _fingerprints[65:]
+	_fingerprintContent := _fingerprints[0:64]
+	_fingerprintMeta := _fingerprints[65:129]
 	
 	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
 	
 	var _data []byte
-	{
+	if _server.cachedDataContent != nil {
+		_data, _ = _server.cachedDataContent[BytesToString (_fingerprintContent)]
+	} else {
 		_key := _keyBuffer[:0]
 		_key = append (_key, NamespaceDataContent ...)
 		_key = append (_key, ':')
 		_key = append (_key, _fingerprintContent ...)
 		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-			if _value != nil {
-				_data = _value
-			} else {
-				log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", _requestHeaders.RequestURI ())
-				_server.ServeError (_context, http.StatusInternalServerError, nil, false)
-				return
-			}
+			_data = _value
 		} else {
 			_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 			return
 		}
 	}
+	if _data == nil {
+		log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", _requestHeaders.RequestURI ())
+		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
+		return
+	}
 	
-	_responseStatus := http.StatusOK
-	{
+	var _dataMetaRaw []byte
+	if _server.cachedDataMeta != nil {
+		_dataMetaRaw, _ = _server.cachedDataMeta[BytesToString (_fingerprintMeta)]
+	} else {
 		_key := _keyBuffer[:0]
 		_key = append (_key, NamespaceDataMetadata ...)
 		_key = append (_key, ':')
 		_key = append (_key, _fingerprintMeta ...)
 		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-			if _value != nil {
-				_handleHeader := func (_name []byte, _value []byte) {
-					switch {
-						case len (_name) == 0 : {
-							log.Printf ("[90009821]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-							_responseStatus = http.StatusInternalServerError
-						}
-						case _name[0] != '_' :
-							_responseHeaders.SetCanonical (_name, _value)
-						case bytes.Equal (_name, []byte ("_Status")) :
-							if _value, _error := strconv.Atoi (BytesToString (_value)); _error == nil {
-								if (_value >= 200) && (_value <= 599) {
-									_responseStatus = _value
-								} else {
-									log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-									_responseStatus = http.StatusInternalServerError
-								}
-							} else {
-								log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-								_responseStatus = http.StatusInternalServerError
-							}
-						default :
-							log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-					}
-				}
-				if _error := MetadataDecodeIterate (_value, _handleHeader); _error != nil {
-					_server.ServeError (_context, http.StatusInternalServerError, _error, false)
-					return
-				}
-			} else {
-				log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-				_server.ServeError (_context, http.StatusInternalServerError, nil, false)
-				return
-			}
+			_dataMetaRaw = _value
 		} else {
 			_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 			return
 		}
+	}
+	if _dataMetaRaw == nil {
+		log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
+		return
+	}
+	
+	_responseStatus := http.StatusOK
+	_handleHeader := func (_name []byte, _value []byte) {
+			switch {
+				case len (_name) == 0 :
+					log.Printf ("[90009821]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+					_responseStatus = http.StatusInternalServerError
+				case _name[0] != '_' :
+					_responseHeaders.SetCanonical (_name, _value)
+				case bytes.Equal (_name, []byte ("_Status")) :
+					if _value, _error := strconv.Atoi (BytesToString (_value)); _error == nil {
+						if (_value >= 200) && (_value <= 599) {
+							_responseStatus = _value
+						} else {
+							log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+							_responseStatus = http.StatusInternalServerError
+							}
+						} else {
+							log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+							_responseStatus = http.StatusInternalServerError
+						}
+				default :
+					log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+			}
+		}
+	if _error := MetadataDecodeIterate (_dataMetaRaw, _handleHeader); _error != nil {
+		_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+		return
 	}
 	
 	if _server.debug {
@@ -337,7 +359,7 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte (ErrorBannerContentEncoding))
 	
 	if _banner, _bannerFound := ErrorBannersData[_status]; _bannerFound {
-		_response.SetBodyRaw ([]byte (_banner))
+		_response.SetBodyRaw (_banner)
 	}
 	
 	_response.SetStatusCode (int (_status))
@@ -361,6 +383,9 @@ func main_0 () (error) {
 	var _archiveInmem bool
 	var _archiveMmap bool
 	var _archivePreload bool
+	var _indexPaths bool
+	var _indexDataMeta bool
+	var _indexDataContent bool
 	var _processes uint
 	var _threads uint
 	var _slave uint
@@ -403,6 +428,11 @@ func main_0 () (error) {
     --archive-mmap       (memory-mapped archive file)
     --archive-preload    (preload archive file)
 
+    --index-all
+    --index-paths
+    --index-data-meta
+    --index-data-content
+
     --bind <ip>:<port>
 
     --processes <count>  (of slave processes)
@@ -421,6 +451,10 @@ func main_0 () (error) {
 		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "")
 		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "")
 		_archivePreload_0 := _flags.Bool ("archive-preload", false, "")
+		_indexAll_0 := _flags.Bool ("index-all", false, "")
+		_indexPaths_0 := _flags.Bool ("index-paths", false, "")
+		_indexDataMeta_0 := _flags.Bool ("index-data-meta", false, "")
+		_indexDataContent_0 := _flags.Bool ("index-data-content", false, "")
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
 		_slave_0 := _flags.Uint ("slave", 0, "")
@@ -435,6 +469,10 @@ func main_0 () (error) {
 		_archiveInmem = *_archiveInmem_0
 		_archiveMmap = *_archiveMmap_0
 		_archivePreload = *_archivePreload_0
+		_indexAll := *_indexAll_0
+		_indexPaths = _indexAll || *_indexPaths_0
+		_indexDataMeta = _indexAll || *_indexDataMeta_0
+		_indexDataContent = _indexAll || *_indexDataContent_0
 		_processes = *_processes_0
 		_threads = *_threads_0
 		_slave = *_slave_0
@@ -707,7 +745,7 @@ func main_0 () (error) {
 		}
 	}
 	
-	if _schemaVersion, _error := _cdbReader.Get ([]byte (NamespaceSchemaVersion)); _error == nil {
+	if _schemaVersion, _error := _cdbReader.GetWithCdbHash ([]byte (NamespaceSchemaVersion)); _error == nil {
 		if _schemaVersion == nil {
 			AbortError (nil, "[09316866]  missing archive schema version!")
 		} else if string (_schemaVersion) != CurrentSchemaVersion {
@@ -717,10 +755,109 @@ func main_0 () (error) {
 		AbortError (_error, "[87cae197]  failed opening archive!")
 	}
 	
+	var _cachedFileFingerprints map[string][]byte
+	if _indexPaths {
+		_cachedFileFingerprints = make (map[string][]byte, 128 * 1024)
+	}
+	var _cachedDataMeta map[string][]byte
+	if _indexDataMeta {
+		_cachedDataMeta = make (map[string][]byte, 128 * 1024)
+	}
+	var _cachedDataContent map[string][]byte
+	if _indexDataContent {
+		_cachedDataContent = make (map[string][]byte, 128 * 1024)
+	}
+	
+	if _indexPaths || _indexDataMeta || _indexDataContent {
+		if _debug {
+			log.Printf ("[ii] [fa5338fd]  indexing archive...\n")
+		}
+		if _filesIndex, _error := _cdbReader.GetWithCdbHash ([]byte (NamespaceFilesIndex)); _error == nil {
+			if _filesIndex != nil {
+				_keyBuffer := [1024]byte {}
+				for {
+					_offset := bytes.IndexByte (_filesIndex, '\n')
+					if _offset == 0 {
+						continue
+					}
+					if _offset == -1 {
+						break
+					}
+					_filePath := _filesIndex[: _offset]
+					_filesIndex = _filesIndex[_offset + 1 :]
+					var _fingerprints []byte
+					var _fingerprintContent []byte
+					var _fingerprintMeta []byte
+					{
+						_key := _keyBuffer[:0]
+						_key = append (_key, NamespaceFilesContent ...)
+						_key = append (_key, ':')
+						_key = append (_key, _filePath ...)
+						if _fingerprints_0, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
+							if _fingerprints_0 != nil {
+								_fingerprints = _fingerprints_0
+								_fingerprintContent = _fingerprints[0:64]
+								_fingerprintMeta = _fingerprints[65:129]
+							} else {
+								AbortError (_error, "[460b3cf1]  failed indexing archive!")
+							}
+						} else {
+							AbortError (_error, "[216f2075]  failed indexing archive!")
+						}
+					}
+					if _indexPaths {
+						_cachedFileFingerprints[BytesToString (_filePath)] = _fingerprints
+					}
+					if _indexDataMeta {
+						if _, _wasCached := _cachedDataMeta[BytesToString (_fingerprintMeta)]; !_wasCached {
+							_key := _keyBuffer[:0]
+							_key = append (_key, NamespaceDataMetadata ...)
+							_key = append (_key, ':')
+							_key = append (_key, _fingerprintMeta ...)
+							if _dataMeta, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
+								if _dataMeta != nil {
+									_cachedDataMeta[BytesToString (_fingerprintMeta)] = _dataMeta
+								} else {
+									AbortError (_error, "[6df556bf]  failed indexing archive!")
+								}
+							} else {
+								AbortError (_error, "[0d730134]  failed indexing archive!")
+							}
+						}
+					}
+					if _indexDataContent {
+						if _, _wasCached := _cachedDataContent[BytesToString (_fingerprintContent)]; !_wasCached {
+							_key := _keyBuffer[:0]
+							_key = append (_key, NamespaceDataContent ...)
+							_key = append (_key, ':')
+							_key = append (_key, _fingerprintContent ...)
+							if _dataContent, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
+								if _dataContent != nil {
+									_cachedDataContent[BytesToString (_fingerprintContent)] = _dataContent
+								} else {
+									AbortError (_error, "[4e27fe46]  failed indexing archive!")
+								}
+							} else {
+								AbortError (_error, "[532845ad]  failed indexing archive!")
+							}
+						}
+					}
+				}
+			} else {
+				log.Printf ("[ww] [30314f31]  missing archive files index;  ignoring!\n")
+			}
+		} else {
+			AbortError (_error, "[82299b3d]  failed indexing arcdive!")
+		}
+	}
+	
 	
 	_server := & server {
 			httpServer : nil,
 			cdbReader : _cdbReader,
+			cachedFileFingerprints : _cachedFileFingerprints,
+			cachedDataMeta : _cachedDataMeta,
+			cachedDataContent : _cachedDataContent,
 			debug : _debug,
 		}
 	
