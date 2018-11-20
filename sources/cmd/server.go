@@ -111,9 +111,9 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_responseHeaders.SetCanonical ([]byte ("X-content-type-Options"), []byte ("nosniff"))
 	_responseHeaders.SetCanonical ([]byte ("X-XSS-Protection"), []byte ("1; mode=block"))
 	
-	var _fingerprint []byte
+	var _fingerprints []byte
 	
-	if _fingerprint == nil {
+	if _fingerprints == nil {
 		_loop_1 : for _, _namespaceAndPathSuffix := range [][2]string {
 					{NamespaceFilesContent, ""},
 					{NamespaceFilesContent, "/"},
@@ -142,7 +142,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			
 			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 				if _value != nil {
-					_fingerprint = _value
+					_fingerprints = _value
 					if ((_namespace == NamespaceFoldersContent) || _pathSuffixHasSlash) && (!_pathIsRoot && !_pathHasSlash) {
 						_path = append (_path, '/')
 						_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
@@ -157,14 +157,14 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	
-	if _fingerprint == nil {
+	if _fingerprints == nil {
 		if bytes.Equal ([]byte ("/favicon.ico"), _path) {
 			_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
 			return
 		}
 	}
 	
-	if _fingerprint == nil {
+	if _fingerprints == nil {
 		_loop_2 : for
 				_pathLimit := bytes.LastIndexByte (_path, '/');
 				_pathLimit >= 0;
@@ -178,7 +178,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			
 			if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 				if _value != nil {
-					_fingerprint = _value
+					_fingerprints = _value
 					break _loop_2
 				}
 			} else {
@@ -188,11 +188,19 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	
-	if _fingerprint == nil {
+	if _fingerprints == nil {
 		log.Printf ("[ww] [7416f61d]  not found `%s`!\n", _requestHeaders.RequestURI ())
 		_server.ServeError (_context, http.StatusNotFound, nil, true)
 		return
 	}
+	
+	if len (_fingerprints) != 129 {
+		log.Printf ("[ee] [7ee6c981]  invalid data fingerprints for `%s`!\n", _requestHeaders.RequestURI ())
+		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
+		return
+	}
+	_fingerprintContent := _fingerprints[:64]
+	_fingerprintMeta := _fingerprints[65:]
 	
 	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
 	
@@ -201,7 +209,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		_key := _keyBuffer[:0]
 		_key = append (_key, NamespaceDataContent ...)
 		_key = append (_key, ':')
-		_key = append (_key, _fingerprint ...)
+		_key = append (_key, _fingerprintContent ...)
 		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 			if _value != nil {
 				_data = _value
@@ -221,7 +229,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		_key := _keyBuffer[:0]
 		_key = append (_key, NamespaceDataMetadata ...)
 		_key = append (_key, ':')
-		_key = append (_key, _fingerprint ...)
+		_key = append (_key, _fingerprintMeta ...)
 		if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
 			if _value != nil {
 				_handleHeader := func (_name []byte, _value []byte) {
@@ -697,6 +705,16 @@ func main_0 () (error) {
 			}
 			
 		}
+	}
+	
+	if _schemaVersion, _error := _cdbReader.Get ([]byte (NamespaceSchemaVersion)); _error == nil {
+		if _schemaVersion == nil {
+			AbortError (nil, "[09316866]  missing archive schema version!")
+		} else if string (_schemaVersion) != CurrentSchemaVersion {
+			AbortError (nil, "[e6482cf7]  invalid archive schema version!")
+		}
+	} else {
+		AbortError (_error, "[87cae197]  failed opening archive!")
 	}
 	
 	

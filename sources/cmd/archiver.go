@@ -29,12 +29,17 @@ import . "github.com/volution/kawipiko/lib/archiver"
 
 type context struct {
 	cdbWriter *cdb.Writer
-	storedData map[string]bool
-	storedFiles map[[2]uint64]string
+	storedFilePaths []string
+	storedFolderPaths []string
+	storedDataMeta map[string]bool
+	storedDataContent map[string]bool
+	storedDataContentMeta map[string]map[string]string
+	storedFiles map[[2]uint64][2]string
 	compress string
 	includeIndex bool
 	includeEtag bool
-	includeMetadata bool
+	includeFileListing bool
+	includeFolderListing bool
 	debug bool
 }
 
@@ -62,49 +67,68 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 		}
 	}
 	
-	_fingerprint, _wasStored := _context.storedFiles[_fileId]
-	var _data []byte
+	var _wasStored bool
+	var _fingerprintContent string
+	var _fingerprintMeta string
+	if _fingerprints, _wasStored_0 := _context.storedFiles[_fileId]; _wasStored_0 {
+		_fingerprintContent = _fingerprints[0]
+		_fingerprintMeta = _fingerprints[1]
+		_wasStored = true
+	}
+	
+	var _dataContent []byte
 	var _dataMeta map[string]string
+	var _dataMetaRaw []byte
 	
 	if ! _wasStored {
 		
-		if _data_0, _error := ioutil.ReadAll (_file); _error == nil {
-			_data = _data_0
+		if _dataContent_0, _error := ioutil.ReadAll (_file); _error == nil {
+			_dataContent = _dataContent_0
 		} else {
 			return _error
 		}
 		
-		if _fingerprint_0, _data_0, _dataMeta_0, _error := prepareData (_context, _pathResolved, _pathInArchive, _name, _data, ""); _error != nil {
+		if _fingerprintContent_0, _dataContent_0, _dataMeta_0, _error := prepareDataContent (_context, _pathResolved, _pathInArchive, _name, _dataContent, ""); _error != nil {
 			return _error
 		} else {
-			_fingerprint = _fingerprint_0
-			_data = _data_0
+			_fingerprintContent = _fingerprintContent_0
+			_dataContent = _dataContent_0
 			_dataMeta = _dataMeta_0
+		}
+		if _fingerprintMeta_0, _dataMetaRaw_0, _error := prepareDataMeta (_context, _dataMeta); _error != nil {
+			return _error
+		} else {
+			_fingerprintMeta = _fingerprintMeta_0
+			_dataMetaRaw = _dataMetaRaw_0
 		}
 	}
 	
 	for _, _suffix := range StripSuffixes {
 		if strings.HasSuffix (_pathInArchive, _suffix) {
 			_pathInArchive := _pathInArchive [: len (_pathInArchive) - len (_suffix)]
-			if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
+			if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprintContent, _fingerprintMeta); _error != nil {
 				return _error
 			}
 			break
 		}
 	}
 	
-	if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprint); _error != nil {
+	if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprintContent, _fingerprintMeta); _error != nil {
 		return _error
 	}
-	
-	if (_data != nil) && (_dataMeta != nil) {
-		if _error := archiveData (_context, _fingerprint, _data, _dataMeta); _error != nil {
+	if _dataMetaRaw != nil {
+		if _error := archiveDataMeta (_context, _fingerprintMeta, _dataMetaRaw); _error != nil {
+			return _error
+		}
+	}
+	if _dataContent != nil {
+		if _error := archiveDataContent (_context, _fingerprintContent, _dataContent); _error != nil {
 			return _error
 		}
 	}
 	
 	if ! _wasStored {
-		_context.storedFiles[_fileId] = _fingerprint
+		_context.storedFiles[_fileId] = [2]string { _fingerprintContent, _fingerprintMeta }
 	}
 	
 	return nil
@@ -127,7 +151,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 	}
 	
 	_entries := make ([]Entry, 0, len (_names))
-	if _context.includeMetadata {
+	if _context.includeFolderListing {
 		for _, _name := range _names {
 			_entry := Entry {
 					Name : _name,
@@ -176,7 +200,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 		}
 	}
 	
-	if ! _context.includeMetadata {
+	if ! _context.includeFolderListing {
 		return nil
 	}
 	
@@ -192,7 +216,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 		return _error
 	}
 	
-	if _, _error := archiveReferenceAndData (_context, NamespaceFoldersContent, _pathResolved, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+	if _, _, _error := archiveReferenceAndData (_context, NamespaceFoldersContent, _pathResolved, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
 		return _error
 	}
 	
@@ -202,67 +226,86 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 
 
 
-func archiveReferenceAndData (_context *context, _namespace string, _pathResolved string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, error) {
+func archiveReferenceAndData (_context *context, _namespace string, _pathResolved string, _pathInArchive string, _name string, _dataContent []byte, _dataType string) (string, string, error) {
 	
-	var _fingerprint string
+	var _fingerprintContent string
+	var _fingerprintMeta string
 	var _dataMeta map[string]string
-	if _fingerprint_0, _data_0, _dataMeta_0, _error := prepareData (_context, _pathResolved, _pathInArchive, _name, _data, _dataType); _error != nil {
-		return "", _error
+	var _dataMetaRaw []byte
+	
+	if _fingerprintContent_0, _dataContent_0, _dataMeta_0, _error := prepareDataContent (_context, _pathResolved, _pathInArchive, _name, _dataContent, _dataType); _error != nil {
+		return "", "", _error
 	} else {
-		_fingerprint = _fingerprint_0
-		_data = _data_0
+		_fingerprintContent = _fingerprintContent_0
+		_dataContent = _dataContent_0
 		_dataMeta = _dataMeta_0
 	}
-	
-	if _error := archiveReference (_context, _namespace, _pathInArchive, _fingerprint); _error != nil {
-		return "", _error
+	if _fingerprintMeta_0, _dataMetaRaw_0, _error := prepareDataMeta (_context, _dataMeta); _error != nil {
+		return "", "", _error
+	} else {
+		_fingerprintMeta = _fingerprintMeta_0
+		_dataMetaRaw = _dataMetaRaw_0
 	}
 	
-	if (_data != nil) && (_dataMeta != nil) {
-		if _error := archiveData (_context, _fingerprint, _data, _dataMeta); _error != nil {
-			return "", _error
+	if _error := archiveReference (_context, _namespace, _pathInArchive, _fingerprintContent, _fingerprintMeta); _error != nil {
+		return "", "", _error
+	}
+	if _dataMetaRaw != nil {
+		if _error := archiveDataMeta (_context, _fingerprintMeta, _dataMetaRaw); _error != nil {
+			return "", "", _error
+		}
+	}
+	if _dataContent != nil {
+		if _error := archiveDataContent (_context, _fingerprintContent, _dataContent); _error != nil {
+			return "", "", _error
 		}
 	}
 	
-	return _fingerprint, nil
+	return _fingerprintContent, _fingerprintMeta, nil
 }
 
 
 
-func archiveData (_context *context, _fingerprint string, _data []byte, _dataMeta map[string]string) (error) {
+
+func archiveDataContent (_context *context, _fingerprintContent string, _dataContent []byte) (error) {
 	
-	if _wasStored, _ := _context.storedData[_fingerprint]; _wasStored {
-		return fmt.Errorf ("[256cde78]  data already stored:  `%s`!", _fingerprint)
-	}
-	
-	var _dataMetaRaw []byte
-	if _dataMetaRaw_0, _error := MetadataEncode (_dataMeta); _error == nil {
-		_dataMetaRaw = _dataMetaRaw_0
-	} else {
-		return _error
+	if _wasStored, _ := _context.storedDataContent[_fingerprintContent]; _wasStored {
+		return fmt.Errorf ("[256cde78]  data content already stored:  `%s`!", _fingerprintContent)
 	}
 	
 	{
-		_key := fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _fingerprint)
+		_key := fmt.Sprintf ("%s:%s", NamespaceDataContent, _fingerprintContent)
 		if _context.debug {
-			log.Printf ("[  ] blob-meta    ++ `%s`\n", _key)
+			log.Printf ("[  ] data-content ++ `%s`\n", _key)
 		}
-		if _error := _context.cdbWriter.Put ([]byte (_key), _dataMetaRaw); _error != nil {
+		if _error := _context.cdbWriter.Put ([]byte (_key), _dataContent); _error != nil {
 			return _error
 		}
 	}
 	
+	_context.storedDataContent[_fingerprintContent] = true
+	
+	return nil
+}
+
+
+func archiveDataMeta (_context *context, _fingerprintMeta string, _dataMeta []byte) (error) {
+	
+	if _wasStored, _ := _context.storedDataMeta[_fingerprintMeta]; _wasStored {
+		return fmt.Errorf ("[2918c4e2]  data meta already stored:  `%s`!", _fingerprintMeta)
+	}
+	
 	{
-		_key := fmt.Sprintf ("%s:%s", NamespaceDataContent, _fingerprint)
+		_key := fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _fingerprintMeta)
 		if _context.debug {
-			log.Printf ("[  ] blob-data    ++ `%s`\n", _key)
+			log.Printf ("[  ] data-meta    ++ `%s`\n", _key)
 		}
-		if _error := _context.cdbWriter.Put ([]byte (_key), _data); _error != nil {
+		if _error := _context.cdbWriter.Put ([]byte (_key), _dataMeta); _error != nil {
 			return _error
 		}
 	}
 	
-	_context.storedData[_fingerprint] = true
+	_context.storedDataMeta[_fingerprintMeta] = true
 	
 	return nil
 }
@@ -270,13 +313,24 @@ func archiveData (_context *context, _fingerprint string, _data []byte, _dataMet
 
 
 
-func archiveReference (_context *context, _namespace string, _pathInArchive string, _fingerprint string) (error) {
+func archiveReference (_context *context, _namespace string, _pathInArchive string, _fingerprintContent string, _fingerprintMeta string) (error) {
+	
+	switch _namespace {
+		case NamespaceFilesContent :
+			_context.storedFilePaths = append (_context.storedFilePaths, _pathInArchive)
+		case NamespaceFoldersContent :
+			_context.storedFolderPaths = append (_context.storedFolderPaths, _pathInArchive)
+		default :
+			return fmt.Errorf ("[051a102a]")
+	}
 	
 	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
 	if _context.debug {
-		log.Printf ("[  ] reference    ++ `%s` :: `%s` -> `%s`\n", _namespace, _pathInArchive, _fingerprint)
+		log.Printf ("[  ] reference    ++ `%s` :: `%s` -> `%s` ~ `%s`\n", _namespace, _pathInArchive, _fingerprintContent[:16], _fingerprintMeta[:16])
 	}
-	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprint)); _error != nil {
+	
+	_fingerprints := fmt.Sprintf ("%s:%s", _fingerprintContent, _fingerprintMeta)
+	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprints)); _error != nil {
 		return _error
 	}
 	
@@ -286,13 +340,14 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 
 
 
-func prepareData (_context *context, _pathResolved string, _pathInArchive string, _name string, _data []byte, _dataType string) (string, []byte, map[string]string, error) {
+func prepareDataContent (_context *context, _pathResolved string, _pathInArchive string, _name string, _dataContent []byte, _dataType string) (string, []byte, map[string]string, error) {
 	
-	_fingerprintRaw := sha256.Sum256 (_data)
-	_fingerprint := hex.EncodeToString (_fingerprintRaw[:])
+	_fingerprintContentRaw := sha256.Sum256 (_dataContent)
+	_fingerprintContent := hex.EncodeToString (_fingerprintContentRaw[:])
 	
-	if _wasStored, _ := _context.storedData[_fingerprint]; _wasStored {
-		return _fingerprint, nil, nil, nil
+	if _wasStored, _ := _context.storedDataContent[_fingerprintContent]; _wasStored {
+		_dataMeta := _context.storedDataContentMeta[_fingerprintContent]
+		return _fingerprintContent, nil, _dataMeta, nil
 	}
 	
 	if (_dataType == "") && (_name != "") {
@@ -303,19 +358,19 @@ func prepareData (_context *context, _pathResolved string, _pathInArchive string
 		_dataType, _ = MimeTypesByExtension[_extension]
 	}
 	if _dataType == "" {
-		_dataType = http.DetectContentType (_data)
+		_dataType = http.DetectContentType (_dataContent)
 	}
 	if _dataType == "" {
 		_dataType = MimeTypeRaw
 	}
 	
 	_dataEncoding := "identity"
-	_dataUncompressedSize := len (_data)
+	_dataUncompressedSize := len (_dataContent)
 	_dataSize := _dataUncompressedSize
 	if _dataSize > 512 {
-		if _data_0, _dataEncoding_0, _error := Compress (_data, _context.compress); _error == nil {
+		if _dataContent_0, _dataEncoding_0, _error := Compress (_dataContent, _context.compress); _error == nil {
 			if _dataEncoding_0 != "identity" {
-				_dataCompressedSize := len (_data_0)
+				_dataCompressedSize := len (_dataContent_0)
 				_dataCompressedDelta := _dataUncompressedSize - _dataCompressedSize
 				_dataCompressedRatio := (_dataCompressedDelta * 100) / _dataUncompressedSize
 				_accepted := false
@@ -329,7 +384,7 @@ func prepareData (_context *context, _pathResolved string, _pathInArchive string
 				_accepted = _accepted || ((_dataUncompressedSize > (1 * 1024)) && (_dataCompressedRatio >= 40))
 				_accepted = _accepted || (_dataCompressedRatio >= 90)
 				if _accepted {
-					_data = _data_0
+					_dataContent = _dataContent_0
 					_dataEncoding = _dataEncoding_0
 					_dataSize = _dataCompressedSize
 				}
@@ -357,10 +412,32 @@ func prepareData (_context *context, _pathResolved string, _pathInArchive string
 	_dataMeta["Content-Type"] = _dataType
 	_dataMeta["Content-Encoding"] = _dataEncoding
 	if _context.includeEtag {
-		_dataMeta["ETag"] = _fingerprint
+		_dataMeta["ETag"] = _fingerprintContent
 	}
 	
-	return _fingerprint, _data, _dataMeta, nil
+	_context.storedDataContentMeta[_fingerprintContent] = _dataMeta
+	
+	return _fingerprintContent, _dataContent, _dataMeta, nil
+}
+
+
+func prepareDataMeta (_context *context, _dataMeta map[string]string) (string, []byte, error) {
+	
+	var _dataMetaRaw []byte
+	if _dataMetaRaw_0, _error := MetadataEncode (_dataMeta); _error == nil {
+		_dataMetaRaw = _dataMetaRaw_0
+	} else {
+		return "", nil, _error
+	}
+	
+	_fingerprintMetaRaw := sha256.Sum256 (_dataMetaRaw)
+	_fingerprintMeta := hex.EncodeToString (_fingerprintMetaRaw[:])
+	
+	if _wasStored, _ := _context.storedDataMeta[_fingerprintMeta]; _wasStored {
+		return _fingerprintMeta, nil, nil
+	}
+	
+	return _fingerprintMeta, _dataMetaRaw, nil
 }
 
 
@@ -552,7 +629,8 @@ func main_0 () (error) {
 	var _compress string
 	var _includeIndex bool
 	var _includeEtag bool
-	var _includeMetadata bool
+	var _includeFileListing bool
+	var _includeFolderListing bool
 	var _debug bool
 	
 	{
@@ -587,9 +665,12 @@ func main_0 () (error) {
 
     --archive <path>
     --compress <gzip | brotli | identity>
+
     --exclude-index
     --exclude-etag
-    --include-metadata
+
+    --exclude-file-listing
+    --include-folder-listing
 
     --debug
 
@@ -601,7 +682,8 @@ func main_0 () (error) {
 		_compress_0 := _flags.String ("compress", "", "")
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
 		_excludeEtag_0 := _flags.Bool ("exclude-etag", false, "")
-		_includeMetadata_0 := _flags.Bool ("include-metadata", false, "")
+		_excludeFileListing_0 := _flags.Bool ("include-file-listing", false, "")
+		_includeFolderListing_0 := _flags.Bool ("exclude-folder-listing", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)
@@ -611,7 +693,8 @@ func main_0 () (error) {
 		_compress = *_compress_0
 		_includeIndex = ! *_excludeIndex_0
 		_includeEtag = ! *_excludeEtag_0
-		_includeMetadata = *_includeMetadata_0
+		_includeFileListing = ! *_excludeFileListing_0
+		_includeFolderListing = *_includeFolderListing_0
 		_debug = *_debug_0
 		
 		if _sourcesFolder == "" {
@@ -630,14 +713,23 @@ func main_0 () (error) {
 		AbortError (_error, "[85234ba0]  failed creating archive (while opening)!")
 	}
 	
+	if _error := _cdbWriter.Put ([]byte (NamespaceSchemaVersion), []byte (CurrentSchemaVersion)); _error != nil {
+		AbortError (_error, "[43228812]  failed writing archive!")
+	}
+	
 	_context := & context {
 			cdbWriter : _cdbWriter,
-			storedData : make (map[string]bool, 16 * 1024),
-			storedFiles : make (map[[2]uint64]string, 16 * 1024),
+			storedFilePaths : make ([]string, 0, 16 * 1024),
+			storedFolderPaths : make ([]string, 0, 16 * 1024),
+			storedDataMeta : make (map[string]bool, 16 * 1024),
+			storedDataContent : make (map[string]bool, 16 * 1024),
+			storedDataContentMeta : make (map[string]map[string]string, 16 * 1024),
+			storedFiles : make (map[[2]uint64][2]string, 16 * 1024),
 			compress : _compress,
 			includeIndex : _includeIndex,
 			includeEtag : _includeEtag,
-			includeMetadata : _includeMetadata,
+			includeFileListing : _includeFileListing,
+			includeFolderListing : _includeFolderListing,
 			debug : _debug,
 		}
 	
@@ -645,10 +737,31 @@ func main_0 () (error) {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
 	}
 	
+	if _includeFileListing {
+		_buffer := make ([]byte, 0, 1024 * 1024)
+		for _, _path := range _context.storedFilePaths {
+			_buffer = append (_buffer, _path ...)
+			_buffer = append (_buffer, '\n')
+		}
+		if _error := _cdbWriter.Put ([]byte (NamespaceFilesIndex), _buffer); _error != nil {
+			AbortError (_error, "[1dbdde05]  failed writing archive!")
+		}
+	}
+	
+	if _includeFolderListing {
+		_buffer := make ([]byte, 0, 1024 * 1024)
+		for _, _path := range _context.storedFolderPaths {
+			_buffer = append (_buffer, _path ...)
+			_buffer = append (_buffer, '\n')
+		}
+		if _error := _cdbWriter.Put ([]byte (NamespaceFoldersIndex), _buffer); _error != nil {
+			AbortError (_error, "[e2dd2de0]  failed writing archive!")
+		}
+	}
+	
 	if _error := _cdbWriter.Close (); _error != nil {
 		AbortError (_error, "[bbfb8478]  failed creating archive (while closing)!")
 	}
-	
 	
 	return nil
 }
