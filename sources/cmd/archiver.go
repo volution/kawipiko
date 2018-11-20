@@ -33,6 +33,7 @@ type context struct {
 	storedFiles map[[2]uint64]string
 	compress string
 	includeIndex bool
+	includeEtag bool
 	includeMetadata bool
 	debug bool
 }
@@ -355,7 +356,9 @@ func prepareData (_context *context, _pathResolved string, _pathInArchive string
 	_dataMeta["Content-Length"] = fmt.Sprintf ("%d", _dataSize)
 	_dataMeta["Content-Type"] = _dataType
 	_dataMeta["Content-Encoding"] = _dataEncoding
-	_dataMeta["ETag"] = _fingerprint
+	if _context.includeEtag {
+		_dataMeta["ETag"] = _fingerprint
+	}
 	
 	return _fingerprint, _data, _dataMeta, nil
 }
@@ -548,6 +551,7 @@ func main_0 () (error) {
 	var _archiveFile string
 	var _compress string
 	var _includeIndex bool
+	var _includeEtag bool
 	var _includeMetadata bool
 	var _debug bool
 	
@@ -584,6 +588,7 @@ func main_0 () (error) {
     --archive <path>
     --compress <gzip | brotli | identity>
     --exclude-index
+    --exclude-etag
     --include-metadata
 
     --debug
@@ -595,6 +600,7 @@ func main_0 () (error) {
 		_archiveFile_0 := _flags.String ("archive", "", "")
 		_compress_0 := _flags.String ("compress", "", "")
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
+		_excludeEtag_0 := _flags.Bool ("exclude-etag", false, "")
 		_includeMetadata_0 := _flags.Bool ("include-metadata", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
@@ -604,6 +610,7 @@ func main_0 () (error) {
 		_archiveFile = *_archiveFile_0
 		_compress = *_compress_0
 		_includeIndex = ! *_excludeIndex_0
+		_includeEtag = ! *_excludeEtag_0
 		_includeMetadata = *_includeMetadata_0
 		_debug = *_debug_0
 		
@@ -629,6 +636,7 @@ func main_0 () (error) {
 			storedFiles : make (map[[2]uint64]string, 16 * 1024),
 			compress : _compress,
 			includeIndex : _includeIndex,
+			includeEtag : _includeEtag,
 			includeMetadata : _includeMetadata,
 			debug : _debug,
 		}
