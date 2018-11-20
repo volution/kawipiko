@@ -37,6 +37,7 @@ type context struct {
 	storedFiles map[[2]uint64][2]string
 	compress string
 	includeIndex bool
+	includeStripped bool
 	includeEtag bool
 	includeFileListing bool
 	includeFolderListing bool
@@ -103,13 +104,15 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 		}
 	}
 	
-	for _, _suffix := range StripSuffixes {
-		if strings.HasSuffix (_pathInArchive, _suffix) {
-			_pathInArchive := _pathInArchive [: len (_pathInArchive) - len (_suffix)]
-			if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprintContent, _fingerprintMeta); _error != nil {
-				return _error
+	if _context.includeStripped {
+		for _, _suffix := range StripSuffixes {
+			if strings.HasSuffix (_pathInArchive, _suffix) {
+				_pathInArchive := _pathInArchive [: len (_pathInArchive) - len (_suffix)]
+				if _error := archiveReference (_context, NamespaceFilesContent, _pathInArchive, _fingerprintContent, _fingerprintMeta); _error != nil {
+					return _error
+				}
+				break
 			}
-			break
 		}
 	}
 	
@@ -628,6 +631,7 @@ func main_0 () (error) {
 	var _archiveFile string
 	var _compress string
 	var _includeIndex bool
+	var _includeStripped bool
 	var _includeEtag bool
 	var _includeFileListing bool
 	var _includeFolderListing bool
@@ -667,6 +671,7 @@ func main_0 () (error) {
     --compress <gzip | brotli | identity>
 
     --exclude-index
+    --exclude-strip
     --exclude-etag
 
     --exclude-file-listing
@@ -681,6 +686,7 @@ func main_0 () (error) {
 		_archiveFile_0 := _flags.String ("archive", "", "")
 		_compress_0 := _flags.String ("compress", "", "")
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
+		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
 		_excludeEtag_0 := _flags.Bool ("exclude-etag", false, "")
 		_excludeFileListing_0 := _flags.Bool ("include-file-listing", false, "")
 		_includeFolderListing_0 := _flags.Bool ("exclude-folder-listing", false, "")
@@ -692,6 +698,7 @@ func main_0 () (error) {
 		_archiveFile = *_archiveFile_0
 		_compress = *_compress_0
 		_includeIndex = ! *_excludeIndex_0
+		_includeStripped = ! *_excludeStripped_0
 		_includeEtag = ! *_excludeEtag_0
 		_includeFileListing = ! *_excludeFileListing_0
 		_includeFolderListing = *_includeFolderListing_0
@@ -727,6 +734,7 @@ func main_0 () (error) {
 			storedFiles : make (map[[2]uint64][2]string, 16 * 1024),
 			compress : _compress,
 			includeIndex : _includeIndex,
+			includeStripped : _includeStripped,
 			includeEtag : _includeEtag,
 			includeFileListing : _includeFileListing,
 			includeFolderListing : _includeFolderListing,
