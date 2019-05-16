@@ -688,8 +688,8 @@ func main_0 () (error) {
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
 		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
 		_excludeEtag_0 := _flags.Bool ("exclude-etag", false, "")
-		_excludeFileListing_0 := _flags.Bool ("include-file-listing", false, "")
-		_includeFolderListing_0 := _flags.Bool ("exclude-folder-listing", false, "")
+		_excludeFileListing_0 := _flags.Bool ("exclude-file-listing", false, "")
+		_includeFolderListing_0 := _flags.Bool ("include-folder-listing", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)

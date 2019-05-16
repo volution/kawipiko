@@ -904,20 +904,20 @@ func main_0 () (error) {
 			NoDefaultContentType : true,
 			DisableHeaderNamesNormalizing : true,
 			
-			Concurrency : 4 * 1024,
+			Concurrency : 4 * 1024 + 128,
 			
 			ReadBufferSize : 2 * 1024,
 			WriteBufferSize : 2 * 1024,
 			
-			ReadTimeout : 6 * time.Second,
-			WriteTimeout : 6 * time.Second,
+			ReadTimeout : 30 * time.Second,
+			WriteTimeout : 30 * time.Second,
 			MaxKeepaliveDuration : 360 * time.Second,
 			MaxRequestsPerConn : 256 * 1024,
 			MaxRequestBodySize : 2 * 1024,
 			GetOnly : true,
 			
 			TCPKeepalive : true,
-			TCPKeepalivePeriod : 6 * time.Second,
+			TCPKeepalivePeriod : 60 * time.Second,
 			
 			ReduceMemoryUsage : _httpServerReduceMemory,
 			
