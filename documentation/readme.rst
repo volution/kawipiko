@@ -47,9 +47,9 @@ However it does provide something unique, that no other HTTP server offers:  the
 
 CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.  This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
 
-For a complete list of features please consult the `Features`_ section.
+For a complete list of features please consult the `features section <#features>`_.
 
-Unfortunately, there are also some tradeoffs as described in the `Limitations`_ section (although none are critical).
+Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`_ (although none are critical).
 
 
 
@@ -134,7 +134,7 @@ The following benchmarks were executed as follows:
 * the benchmarking tool was wrk_;
 * both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
 * the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
-* the served file contains the content ``Hello, World!``;
+* the served file contains the content ``Hello World!``;
 * the protocol was HTTP  (i.e. no TLS);
 
 
@@ -161,11 +161,19 @@ The project provides two binaries:
 ::
 
     Usage of kawipiko-archiver:
+
     --sources <path>
+
     --archive <path>
     --compress <gzip | brotli | identity>
+
     --exclude-index
-    --include-metadata
+    --exclude-strip
+    --exclude-etag
+
+    --exclude-file-listing
+    --include-folder-listing
+
     --debug
 
 
@@ -181,15 +189,25 @@ The project provides two binaries:
 ::
 
     Usage of kawipiko-server:
+
     --archive <path>
     --archive-inmem      (memory-loaded archive file)
     --archive-mmap       (memory-mapped archive file)
     --archive-preload    (preload archive file)
+
+    --index-all
+    --index-paths
+    --index-data-meta
+    --index-data-content
+
     --bind <ip>:<port>
+
     --processes <count>  (of slave processes)
     --threads <count>    (of threads per process)
+
     --profile-cpu <path>
     --profile-mem <path>
+
     --debug
 
 
@@ -201,43 +219,66 @@ Examples
 * fetch and extract the Python 3.7 documentation HTML archive: ::
 
     curl -s -S -f \
+        -o ./python-3.7.1-docs-html.tar.bz2 \
         https://docs.python.org/3/archives/python-3.7.1-docs-html.tar.bz2 \
-    | tar -x -j -v
+    #
+
+    tar -x -j -v -f ./python-3.7.1-docs-html.tar.bz2
 
 * create the CDB archive (without any compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.1-docs.cdb \
+        --archive ./python-3.7.1-docs-html.cdb \
         --sources ./python-3.7.1-docs-html \
-        --debug
+        --debug \
+    #
 
 * create the CDB archive (with ``gzip`` compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.1-docs-gzip.cdb \
+        --archive ./python-3.7.1-docs-html-gzip.cdb \
         --sources ./python-3.7.1-docs-html \
         --compress gzip \
-        --debug
+        --debug \
+    #
+
+* create the CDB archive (with ``brotli`` compression): ::
+
+    kawipiko-archiver \
+        --archive ./python-3.7.1-docs-html-brotli.cdb \
+        --sources ./python-3.7.1-docs-html \
+        --compress brotli \
+        --debug \
+    #
 
 * serve the CDB archive (with ``gzip`` compression): ::
 
     kawipiko-server \
         --bind 127.0.0.1:8080 \
-        --archive ./python-3.7.1-docs-gzip.cdb \
+        --archive ./python-3.7.1-docs-html-gzip.cdb \
         --archive-mmap \
         --archive-preload \
-        --debug
+        --debug \
+    #
 
 * compare sources and archive sizes: ::
 
     du -h -s \
+        \
+        ./python-3.7.1-docs-html.cdb \
+        ./python-3.7.1-docs-html-gzip.cdb \
+        ./python-3.7.1-docs-html-brotli.cdb \
+        \
         ./python-3.7.1-docs-html \
-        ./python-3.7.1-docs.cdb \
-        ./python-3.7.1-docs-gzip.cdb
+        ./python-3.7.1-docs-html.tar.bz2 \
+    #
+
+    45M     ./python-3.7.1-docs-html.cdb
+    9.9M    ./python-3.7.1-docs-html-gzip.cdb
+    8.0M    ./python-3.7.1-docs-html-brotli.cdb
 
     46M     ./python-3.7.1-docs-html
-    45M     ./python-3.7.1-docs.cdb
-    9.6M    ./python-3.7.1-docs-gzip.cdb
+    6.0M    ./python-3.7.1-docs-html.tar.bz2
 
 
 
@@ -254,7 +295,7 @@ Download binaries
 .. warning ::
 
   No binaries are currently available for download!
-  Please consult the `Build from sources`_ section for now.
+  Please consult the `build from sources section <#build-from-sources>`_ for now.
 
 
 
@@ -286,9 +327,9 @@ Fetch the sources
 
     git clone \
         --depth 1 \
-        --recurse-submodules --shallow-submodules \
         https://github.com/volution/kawipiko.git \
-        /tmp/kawipiko/src
+        /tmp/kawipiko/src \
+    #
 
 
 Compile the binaries
@@ -296,24 +337,26 @@ Compile the binaries
 
 Prepare the Go environment: ::
 
+    export GOPATH=/tmp/kawipiko/go
+
     mkdir /tmp/kawipiko/go
-    ln -s -T ../src/vendor /tmp/kawipiko/go/src
+    mkdir /tmp/kawipiko/bin
 
 Compile the Go binnaries: ::
 
-    export GOPATH=/tmp/kawipiko/go
-
-    mkdir /tmp/kawipiko/bin
+    cd /tmp/kawipiko/src/sources
 
     go build \
         -ldflags '-s' \
         -o /tmp/kawipiko/bin/kawipiko-archiver \
-        /tmp/kawipiko/src/sources/cmd/archiver.go
+        ./cmd/archiver.go \
+    #
 
     go build \
         -ldflags '-s' \
         -o /tmp/kawipiko/bin/kawipiko-server \
-        /tmp/kawipiko/src/sources/cmd/server.go
+        ./cmd/server.go \
+    #
 
 
 Deploy the binaries
@@ -342,6 +385,8 @@ The following is a list of the most important features:
 
 * "atomic" site content changes;  because the entire site content is held in a single CDB database file, and because the file replacement is atomically achieved via the ``rename`` syscall (or the ``mv`` tool), all the site's resources are "changed" at the same time;
 
+* `_wildcard.*` files (where `.*` are the regular extensions like `.txt`, `.html`, etc.) which will be used if an actual resource is not found under that folder;  (these files respect the hierarchical tree structure, i.e. "deeper" ones override the ones closer to "root";)
+
 
 
 
@@ -351,6 +396,10 @@ Pending
 The following is a list of the most important features that are currently missing and are planed to be implemented:
 
 * support for HTTPS;  (although for HTTPS it is strongly recommended to use a dedicated TLS terminator like HAProxy_;)
+
+* support for custom HTTP response headers (for specific files, for specific folders, etc.);  (currently only ``Content-Type``, ``Content-Length``, ``Content-Encoding`` and optionally ``ETag`` is included;  additionally `Cache-Control: public, immutable, max-age=3600` and a few security related headers are also included;)
+
+* support for mapping virtual hosts to key prefixes;  (currently virtual hosts, i.e. the `Host` header, are ignored;)
 
 * support for mapping virtual hosts to multiple CDB database files;  (i.e. the ability to serve multiple domains, each with its own CDB database;)
 
@@ -364,15 +413,15 @@ The following is a list of the most important features that are currently missin
 Limitations
 ===========
 
-As stated in the `About`_ section, nothing comes for free, and in order to provide all these features, some corners had to be cut:
-
-* the CDB database **maximum size is 2 GiB**;  (however if you have a site this large, you are probabbly doing something extreemly wrong;)
-
-* the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding : gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
+As stated in the `about section <#about>`_, nothing comes for free, and in order to provide all these features, some corners had to be cut:
 
 * (TODO)  currently if the CDB database file changes, the server needs to be restarted in order to pickup the changed files;
 
-* regarding the "atomic" site changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extreemly small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**)
+* (won't fix)  the CDB database **maximum size is 2 GiB**;  (however if you have a site this large, you are probabbly doing something extreemly wrong, as large files should be offloaded to something like AWS S3 and served through a CDN like CloudFlare or AWS CloudFront;)
+
+* (won't fix)  the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding : gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
+
+* (won't fix)  regarding the "atomic" site changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extreemly small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**  always use fingerprints in your resources URL, and perhaps always include the current and previous version on each deploy;)
 
 
 
