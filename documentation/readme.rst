@@ -70,6 +70,7 @@ Results
   * **under extreme conditions (2048 concurrent connections), you get arround 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
   * (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting;)
   * (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
+  * **the raw performance is comparable with NGinx** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
 
 .. note ::
 
@@ -145,6 +146,64 @@ The following benchmarks were executed as follows:
 * the served file contains the content ``Hello World!``;
 * the protocol was HTTP (i.e. no TLS), with keep-alive;
 * see the `benchmarking section <#benchmarking>`_ for details;
+
+
+Comparisons
+-----------
+
+* NGinx 512 connections / 2 server workers / 4 wrk thread: ::
+
+    Requests/sec:  97910.36
+    Transfer/sec:     24.56MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      4 threads and 512 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     5.11ms    1.30ms  17.59ms   85.08%
+        Req/Sec    24.65k     1.35k   42.68k    78.83%
+      Latency Distribution
+         50%    5.02ms
+         75%    5.32ms
+         90%    6.08ms
+         99%    9.62ms
+      2944219 requests in 30.07s, 738.46MB read
+
+* NGinx 2048 connections / 2 server workers / 4 wrk thread: ::
+
+    Requests/sec:  93240.70
+    Transfer/sec:     23.39MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      4 threads and 2048 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    36.33ms   56.44ms 859.65ms   90.18%
+        Req/Sec    23.61k     6.24k   51.88k    74.33%
+      Latency Distribution
+         50%   19.25ms
+         75%   25.46ms
+         90%   89.69ms
+         99%  251.04ms
+      2805639 requests in 30.09s, 703.70MB read
+      Socket errors: connect 0, read 25, write 0, timeout 66
+
+* (the NGinx configuration file can be found in the `examples folder <./examples>`_;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small static files;)
+
+* `darkhttpd`_ 512 connections / 1 server process / 4 wrk threads: ::
+
+    Requests/sec:  38191.65
+    Transfer/sec:      8.74MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      4 threads and 512 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    17.51ms   17.30ms 223.22ms   78.55%
+        Req/Sec     9.62k     1.94k   17.01k    72.98%
+      Latency Distribution
+         50%    7.51ms
+         75%   32.51ms
+         90%   45.69ms
+         99%   53.00ms
+      1148067 requests in 30.06s, 262.85MB read
 
 
 
@@ -600,4 +659,6 @@ References
 .. [HAProxy] `HAProxy Load Balancer <https://goo.gl/43dnu8>`_
 
 .. [wrk] `wrk -- modern HTTP benchmarking tool <https://goo.gl/BjpjND>`_
+
+.. [darkhttpd] `darkhttpd -- simple static HTTP server <https://unix4lyfe.org/darkhttpd/>`_ (single threaded, with event loop and ``sendfile`` support)
 
