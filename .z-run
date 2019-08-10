@@ -7,6 +7,7 @@
 
 ::// execute / ...
 ::// benchmark / ...
+::// examples / ...
 ::// documentation / ...
 ::// workspace / ...
 
@@ -74,15 +75,14 @@
 !!
 
 
-<< go / build / server / release / publish
+<< go / build / server / publish
 	test "${#}" -eq 0
-	printf -- '[ii]  building...\n' >&2
 	"${ZRUN[@]}" ':: go / build / server / release'
 	if test ! -e ./.outputs/publish ; then
 		mkdir -- ./.outputs/publish
 	fi
-	if test ! -e ./.outputs/publish/bin ; then
-		mkdir -- ./.outputs/publish/bin
+	if test ! -e ./.outputs/publish/binaries ; then
+		mkdir -- ./.outputs/publish/binaries
 	fi
 	cp -T -- \
 			./.outputs/binaries/release/kawipiko-server \
@@ -130,15 +130,14 @@
 !!
 
 
-<< go / build / archiver / release / publish
+<< go / build / archiver / publish
 	test "${#}" -eq 0
-	printf -- '[ii]  building...\n' >&2
 	"${ZRUN[@]}" ':: go / build / archiver / release'
 	if test ! -e ./.outputs/publish ; then
 		mkdir -- ./.outputs/publish
 	fi
-	if test ! -e ./.outputs/publish/bin ; then
-		mkdir -- ./.outputs/publish/bin
+	if test ! -e ./.outputs/publish/binaries ; then
+		mkdir -- ./.outputs/publish/binaries
 	fi
 	cp -T -- \
 			./.outputs/binaries/release/kawipiko-archiver \
@@ -159,10 +158,15 @@
 	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
 !!
 
+<< go / build / publish
+	"${ZRUN[@]}" ':: go / build / archiver / publish' "${@}"
+	"${ZRUN[@]}" ':: go / build / server / publish' "${@}"
+!!
 
 
 
-<< publish
+
+<< workspace / publish
 	test "${#}" -eq 0
 	printf -- '[ii]  publishing to `https://data.volution.ro/ciprian/ad5264afc6e27e46b5d71837552cb3fd`...\n' >&2
 	exec -- rsync -a -v -- ./.outputs/publish/ ./.publish/
@@ -348,7 +352,7 @@
 		_archive=''
 	fi
 	if test -z "${_archive}" ; then
-		_archive=./.archives/hello-world.cdb
+		_archive=./examples/hello-world.cdb
 	fi
 	"${ZRUN[@]}" ':: go / build / server / release'
 	exec -- \
@@ -502,6 +506,29 @@
 			--compressed \
 			"${@}" \
 			-- "http://127.9.185.194:8080/${_path}" \
+	#
+!!
+
+
+
+
+<< examples / hello-world / archive
+	exec -- "${ZRUN[@]}" ':: execute / archiver / debug' \
+			--sources ./examples/hello-world \
+			--archive ./examples/hello-world.cdb \
+			--debug \
+	#
+!!
+
+<< examples / hello-world / serve
+	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
+			--bind 127.153.215.30:8080 \
+			--archive ./examples/hello-world.cdb \
+			--archive-inmem \
+			--index-all \
+			--processes 1 \
+			--threads 1 \
+			--debug \
 	#
 !!
 
