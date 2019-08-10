@@ -1,0 +1,507 @@
+#!/dev/null
+
+
+
+
+::// *
+
+::// execute / ...
+::// benchmark / ...
+::// documentation / ...
+::// workspace / ...
+
+::// go / build / ...
+::// go / dependencies / ...
+
+
+
+
+<< execute / server / debug
+	"${ZRUN[@]}" ':: go / build / server / debug'
+	exec -- env -i ./.outputs/binaries/debug/kawipiko-server "${@}"
+!!
+
+<< execute / server / release
+	"${ZRUN[@]}" ':: go / build / server / release'
+	exec -- env -i ./.outputs/binaries/release/kawipiko-server "${@}"
+!!
+
+
+<< go / build / server / debug
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/debug"
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			build \
+			-v \
+			-o "${_outputs}/binaries/debug/kawipiko-server" \
+			-- ./cmd/server.go \
+	#
+!!
+
+<< go / build / server / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			build \
+			-v \
+			-ldflags '-s' \
+			-o "${_outputs}/binaries/release/kawipiko-server" \
+			-- ./cmd/server.go \
+	#
+!!
+
+<< go / build / server / release / analyze
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	rm -f -- "${_outputs}/binaries/debug/kawipiko-server"
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			build \
+			-v \
+			-ldflags '-s' \
+			-gcflags '-m' \
+			-o "${_outputs}/binaries/debug/kawipiko-server" \
+			-- ./cmd/server.go \
+	#
+!!
+
+<< go / build / server / release / analyze / escapes
+	"${ZRUN[@]}" ':: go / build / server / release / analyze' "${@}" \
+		2>&1 \
+	| grep -F -e ' escapes ' \
+	| LC_ALL=C sort -n -k 2,2 -t ':'
+!!
+
+
+<< go / build / server / release / publish
+	test "${#}" -eq 0
+	printf -- '[ii]  building...\n' >&2
+	"${ZRUN[@]}" ':: go / build / server / release'
+	if test ! -e ./.outputs/publish ; then
+		mkdir -- ./.outputs/publish
+	fi
+	if test ! -e ./.outputs/publish/bin ; then
+		mkdir -- ./.outputs/publish/bin
+	fi
+	cp -T -- \
+			./.outputs/binaries/release/kawipiko-server \
+			./.outputs/publish/binaries/kawipiko-server \
+	#
+!!
+
+
+
+
+<< execute / archiver / debug
+	"${ZRUN[@]}" ':: go / build / archiver / debug'
+	exec -- env -i ./.outputs/binaries/debug/kawipiko-archiver "${@}"
+!!
+
+<< execute / archiver / release
+	"${ZRUN[@]}" ':: go / build / archiver / release'
+	exec -- env -i ./.outputs/binaries/release/kawipiko-archiver "${@}"
+!!
+
+
+<< go / build / archiver / debug
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/debug"
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			build \
+			-v \
+			-o "${_outputs}/binaries/debug/kawipiko-archiver" \
+			-- ./cmd/archiver.go \
+	#
+!!
+
+<< go / build / archiver / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			build \
+			-v \
+			-ldflags '-s' \
+			-o "${_outputs}/binaries/release/kawipiko-archiver" \
+			-- ./cmd/archiver.go \
+	#
+!!
+
+
+<< go / build / archiver / release / publish
+	test "${#}" -eq 0
+	printf -- '[ii]  building...\n' >&2
+	"${ZRUN[@]}" ':: go / build / archiver / release'
+	if test ! -e ./.outputs/publish ; then
+		mkdir -- ./.outputs/publish
+	fi
+	if test ! -e ./.outputs/publish/bin ; then
+		mkdir -- ./.outputs/publish/bin
+	fi
+	cp -T -- \
+			./.outputs/binaries/release/kawipiko-archiver \
+			./.outputs/publish/binaries/kawipiko-archiver \
+	#
+!!
+
+
+
+
+<< go / build / debug
+	"${ZRUN[@]}" ':: go / build / archiver / debug' "${@}"
+	"${ZRUN[@]}" ':: go / build / server / debug' "${@}"
+!!
+
+<< go / build / release
+	"${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
+	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
+!!
+
+
+
+
+<< publish
+	test "${#}" -eq 0
+	printf -- '[ii]  publishing to `https://data.volution.ro/ciprian/ad5264afc6e27e46b5d71837552cb3fd`...\n' >&2
+	exec -- rsync -a -v -- ./.outputs/publish/ ./.publish/
+!!
+
+
+
+
+<< go / dependencies / update
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			get \
+			-v \
+			-d \
+			-u=patch \
+			-- \
+			./... \
+	#
+!!
+
+
+<< go / dependencies / list
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			list \
+			-m \
+			-- \
+			all \
+	#
+!!
+
+
+<< go / dependencies / tidy
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			mod tidy \
+	#
+!!
+
+
+
+
+<< go / tool
+	test "${#}" -ge 1
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	_sources="$( exec -- readlink -e -- ./sources )"
+	
+	export -- GOPATH="${_outputs}/go"
+	export -- GOBIN="${_outputs}/go/bin"
+	export -- GOTMPDIR="${_outputs}/go/tmp"
+	export -- GOCACHE="${_outputs}/go/cache"
+	
+	cd -- "${_sources}"
+	
+	exec -- go "${@}"
+!!
+
+
+
+
+<< workspace / initialize / outputs
+	test "${#}" -eq 0
+	if test ! -d ./.outputs ; then
+		_outputs_store="${TMPDIR:-/tmp}/go--${UID}--${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+		mkdir -- "${_outputs_store}"
+		_outputs_store="$( exec -- readlink -e -- "${_outputs_store}" )"
+		ln -s -f -T -- "${_outputs_store}" ./.outputs
+	fi
+!!
+
+
+<< workspace / initialize / go
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	_sources="$( exec -- readlink -e -- ./sources )"
+	
+	GOPATH="${_outputs}/go"
+	GOBIN="${_outputs}/go/bin"
+	GOTMPDIR="${_outputs}/go/tmp"
+	GOCACHE="${_outputs}/go/cache"
+	_gosrc="${_outputs}/go/src"
+	_gopkg="${_outputs}/go/pkg"
+	
+	for _folder in "${GOPATH}" "${GOBIN}" "${GOTMPDIR}" "${GOTMPDIR}" "${GOCACHE}" "${_gosrc}" "${_gopkg}" ; do
+		if test ! -e "${_folder}" ; then
+			mkdir -- "${_folder}"
+		fi
+	done
+!!
+
+
+<< workspace / initialize / python
+	test "${#}" -eq 0
+	if test -d ./.python ; then
+		exit -- 0
+	fi
+	
+	test -d ./.outputs
+	mkdir -- ./.outputs/python
+	
+	virtualenv-2.7 \
+			--python python2.7 \
+			--clear \
+			--no-site-packages \
+			--no-setuptools \
+			--no-wheel \
+			--no-download \
+			--unzip-setuptools \
+			-- \
+			./.outputs/python \
+	#
+	
+	./.outputs/python/bin/pip install --upgrade --compile -- pip
+	./.outputs/python/bin/pip install --upgrade --compile -- wheel
+	./.outputs/python/bin/pip install --upgrade --compile -- setuptools
+	
+	./.outputs/python/bin/pip install --compile -- docutils
+	./.outputs/python/bin/pip install --compile -- restview
+	
+	ln -s -f -T -- ./.outputs/python ./.python
+!!
+
+
+
+
+<< workspace / sources / codes / duplicates
+	test "${#}" -eq 0
+	exec -- xargs \
+			-r -d '\n' -I {} \
+			-a <(
+				grep \
+						-o \
+						-P \
+						-e '(?<=\[)[0-9a-f]{8}(?=\])|(?<=0x)[0-9a-f]{8}(?=[^0-9a-zA-Z]|$)' \
+						-h \
+						-r ./sources \
+						--include '*.go' \
+				| sort \
+				| uniq -d
+			) \
+			-- \
+		grep \
+			-P \
+			-e '(?<=\[){}(?=\])|(?<=0x){}(?=[^0-9a-zA-Z]|$)' \
+			-r ./sources \
+			-n \
+			--include '*.go' \
+			--color \
+	#
+!!
+
+
+
+
+<< documentation / readme / open
+	test "${#}" -eq 0
+	exec -- x-www open http://127.33.237.174:8080/
+!!
+
+<< documentation / readme / server
+	test "${#}" -eq 0
+	exec -- env -i ./.python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
+!!
+
+
+
+
+:: benchmark / server / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 1 --threads 1
+:: benchmark / server / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 2 --threads 1
+:: benchmark / server / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 1 --threads 2
+:: benchmark / server / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 2 --threads 2
+
+
+<< benchmark / server
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_archive="${1}"
+			shift -- 1
+		else
+			_archive=''
+		fi
+	else
+		_archive=''
+	fi
+	if test -z "${_archive}" ; then
+		_archive=./.archives/hello-world.cdb
+	fi
+	"${ZRUN[@]}" ':: go / build / server / release'
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 1,2,3 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n16384 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i \
+	./.outputs/binaries/release/kawipiko-server \
+			--bind 127.9.185.194:8080 \
+			--archive "${_archive}" \
+			"${@}" \
+	#
+!!
+
+<< benchmark / server / mmap
+	exec -- "${ZRUN[@]}" ':: benchmark / server' \
+			"${@}" \
+			--archive-mmap \
+			--archive-preload \
+	#
+!!
+
+<< benchmark / server / inmem
+	exec -- "${ZRUN[@]}" ':: benchmark / server' \
+			"${@}" \
+			--archive-inmem \
+			--archive-preload \
+	#
+!!
+
+
+<< benchmark / server / profile / cpu
+	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
+			"${@}" \
+			--profile-cpu ./.outputs/server-cpu.txt \
+	#
+!!
+
+<< benchmark / server / profile / mem
+	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
+			"${@}" \
+			--profile-mem ./.outputs/server-mem.txt \
+	#
+!!
+
+<< benchmark / server / profile / cpu / analyze
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	exec -- go tool pprof "${@}" -- ./.outputs/server-cpu.txt
+!!
+
+<< benchmark / server / profile / mem / analyze
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	exec -- go tool pprof "${@}" ./.outputs/server-mem.txt
+!!
+
+
+
+
+:: benchmark / client / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 2048
+:: benchmark / client / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 1024
+:: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 512
+:: benchmark / client / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 256
+:: benchmark / client / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 128
+:: benchmark / client / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 64
+:: benchmark / client / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 32
+:: benchmark / client / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 16
+:: benchmark / client / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 8
+:: benchmark / client / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 4
+:: benchmark / client / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 2
+:: benchmark / client / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 1
+
+
+<< benchmark / client
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
+	else
+		_path=''
+	fi
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 1,2,3 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n16384 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i \
+	"$( type -P -- wrk )" \
+			--threads 1 \
+			--connections 1 \
+			--timeout 6s \
+			--duration 6s \
+			--latency \
+			"${@}" \
+			-- "http://127.9.185.194:8080/${_path}" \
+	#
+!!
+
+
+<< benchmark / client / paths
+	test "${#}" -ge 1
+	_paths="${1}"
+	shift -- 1
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 1,2,3 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n16384 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i \
+	"$( type -P -- wrk )" \
+			--threads 1 \
+			--connections 1 \
+			--timeout 6s \
+			--duration 6s \
+			--latency \
+			--script ../kawipiko-examples/sources/wrk-paths-from-file.lua \
+			"${@}" \
+			-- "http://127.9.185.194:8080/" \
+			"${_paths}" \
+	#
+!!
+
+
+<< benchmark / curl
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
+	else
+		_path=''
+	fi
+	exec -- env -i "$( type -P -- curl )" \
+			--silent \
+			--compressed \
+			"${@}" \
+			-- "http://127.9.185.194:8080/${_path}" \
+	#
+!!
+
