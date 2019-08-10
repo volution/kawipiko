@@ -65,62 +65,69 @@ Results
 
   Bottom line (**even on my 6 years old laptop**):
 
-  * under normal conditions (16 concurrent clients), you get around 36k requests / second, at about 0.5ms latency;
-  * under stress conditions (512 concurrent clients), you get arround 32k requests / second, at about 15ms latency;
+  * under normal conditions (16 concurrent connections), you get around 72k requests / second, at about 0.4ms latency for 99% of the requests;
+  * under stress conditions (512 concurrent connections), you get arround 74k requests / second, at about 15ms latency for 99% of the requests;
+  * **under extreme conditions (2048 concurrent connections), you get arround 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
+  * (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting;)
+  * (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
 
 .. note ::
 
   Please note that the values under ``Thread Stats`` are reported per thread.
   Therefore it is best to look at the first two values, i.e. ``Requests/sec``.
 
-* 16 connections / 4 threads: ::
+* 16 connections / 2 server threads / 4 wrk threads: ::
 
-    Requests/sec:  36084.51
-    Transfer/sec:     16.45MB
+    Requests/sec:  71935.39
+    Transfer/sec:     29.02MB
 
+    Running 30s test @ http://127.0.0.1:8080/
       4 threads and 16 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   436.77us  223.21us   3.36ms   81.09%
-        Req/Sec     9.07k   499.08    10.27k    72.17%
+        Latency   220.12us   96.77us   1.98ms   64.61%
+        Req/Sec    18.08k   234.07    18.71k    82.06%
       Latency Distribution
-         50%  390.00us
-         75%  481.00us
-         90%  669.00us
-         99%    1.34ms
-      1082680 requests in 30.00s, 493.55MB read
+         50%  223.00us
+         75%  295.00us
+         90%  342.00us
+         99%  397.00us
+      2165220 requests in 30.10s, 0.85GB read
 
-* 512 connections / 4 threads: ::
+* 512 connections / 2 server threads / 4 wrk threads: ::
 
-    Requests/sec:  32773.77
-    Transfer/sec:     14.94MB
+    Requests/sec:  74050.48
+    Transfer/sec:     29.87MB
 
+    Running 30s test @ http://127.0.0.1:8080/
       4 threads and 512 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    15.84ms   11.04ms  65.68ms   61.64%
-        Req/Sec     8.24k     1.76k   15.65k    70.95%
+        Latency     6.86ms    6.06ms 219.10ms   54.85%
+        Req/Sec    18.64k     1.62k   36.19k    91.42%
       Latency Distribution
-         50%   15.91ms
-         75%   23.48ms
-         90%   29.63ms
-         99%   45.90ms
-      986092 requests in 30.09s, 449.52MB read
+         50%    7.25ms
+         75%   12.54ms
+         90%   13.56ms
+         99%   14.84ms
+      2225585 requests in 30.05s, 0.88GB read
+      Socket errors: connect 0, read 89, write 0, timeout 0
 
-* 2048 connections / 4 threads: ::
+* 2048 connections / 2 server threads / 4 wrk threads: ::
 
-    Requests/sec:  31132.31
-    Transfer/sec:     14.19MB
+    Requests/sec:  74714.23
+    Transfer/sec:     30.14MB
 
+    Running 30s test @ http://127.0.0.1:8080/
       4 threads and 2048 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    98.56ms  163.64ms   4.12s    90.85%
-        Req/Sec     7.84k     1.83k   14.43k    68.36%
+        Latency    52.45ms   87.02ms 997.26ms   88.24%
+        Req/Sec    18.84k     3.18k   35.31k    80.77%
       Latency Distribution
-         50%   57.15ms
-         75%   92.95ms
-         90%  248.46ms
-         99%  671.10ms
-      936780 requests in 30.09s, 427.04MB read
-      Socket errors: connect 0, read 0, write 1, timeout 0
+         50%   23.60ms
+         75%   34.86ms
+         90%  162.92ms
+         99%  435.41ms
+      2244296 requests in 30.04s, 0.88GB read
+      Socket errors: connect 0, read 106, write 0, timeout 51
 
 
 Notes
@@ -128,14 +135,16 @@ Notes
 
 The following benchmarks were executed as follows:
 
-* the machine was my personal laptop:  6 years old with an Intel Core i5 2520M (2 cores with 2 threads each), which during the benchmarks (due to a bad fan and dust) it kept entering into thermal throttling;  (i.e. the worst case scenario;)
-* the ``kawipiko-server`` was started with ``GOMAXPROCS=4``;  (i.e. 4 threads handling the requests;)
+* the machine was my personal laptop:  6 years old with an Intel Core i7 3667U (2 cores with 2 threads each);
+* the ``kawipiko-server`` was started with ``--processes 1 --threads 2``;  (i.e. 2 threads handling the requests;)
 * the ``kawipiko-server`` was started with ``--archive-inmem``;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
 * the benchmarking tool was wrk_;
 * both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
+* both ``kawipiko-server`` and ``wrk`` tools were pinned on different physical cores;
 * the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
 * the served file contains the content ``Hello World!``;
-* the protocol was HTTP  (i.e. no TLS);
+* the protocol was HTTP (i.e. no TLS), with keep-alive;
+* see the `benchmarking section <#benchmarking>`_ for details;
 
 
 
@@ -279,6 +288,121 @@ Examples
 
     46M     ./python-3.7.1-docs-html
     6.0M    ./python-3.7.1-docs-html.tar.bz2
+
+
+
+
+Benchmarking
+------------
+
+
+* get the binaries (either `download <#download-binaries>`_ or `build <#build-from-sources>`_ them);
+* get the ``hello-world.cdb`` (from the `examples <./examples>`__ folder inside the repository);
+
+
+Single process / single threaded
+................................
+
+* this scenario will yield a "base-line performance" per core;
+
+* execute the server (in-memory and indexed) (i.e. the "best case scenario"): ::
+
+    kawipiko-server \
+        --bind 127.0.0.1:8080 \
+        --archive ./hello-world.cdb \
+        --archive-inmem \
+        --index-all \
+        --processes 1 \
+        --threads 1 \
+    #
+
+* execute the server (memory mapped) (i.e. the "the recommended scenario"): ::
+
+    kawipiko-server \
+        --bind 127.0.0.1:8080 \
+        --archive ./hello-world.cdb \
+        --archive-mmap \
+        --processes 1 \
+        --threads 1 \
+    #
+
+
+Single process / two threads
+............................
+
+* this scenario is the usual setup;  configure `--threads` to equal the number of cores;
+
+* execute the server (memory mapped): ::
+
+    kawipiko-server \
+        --bind 127.0.0.1:8080 \
+        --archive ./hello-world.cdb \
+        --archive-mmap \
+        --processes 1 \
+        --threads 2 \
+    #
+
+
+Load generators
+...............
+
+* 512 concurrent connections (handled by 2 threads): ::
+
+    wrk \
+        --threads 2 \
+        --connections 512 \
+        --timeout 6s \
+        --duration 30s \
+        --latency \
+        http://127.0.0.1:8080/ \
+    #
+
+* 4096 concurrent connections (handled by 4 threads): ::
+
+    wrk \
+        --threads 4 \
+        --connections 4096 \
+        --timeout 6s \
+        --duration 30s \
+        --latency \
+        http://127.0.0.1:8080/ \
+    #
+
+
+Take into account
+.................
+
+* the number of threads for the server plus for ``wkr`` shouldn't be larger than the number of available cores;  (or use different machines for the server and the client;)
+
+* also take into account that by default the number of "file descriptors" on most UNIX/Linux machines is 1024, therefore if you want to try with more connections than 1000, you need to raise this limit;  (see bellow;)
+
+* additionally, you can try to pin the server and ``wrk`` to specific cores, increase various priorities (scheduling, IO, etc.);  (given that Intel processors have HyperThreading which appear to the OS as individual cores, you should make sure that you pin each process on cores part of the same physical processor / core;)
+
+* pinning the server (cores ``0`` and ``1`` are mapped on physical core ``1``): ::
+
+    sudo -u root -n -E -P -- \
+    taskset -c 0,1 \
+    nice -n -19 -- \
+    ionice -c 2 -n 0 -- \
+    chrt -r 10 \
+    prlimit -n16384 -- \
+    sudo -u "${USER}" -n -E -P -- \
+    kawipiko-server \
+        ... \
+    #
+
+* pinning the client (cores ``2`` and ``3`` are mapped on physical core ``2``): ::
+
+    sudo -u root -n -E -P -- \
+    taskset -c 2,3 \
+    nice -n -19 -- \
+    ionice -c 2 -n 0 -- \
+    chrt -r 10 \
+    prlimit -n16384 -- \
+    sudo -u "${USER}" -n -E -P -- \
+    wrk \
+        ... \
+    #
 
 
 
