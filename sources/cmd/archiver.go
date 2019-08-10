@@ -18,8 +18,7 @@ import "sort"
 import "strings"
 import "syscall"
 
-// import "github.com/colinmarc/cdb"
-import cdb "github.com/cipriancraciun/go-cdb-lib"
+import "github.com/colinmarc/cdb"
 
 import . "github.com/volution/kawipiko/lib/common"
 import . "github.com/volution/kawipiko/lib/archiver"

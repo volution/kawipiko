@@ -21,8 +21,7 @@ import "syscall"
 import "time"
 import "unsafe"
 
-// import "github.com/colinmarc/cdb"
-import cdb "github.com/cipriancraciun/go-cdb-lib"
+import "github.com/colinmarc/cdb"
 
 import "github.com/valyala/fasthttp"
 import "github.com/valyala/fasthttp/reuseport"
