@@ -15,7 +15,7 @@ However "simple" doesn't imply "dumb" or "limited", instead it implies "efficien
 As such ``kawipiko`` basically supports only ``GET`` (and ``HEAD``) requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
 
 However, ``kawipiko`` does provide something unique, that no other HTTP server offers:  the static website content is served from a CDB_ database with almost zero latency.
-Moreover, the static website content can be compressed (with either ``gzip`` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwith and latency.
+Moreover, the static website content can be compressed (with either ``gzip`` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwidth and latency.
 
 CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
 This also makes them suitable for low-latency static website content serving over HTTP, which this project provides.
@@ -24,7 +24,7 @@ For those familiar with Netlify_, ``kawipiko`` is a "host-it-yourself" alternati
 
 * simple deployment and configuration;  (i.e. just `fetch the binaries <#installation>`__ and use the `proper flags <#kawipiko-server>`__;)
 * low and constant resource consumption (both in terms of CPU and RAM);  (i.e. you won't have surprises when under load;)
-* (hopefully) extremly secure;  (i.e. it doesn't launch processes, it doesn't open any files, etc.;  basically you can easly ``chroot`` it;)
+* (hopefully) extremely secure;  (i.e. it doesn't launch processes, it doesn't open any files, etc.;  basically you can easily ``chroot`` it;)
 
 For a complete list of features please consult the `features section <#features>`__.
 Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`__ (although none are critical).
@@ -85,7 +85,7 @@ The project provides two binaries:
 * ``kawipiko-server`` -- which serves the static website content from the CDB file;
 * ``kawipiko-archiver`` -- which creates the CDB file from a source folder holding the static website content;
 
-Unlike most (if not all) other webservers out-there, in which you just point your web server to the folder holding the static website content root, ``kawipiko`` takes a radically different approach.
+Unlike most (if not all) other servers out-there, in which you just point your web server to the folder holding the static website content root, ``kawipiko`` takes a radically different approach.
 In order to serve the static website content, one has to first "compile" it into the CDB file through ``kawipiko-archiver``, and then one can "serve" it from the CDB file through ``kawipiko-server``.
 
 This two step phase also presents a few opportunities:
@@ -147,7 +147,7 @@ Flags
     (This can be used to implement "slash" blog style URL's like ``/blog/whatever/`` which maps to ``/blog/whatever/index.html``.)
 
 ``--exclude-strip``
-    Disables using a file with the suffix ``.html``, ``.htm``, ``.xhtml``, ``.xht``, and ``.txt`` to respond to a rquest whose URL does not exactly match an existing file.
+    Disables using a file with the suffix ``.html``, ``.htm``, ``.xhtml``, ``.xht``, and ``.txt`` to respond to a request whose URL does not exactly match an existing file.
     (This can be used to implement "suffix-less" blog style URL's like ``/blog/whatever`` which maps to ``/blog/whatever.html``.)
 
 ``--exclude-etag``
@@ -506,11 +506,11 @@ As stated in the `about section <#about>`__, nothing comes for free, and in orde
 
 * (TODO)  currently if the CDB database file changes, the server needs to be restarted in order to pickup the changed files;
 
-* (won't fix)  the CDB database **maximum size is 4 GiB**;  (however if you have a static website this large, you are probabbly doing something extreemly wrong, as large files should be offloaded to something like AWS S3 and served through a CDN like CloudFlare or AWS CloudFront;)
+* (won't fix)  the CDB database **maximum size is 4 GiB**;  (however if you have a static website this large, you are probably doing something extremely wrong, as large files should be offloaded to something like AWS S3 and served through a CDN like CloudFlare or AWS CloudFront;)
 
 * (won't fix)  the server **does not support per-request decompression / recompression**;  this implies that if the content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding: gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
 
-* (won't fix)  regarding the "atomic" static website changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extreemly small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**  always use fingerprints in your resources URL, and perhaps always include the current and previous version on each deploy;)
+* (won't fix)  regarding the "atomic" static website changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extremely small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**  always use fingerprints in your resources URL, and perhaps always include the current and previous version on each deploy;)
 
 
 
@@ -532,8 +532,8 @@ Summary
 Bottom line (**even on my 6 years old laptop**):
 
 * under normal conditions (16 concurrent connections), you get around 72k requests / second, at about 0.4ms latency for 99% of the requests;
-* under stress conditions (512 concurrent connections), you get arround 74k requests / second, at about 15ms latency for 99% of the requests;
-* **under extreme conditions (2048 concurrent connections), you get arround 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
+* under stress conditions (512 concurrent connections), you get around 74k requests / second, at about 15ms latency for 99% of the requests;
+* **under extreme conditions (2048 concurrent connections), you get around 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
 * (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting;)
 * (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
 * **the raw performance is comparable with NGinx_** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
