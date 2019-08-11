@@ -337,10 +337,10 @@
 
 
 
-:: benchmark / server / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 1 --threads 1
-:: benchmark / server / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 2 --threads 1
-:: benchmark / server / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 1 --threads 2
-:: benchmark / server / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' "${@}" --processes 2 --threads 2
+:: benchmark / server / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 1 --threads 1
+:: benchmark / server / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 2 --threads 1
+:: benchmark / server / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 1 --threads 2
+:: benchmark / server / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 2 --threads 2
 
 
 << benchmark / server
@@ -360,7 +360,7 @@
 	"${ZRUN[@]}" ':: go / build / server / release'
 	exec -- \
 		sudo -u root -n -E -P -- \
-		taskset -c 1,2,3 \
+		taskset -c 0,1 \
 		nice -n -19 -- \
 		ionice -c 2 -n 0 -- \
 		chrt -r 10 \
@@ -386,7 +386,7 @@
 	exec -- "${ZRUN[@]}" ':: benchmark / server' \
 			"${@}" \
 			--archive-inmem \
-			--archive-preload \
+			--index-all \
 	#
 !!
 
@@ -418,17 +418,17 @@
 
 
 
-:: benchmark / client / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 2048
-:: benchmark / client / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 1024
-:: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 512
-:: benchmark / client / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 4 --connections 256
+:: benchmark / client / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 2048
+:: benchmark / client / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 1024
+:: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 512
+:: benchmark / client / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 256
 :: benchmark / client / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 128
 :: benchmark / client / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 64
 :: benchmark / client / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 32
 :: benchmark / client / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 16
-:: benchmark / client / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 8
-:: benchmark / client / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 4
-:: benchmark / client / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 2
+:: benchmark / client / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 8
+:: benchmark / client / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 4
+:: benchmark / client / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 2
 :: benchmark / client / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 1
 
 
@@ -446,7 +446,7 @@
 	fi
 	exec -- \
 		sudo -u root -n -E -P -- \
-		taskset -c 1,2,3 \
+		taskset -c 2,3 \
 		nice -n -19 -- \
 		ionice -c 2 -n 0 -- \
 		chrt -r 10 \
@@ -454,10 +454,10 @@
 		sudo -u "${USER}" -n -E -P -- \
 		env -i \
 	"$( type -P -- wrk )" \
-			--threads 1 \
+			--threads 2 \
 			--connections 1 \
-			--timeout 6s \
-			--duration 6s \
+			--timeout 1s \
+			--duration 30s \
 			--latency \
 			"${@}" \
 			-- "http://127.9.185.194:8080/${_path}" \
@@ -471,7 +471,7 @@
 	shift -- 1
 	exec -- \
 		sudo -u root -n -E -P -- \
-		taskset -c 1,2,3 \
+		taskset -c 2,3 \
 		nice -n -19 -- \
 		ionice -c 2 -n 0 -- \
 		chrt -r 10 \
@@ -479,10 +479,10 @@
 		sudo -u "${USER}" -n -E -P -- \
 		env -i \
 	"$( type -P -- wrk )" \
-			--threads 1 \
+			--threads 2 \
 			--connections 1 \
-			--timeout 6s \
-			--duration 6s \
+			--timeout 1s \
+			--duration 30s \
 			--latency \
 			--script ../kawipiko-examples/sources/wrk-paths-from-file.lua \
 			"${@}" \
