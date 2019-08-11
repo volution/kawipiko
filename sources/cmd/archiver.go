@@ -645,21 +645,12 @@ func main_0 () (error) {
   ====  kawipiko -- blazingly fast static HTTP server  ====
 
   |  Documentation, issues and sources:
-  |      * https://bit.ly/kawipiko
   |      * https://github.com/volution/kawipiko
-
   |  Authors:
   |      * Ciprian Dorin Craciun
   |          ciprian@volution.ro
   |          ciprian.craciun@gmail.com
   |          https://volution.ro/ciprian
-
-  |  Leverages:
-  |      * https://github.com/valyala/fasthttp
-  |      * https://github.com/colinmarc/cdb
-  |      * https://cr.yp.to/cdb.html
-  |      * https://golang.org/
-
   -----------------------------------------------------------
 
   kawipiko-archiver
@@ -677,6 +668,9 @@ func main_0 () (error) {
     --include-folder-listing
 
     --debug
+
+  ** for details see:
+     https://github.com/volution/kawipiko#kawipiko-archiver
 
 `)
 		}
