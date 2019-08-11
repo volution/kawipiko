@@ -41,169 +41,16 @@ kawipiko -- blazingly fast static HTTP server
 About
 =====
 
-This is a simple static HTTP server written in Go, whose main purpose is to serve (public) static content as efficient as possible.  As such, it basically supports only ``GET`` requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
+This is a simple static HTTP server written in Go, whose main purpose is to serve (public) static content as efficient as possible.
+As such, it basically supports only ``GET`` requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
 
 However it does provide something unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost zero latency.
 
-CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.  This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
+CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
+This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
 
 For a complete list of features please consult the `features section <#features>`_.
-
 Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`_ (although none are critical).
-
-
-
-
-Benchmarks
-==========
-
-
-Results
--------
-
-.. note ::
-
-  Bottom line (**even on my 6 years old laptop**):
-
-  * under normal conditions (16 concurrent connections), you get around 72k requests / second, at about 0.4ms latency for 99% of the requests;
-  * under stress conditions (512 concurrent connections), you get arround 74k requests / second, at about 15ms latency for 99% of the requests;
-  * **under extreme conditions (2048 concurrent connections), you get arround 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
-  * (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting;)
-  * (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
-  * **the raw performance is comparable with NGinx** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
-
-.. note ::
-
-  Please note that the values under ``Thread Stats`` are reported per thread.
-  Therefore it is best to look at the first two values, i.e. ``Requests/sec``.
-
-* 16 connections / 2 server threads / 4 wrk threads: ::
-
-    Requests/sec:  71935.39
-    Transfer/sec:     29.02MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      4 threads and 16 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   220.12us   96.77us   1.98ms   64.61%
-        Req/Sec    18.08k   234.07    18.71k    82.06%
-      Latency Distribution
-         50%  223.00us
-         75%  295.00us
-         90%  342.00us
-         99%  397.00us
-      2165220 requests in 30.10s, 0.85GB read
-
-* 512 connections / 2 server threads / 4 wrk threads: ::
-
-    Requests/sec:  74050.48
-    Transfer/sec:     29.87MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      4 threads and 512 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency     6.86ms    6.06ms 219.10ms   54.85%
-        Req/Sec    18.64k     1.62k   36.19k    91.42%
-      Latency Distribution
-         50%    7.25ms
-         75%   12.54ms
-         90%   13.56ms
-         99%   14.84ms
-      2225585 requests in 30.05s, 0.88GB read
-      Socket errors: connect 0, read 89, write 0, timeout 0
-
-* 2048 connections / 2 server threads / 4 wrk threads: ::
-
-    Requests/sec:  74714.23
-    Transfer/sec:     30.14MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      4 threads and 2048 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    52.45ms   87.02ms 997.26ms   88.24%
-        Req/Sec    18.84k     3.18k   35.31k    80.77%
-      Latency Distribution
-         50%   23.60ms
-         75%   34.86ms
-         90%  162.92ms
-         99%  435.41ms
-      2244296 requests in 30.04s, 0.88GB read
-      Socket errors: connect 0, read 106, write 0, timeout 51
-
-
-Notes
------
-
-The following benchmarks were executed as follows:
-
-* the machine was my personal laptop:  6 years old with an Intel Core i7 3667U (2 cores with 2 threads each);
-* the ``kawipiko-server`` was started with ``--processes 1 --threads 2``;  (i.e. 2 threads handling the requests;)
-* the ``kawipiko-server`` was started with ``--archive-inmem``;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
-* the benchmarking tool was wrk_;
-* both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
-* both ``kawipiko-server`` and ``wrk`` tools were pinned on different physical cores;
-* the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
-* the served file contains the content ``Hello World!``;
-* the protocol was HTTP (i.e. no TLS), with keep-alive;
-* see the `benchmarking section <#benchmarking>`_ for details;
-
-
-Comparisons
------------
-
-* NGinx 512 connections / 2 server workers / 4 wrk thread: ::
-
-    Requests/sec:  97910.36
-    Transfer/sec:     24.56MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      4 threads and 512 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency     5.11ms    1.30ms  17.59ms   85.08%
-        Req/Sec    24.65k     1.35k   42.68k    78.83%
-      Latency Distribution
-         50%    5.02ms
-         75%    5.32ms
-         90%    6.08ms
-         99%    9.62ms
-      2944219 requests in 30.07s, 738.46MB read
-
-* NGinx 2048 connections / 2 server workers / 4 wrk thread: ::
-
-    Requests/sec:  93240.70
-    Transfer/sec:     23.39MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      4 threads and 2048 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    36.33ms   56.44ms 859.65ms   90.18%
-        Req/Sec    23.61k     6.24k   51.88k    74.33%
-      Latency Distribution
-         50%   19.25ms
-         75%   25.46ms
-         90%   89.69ms
-         99%  251.04ms
-      2805639 requests in 30.09s, 703.70MB read
-      Socket errors: connect 0, read 25, write 0, timeout 66
-
-* (the NGinx configuration file can be found in the `examples folder <./examples>`_;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small static files;)
-
-* `darkhttpd`_ 512 connections / 1 server process / 4 wrk threads: ::
-
-    Requests/sec:  38191.65
-    Transfer/sec:      8.74MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      4 threads and 512 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    17.51ms   17.30ms 223.22ms   78.55%
-        Req/Sec     9.62k     1.94k   17.01k    72.98%
-      Latency Distribution
-         50%    7.51ms
-         75%   32.51ms
-         90%   45.69ms
-         99%   53.00ms
-      1148067 requests in 30.06s, 262.85MB read
 
 
 
@@ -351,121 +198,6 @@ Examples
 
 
 
-Benchmarking
-------------
-
-
-* get the binaries (either `download <#download-binaries>`_ or `build <#build-from-sources>`_ them);
-* get the ``hello-world.cdb`` (from the `examples <./examples>`__ folder inside the repository);
-
-
-Single process / single threaded
-................................
-
-* this scenario will yield a "base-line performance" per core;
-
-* execute the server (in-memory and indexed) (i.e. the "best case scenario"): ::
-
-    kawipiko-server \
-        --bind 127.0.0.1:8080 \
-        --archive ./hello-world.cdb \
-        --archive-inmem \
-        --index-all \
-        --processes 1 \
-        --threads 1 \
-    #
-
-* execute the server (memory mapped) (i.e. the "the recommended scenario"): ::
-
-    kawipiko-server \
-        --bind 127.0.0.1:8080 \
-        --archive ./hello-world.cdb \
-        --archive-mmap \
-        --processes 1 \
-        --threads 1 \
-    #
-
-
-Single process / two threads
-............................
-
-* this scenario is the usual setup;  configure `--threads` to equal the number of cores;
-
-* execute the server (memory mapped): ::
-
-    kawipiko-server \
-        --bind 127.0.0.1:8080 \
-        --archive ./hello-world.cdb \
-        --archive-mmap \
-        --processes 1 \
-        --threads 2 \
-    #
-
-
-Load generators
-...............
-
-* 512 concurrent connections (handled by 2 threads): ::
-
-    wrk \
-        --threads 2 \
-        --connections 512 \
-        --timeout 6s \
-        --duration 30s \
-        --latency \
-        http://127.0.0.1:8080/ \
-    #
-
-* 4096 concurrent connections (handled by 4 threads): ::
-
-    wrk \
-        --threads 4 \
-        --connections 4096 \
-        --timeout 6s \
-        --duration 30s \
-        --latency \
-        http://127.0.0.1:8080/ \
-    #
-
-
-Take into account
-.................
-
-* the number of threads for the server plus for ``wkr`` shouldn't be larger than the number of available cores;  (or use different machines for the server and the client;)
-
-* also take into account that by default the number of "file descriptors" on most UNIX/Linux machines is 1024, therefore if you want to try with more connections than 1000, you need to raise this limit;  (see bellow;)
-
-* additionally, you can try to pin the server and ``wrk`` to specific cores, increase various priorities (scheduling, IO, etc.);  (given that Intel processors have HyperThreading which appear to the OS as individual cores, you should make sure that you pin each process on cores part of the same physical processor / core;)
-
-* pinning the server (cores ``0`` and ``1`` are mapped on physical core ``1``): ::
-
-    sudo -u root -n -E -P -- \
-    taskset -c 0,1 \
-    nice -n -19 -- \
-    ionice -c 2 -n 0 -- \
-    chrt -r 10 \
-    prlimit -n16384 -- \
-    sudo -u "${USER}" -n -E -P -- \
-    kawipiko-server \
-        ... \
-    #
-
-* pinning the client (cores ``2`` and ``3`` are mapped on physical core ``2``): ::
-
-    sudo -u root -n -E -P -- \
-    taskset -c 2,3 \
-    nice -n -19 -- \
-    ionice -c 2 -n 0 -- \
-    chrt -r 10 \
-    prlimit -n16384 -- \
-    sudo -u "${USER}" -n -E -P -- \
-    wrk \
-        ... \
-    #
-
-
-
-
 Installation
 ============
 
@@ -558,6 +290,12 @@ Deploy the binaries
 Features
 ========
 
+
+
+
+Implemented
+-----------
+
 The following is a list of the most important features:
 
 * (optionally)  the static content is compressed when the CDB database is created, thus no CPU cycles are used while serving requests;
@@ -574,7 +312,7 @@ The following is a list of the most important features:
 
 
 Pending
-=======
+-------
 
 The following is a list of the most important features that are currently missing and are planed to be implemented:
 
@@ -594,7 +332,7 @@ The following is a list of the most important features that are currently missin
 
 
 Limitations
-===========
+-----------
 
 As stated in the `about section <#about>`_, nothing comes for free, and in order to provide all these features, some corners had to be cut:
 
@@ -605,6 +343,300 @@ As stated in the `about section <#about>`_, nothing comes for free, and in order
 * (won't fix)  the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding : gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
 
 * (won't fix)  regarding the "atomic" site changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extreemly small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**  always use fingerprints in your resources URL, and perhaps always include the current and previous version on each deploy;)
+
+
+
+
+Benchmarks
+==========
+
+
+
+
+Summary
+-------
+
+Bottom line (**even on my 6 years old laptop**):
+
+* under normal conditions (16 concurrent connections), you get around 72k requests / second, at about 0.4ms latency for 99% of the requests;
+* under stress conditions (512 concurrent connections), you get arround 74k requests / second, at about 15ms latency for 99% of the requests;
+* **under extreme conditions (2048 concurrent connections), you get arround 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
+* (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting;)
+* (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
+* **the raw performance is comparable with NGinx** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
+
+
+
+
+Results
+-------
+
+
+Results values
+..............
+
+
+.. note ::
+
+  Please note that the values under ``Thread Stats`` are reported per thread.
+  Therefore it is best to look at the first two values, i.e. ``Requests/sec``.
+
+* 16 connections / 2 server threads / 4 wrk threads: ::
+
+    Requests/sec:  71935.39
+    Transfer/sec:     29.02MB
+
+    Running 30s test @ http://127.0.0.1:8080/
+      4 threads and 16 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   220.12us   96.77us   1.98ms   64.61%
+        Req/Sec    18.08k   234.07    18.71k    82.06%
+      Latency Distribution
+         50%  223.00us
+         75%  295.00us
+         90%  342.00us
+         99%  397.00us
+      2165220 requests in 30.10s, 0.85GB read
+
+* 512 connections / 2 server threads / 4 wrk threads: ::
+
+    Requests/sec:  74050.48
+    Transfer/sec:     29.87MB
+
+    Running 30s test @ http://127.0.0.1:8080/
+      4 threads and 512 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     6.86ms    6.06ms 219.10ms   54.85%
+        Req/Sec    18.64k     1.62k   36.19k    91.42%
+      Latency Distribution
+         50%    7.25ms
+         75%   12.54ms
+         90%   13.56ms
+         99%   14.84ms
+      2225585 requests in 30.05s, 0.88GB read
+      Socket errors: connect 0, read 89, write 0, timeout 0
+
+* 2048 connections / 2 server threads / 4 wrk threads: ::
+
+    Requests/sec:  74714.23
+    Transfer/sec:     30.14MB
+
+    Running 30s test @ http://127.0.0.1:8080/
+      4 threads and 2048 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    52.45ms   87.02ms 997.26ms   88.24%
+        Req/Sec    18.84k     3.18k   35.31k    80.77%
+      Latency Distribution
+         50%   23.60ms
+         75%   34.86ms
+         90%  162.92ms
+         99%  435.41ms
+      2244296 requests in 30.04s, 0.88GB read
+      Socket errors: connect 0, read 106, write 0, timeout 51
+
+
+Results notes
+.............
+
+* the machine was my personal laptop:  6 years old with an Intel Core i7 3667U (2 cores with 2 threads each);
+* the ``kawipiko-server`` was started with ``--processes 1 --threads 2``;  (i.e. 2 threads handling the requests;)
+* the ``kawipiko-server`` was started with ``--archive-inmem``;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
+* the benchmarking tool was wrk_;
+* both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
+* both ``kawipiko-server`` and ``wrk`` tools were pinned on different physical cores;
+* the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
+* the served file contains the content ``Hello World!``;
+* the protocol was HTTP (i.e. no TLS), with keep-alive;
+* see the `methodology section <#methodology>`_ for details;
+
+
+
+
+Comparisons
+-----------
+
+
+Comparisons with NGinx
+......................
+
+* NGinx 512 connections / 2 server workers / 4 wrk thread: ::
+
+    Requests/sec:  97910.36
+    Transfer/sec:     24.56MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      4 threads and 512 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     5.11ms    1.30ms  17.59ms   85.08%
+        Req/Sec    24.65k     1.35k   42.68k    78.83%
+      Latency Distribution
+         50%    5.02ms
+         75%    5.32ms
+         90%    6.08ms
+         99%    9.62ms
+      2944219 requests in 30.07s, 738.46MB read
+
+* NGinx 2048 connections / 2 server workers / 4 wrk thread: ::
+
+    Requests/sec:  93240.70
+    Transfer/sec:     23.39MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      4 threads and 2048 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    36.33ms   56.44ms 859.65ms   90.18%
+        Req/Sec    23.61k     6.24k   51.88k    74.33%
+      Latency Distribution
+         50%   19.25ms
+         75%   25.46ms
+         90%   89.69ms
+         99%  251.04ms
+      2805639 requests in 30.09s, 703.70MB read
+      Socket errors: connect 0, read 25, write 0, timeout 66
+
+* (the NGinx configuration file can be found in the `examples folder <./examples>`_;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small static files;)
+
+
+Comparisons with others
+.......................
+
+* `darkhttpd`_ 512 connections / 1 server process / 4 wrk threads: ::
+
+    Requests/sec:  38191.65
+    Transfer/sec:      8.74MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      4 threads and 512 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    17.51ms   17.30ms 223.22ms   78.55%
+        Req/Sec     9.62k     1.94k   17.01k    72.98%
+      Latency Distribution
+         50%    7.51ms
+         75%   32.51ms
+         90%   45.69ms
+         99%   53.00ms
+      1148067 requests in 30.06s, 262.85MB read
+
+
+
+
+Methodology
+-----------
+
+
+* get the binaries (either `download <#download-binaries>`_ or `build <#build-from-sources>`_ them);
+* get the ``hello-world.cdb`` (from the `examples <./examples>`__ folder inside the repository);
+
+
+Single process / single threaded
+................................
+
+* this scenario will yield a "base-line performance" per core;
+
+* execute the server (in-memory and indexed) (i.e. the "best case scenario"): ::
+
+    kawipiko-server \
+        --bind 127.0.0.1:8080 \
+        --archive ./hello-world.cdb \
+        --archive-inmem \
+        --index-all \
+        --processes 1 \
+        --threads 1 \
+    #
+
+* execute the server (memory mapped) (i.e. the "the recommended scenario"): ::
+
+    kawipiko-server \
+        --bind 127.0.0.1:8080 \
+        --archive ./hello-world.cdb \
+        --archive-mmap \
+        --processes 1 \
+        --threads 1 \
+    #
+
+
+Single process / two threads
+............................
+
+* this scenario is the usual setup;  configure `--threads` to equal the number of cores;
+
+* execute the server (memory mapped): ::
+
+    kawipiko-server \
+        --bind 127.0.0.1:8080 \
+        --archive ./hello-world.cdb \
+        --archive-mmap \
+        --processes 1 \
+        --threads 2 \
+    #
+
+
+Load generators
+...............
+
+* 512 concurrent connections (handled by 2 threads): ::
+
+    wrk \
+        --threads 2 \
+        --connections 512 \
+        --timeout 6s \
+        --duration 30s \
+        --latency \
+        http://127.0.0.1:8080/ \
+    #
+
+* 4096 concurrent connections (handled by 4 threads): ::
+
+    wrk \
+        --threads 4 \
+        --connections 4096 \
+        --timeout 6s \
+        --duration 30s \
+        --latency \
+        http://127.0.0.1:8080/ \
+    #
+
+
+Methodology notes
+.................
+
+* the number of threads for the server plus for ``wkr`` shouldn't be larger than the number of available cores;  (or use different machines for the server and the client;)
+
+* also take into account that by default the number of "file descriptors" on most UNIX/Linux machines is 1024, therefore if you want to try with more connections than 1000, you need to raise this limit;  (see bellow;)
+
+* additionally, you can try to pin the server and ``wrk`` to specific cores, increase various priorities (scheduling, IO, etc.);  (given that Intel processors have HyperThreading which appear to the OS as individual cores, you should make sure that you pin each process on cores part of the same physical processor / core;)
+
+* pinning the server (cores ``0`` and ``1`` are mapped on physical core ``1``): ::
+
+    sudo -u root -n -E -P -- \
+    \
+    taskset -c 0,1 \
+    nice -n -19 -- \
+    ionice -c 2 -n 0 -- \
+    chrt -r 10 \
+    prlimit -n16384 -- \
+    \
+    sudo -u "${USER}" -n -E -P -- \
+    \
+    kawipiko-server \
+        ... \
+    #
+
+* pinning the client (cores ``2`` and ``3`` are mapped on physical core ``2``): ::
+
+    sudo -u root -n -E -P -- \
+    \
+    taskset -c 2,3 \
+    nice -n -19 -- \
+    ionice -c 2 -n 0 -- \
+    chrt -r 10 \
+    prlimit -n16384 -- \
+    \
+    sudo -u "${USER}" -n -E -P -- \
+    \
+    wrk \
+        ... \
+    #
 
 
 
@@ -624,12 +656,16 @@ Notice (copyright and licensing)
 ================================
 
 
+
+
 Notice -- short version
 -----------------------
 
 The code is licensed under AGPL 3 or later.
 
 If you **change** the code within this repository **and use** it for **non-personal** purposes, you'll have to release it as per AGPL.
+
+
 
 
 Notice -- long version
