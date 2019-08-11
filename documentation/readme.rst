@@ -109,6 +109,68 @@ The project provides two binaries:
     --debug
 
 
+Flags
+.....
+
+``--sources``
+    The path to the input folder that is the root of the website.
+
+``--archive``
+    The path to the output CDB file that will contain the archived website.
+
+``--compress``
+    Each individual file (and consequently of the corresponding HTTP response body) is compressed with either ``gzip`` or Brotli_;  by default (or alternatively ``identity``) no compression is used.
+    Even if compression is explicitly requested, if the compression ratio is bellow a certain threshold (depending on the uncompressed size), the file is stored without any compression.
+    (It's senseless to force the client to spend time and decompress the response body if that time is not recovered during network transmission.)
+
+``--exclude-index``
+    Disables using ``index.*`` files (where ``.*`` is one of ``.html``, ``.htm``, ``.xhtml``, ``.xht``, ``.txt``, ``.json``, and ``.xml``) to respond to a request whose URL ends in ``/`` (corresponding to the folder wherein ``index.*`` file is located).
+    (This can be used to implement "slash" blog style URL's like ``/blog/whatever/`` which maps to ``/blog/whatever/index.html``.)
+
+``--exclude-strip``
+    Disables using a file with the suffix ``.html``, ``.htm``, ``.xhtml``, ``.xht``, and ``.txt`` to respond to a rquest whose URL does not exactly match an existing file.
+    (This can be used to implement "suffix-less" blog style URL's like ``/blog/whatever`` which maps to ``/blog/whatever.html``.)
+
+``--exclude-etag``
+    Disables adding an ``ETag`` response header that contains the SHA256 of the response body.
+    (At this moment it does not support HTTP conditional requests, i.e. the ``If-None-Match``, ``If-Modified-Since`` and their counterparts;  however this ``ETag`` header might be used in conjuction with ``HEAD`` requests to see if the resource has changed.)
+
+``--exclude-file-listing``
+    Disables the creation of an internal list of files that can be used in conjunction with the ``--index-all`` flag of the ``kawipiko-server``.
+
+``--include-folder-listing``
+    Enables the creation of an internal list of folders.  (Currently not used by the ``kawipiko-server`` tool.)
+
+
+Ignored files
+.............
+
+* any file with the following prefixes: ``.``, ``#``;
+* any file with the following suffixes: ``~``, ``#``, ``.log``, ``.tmp``, ``.temp``, ``.lock``;
+* any file that contains the following: ``#``;
+* any file that exactly matches the following:: ``Thumbs.db``, ``.DS_Store``;
+* (at the moment these rules are not configurable through flags;)
+
+
+``_wildcard.*`` files
+.....................
+
+
+By placing a file whose name matches ``_wildcard.*`` (i.e. with the prefix ``_wildcard.`` and any other suffix), it will be used to respond to any request whose URL fails to find a "better" match.
+
+These wildcard files respect the folder hierarchy, in that wildcard files in (direct or transitive) subfolders override the wildcard file in their parents (direct or transitive).
+
+
+Symlinks, hardlinks, loops, and duplicated files
+................................................
+
+You freely use symlinks (including pointing outside of the website root) and they will be crawled during archival respecting the "logical" hierarchy they introduce.
+(Any loop that you introduce into the hierarchy will be ignored and a warning will be issued.)
+
+You can safely symlink or hardlink the same file (or folder) in multiple places (within the website root), and its contents will be stored only once.
+(The same applies to duplicated files that have exactly the same contents.)
+
+
 
 
 ``kawipiko-server``
