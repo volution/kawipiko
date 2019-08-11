@@ -47,28 +47,28 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
-			-ldflags '-s' \
+			-ldflags 'all=-s' \
+			-gcflags 'all=-l=4' \
 			-o "${_outputs}/binaries/release/kawipiko-server" \
 			-- ./cmd/server.go \
 	#
 !!
 
-<< go / build / server / release / analyze
+<< go / build / server / analyze
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	rm -f -- "${_outputs}/binaries/debug/kawipiko-server"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
-			-ldflags '-s' \
 			-gcflags '-m' \
 			-o "${_outputs}/binaries/debug/kawipiko-server" \
 			-- ./cmd/server.go \
 	#
 !!
 
-<< go / build / server / release / analyze / escapes
-	"${ZRUN[@]}" ':: go / build / server / release / analyze' "${@}" \
+<< go / build / server / analyze / escapes
+	"${ZRUN[@]}" ':: go / build / server / analyze' "${@}" \
 		2>&1 \
 	| grep -F -e ' escapes ' \
 	| LC_ALL=C sort -n -k 2,2 -t ':'
@@ -123,7 +123,8 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
-			-ldflags '-s' \
+			-ldflags 'all=-s' \
+			-gcflags 'all=-l=4' \
 			-o "${_outputs}/binaries/release/kawipiko-archiver" \
 			-- ./cmd/archiver.go \
 	#

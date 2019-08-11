@@ -142,14 +142,14 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 func archiveFolder (_context *context, _pathResolved string, _pathInArchive string, _names []string, _stats map[string]os.FileInfo) (error) {
 	
 	type Entry struct {
-		Name string `json:"name",omitempty`
-		Type string `json:"type",omitempty`
-		Size uint64 `json:"size",omitempty"`
+		Name string `json:"name,omitempty"`
+		Type string `json:"type,omitempty"`
+		Size uint64 `json:"size,omitempty"`
 	}
 	
 	type Folder struct {
-		Entries []Entry `json:"entries",omitempty`
-		Indices []string `json:"indices",omitempty`
+		Entries []Entry `json:"entries,omitempty"`
+		Indices []string `json:"indices,omitempty"`
 	}
 	
 	_entries := make ([]Entry, 0, len (_names))
