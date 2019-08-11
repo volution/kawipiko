@@ -53,12 +53,6 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	
 	_keyBuffer := [1024]byte {}
 	_pathBuffer := [1024]byte {}
-	_timestampBuffer := [128]byte {}
-	
-	_timestamp := time.Now ()
-	_timestampHttp := _timestamp.AppendFormat (_timestampBuffer[:0], http.TimeFormat)
-	
-	_responseHeaders.SetCanonical (StringToBytes ("Date"), _timestampHttp)
 	
 	_method := _requestHeaders.Method ()
 	
