@@ -274,25 +274,25 @@ Examples
 * fetch and extract the Python 3.7 documentation HTML archive: ::
 
     curl -s -S -f \
-        -o ./python-3.7.1-docs-html.tar.bz2 \
-        https://docs.python.org/3/archives/python-3.7.1-docs-html.tar.bz2 \
+        -o ./python-3.7.3-docs-html.tar.bz2 \
+        https://docs.python.org/3/archives/python-3.7.3-docs-html.tar.bz2 \
     #
 
-    tar -x -j -v -f ./python-3.7.1-docs-html.tar.bz2
+    tar -x -j -v -f ./python-3.7.3-docs-html.tar.bz2
 
 * create the CDB archive (without any compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.1-docs-html.cdb \
-        --sources ./python-3.7.1-docs-html \
+        --archive ./python-3.7.3-docs-html-nozip.cdb \
+        --sources ./python-3.7.3-docs-html \
         --debug \
     #
 
 * create the CDB archive (with ``gzip`` compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.1-docs-html-gzip.cdb \
-        --sources ./python-3.7.1-docs-html \
+        --archive ./python-3.7.3-docs-html-gzip.cdb \
+        --sources ./python-3.7.3-docs-html \
         --compress gzip \
         --debug \
     #
@@ -300,8 +300,8 @@ Examples
 * create the CDB archive (with ``brotli`` compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.1-docs-html-brotli.cdb \
-        --sources ./python-3.7.1-docs-html \
+        --archive ./python-3.7.3-docs-html-brotli.cdb \
+        --sources ./python-3.7.3-docs-html \
         --compress brotli \
         --debug \
     #
@@ -310,7 +310,7 @@ Examples
 
     kawipiko-server \
         --bind 127.0.0.1:8080 \
-        --archive ./python-3.7.1-docs-html-gzip.cdb \
+        --archive ./python-3.7.3-docs-html-gzip.cdb \
         --archive-mmap \
         --archive-preload \
         --debug \
@@ -320,20 +320,20 @@ Examples
 
     du -h -s \
         \
-        ./python-3.7.1-docs-html.cdb \
-        ./python-3.7.1-docs-html-gzip.cdb \
-        ./python-3.7.1-docs-html-brotli.cdb \
+        ./python-3.7.3-docs-html-nozip.cdb \
+        ./python-3.7.3-docs-html-gzip.cdb \
+        ./python-3.7.3-docs-html-brotli.cdb \
         \
-        ./python-3.7.1-docs-html \
-        ./python-3.7.1-docs-html.tar.bz2 \
+        ./python-3.7.3-docs-html \
+        ./python-3.7.3-docs-html.tar.bz2 \
     #
 
-    45M     ./python-3.7.1-docs-html.cdb
-    9.9M    ./python-3.7.1-docs-html-gzip.cdb
-    8.0M    ./python-3.7.1-docs-html-brotli.cdb
+    45M     ./python-3.7.3-docs-html-nozip.cdb
+    9.7M    ./python-3.7.3-docs-html-gzip.cdb
+    7.9M    ./python-3.7.3-docs-html-brotli.cdb
 
-    46M     ./python-3.7.1-docs-html
-    6.0M    ./python-3.7.1-docs-html.tar.bz2
+    46M     ./python-3.7.3-docs-html
+    6.0M    ./python-3.7.3-docs-html.tar.bz2
 
 
 
