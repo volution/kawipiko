@@ -814,6 +814,14 @@ Methodology notes
 
 
 
+Why CDB?
+========
+
+Until I expand upon why I have chosen to use CDB for service static website content, you can read about the `sparkey <https://github.com/spotify/sparkey>`__ from Spotify.
+
+
+
+
 Authors
 =======
 
