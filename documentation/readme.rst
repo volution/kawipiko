@@ -86,6 +86,7 @@ The project provides two binaries:
 ``kawipiko-archiver``
 ---------------------
 
+
 ::
 
     >> kawipiko-archiver --help
@@ -116,7 +117,7 @@ Flags
     The path to the input folder that is the root of the website.
 
 ``--archive``
-    The path to the output CDB file that will contain the archived website.
+    The path to the output CDB file that contains the archived website.
 
 ``--compress``
     Each individual file (and consequently of the corresponding HTTP response body) is compressed with either ``gzip`` or Brotli_;  by default (or alternatively ``identity``) no compression is used.
@@ -140,6 +141,10 @@ Flags
 
 ``--include-folder-listing``
     Enables the creation of an internal list of folders.  (Currently not used by the ``kawipiko-server`` tool.)
+
+``--debug``
+    Enables verbose logging.
+    It will log various information about the archived files (including compression statistics).
 
 
 Ignored files
@@ -203,6 +208,62 @@ You can safely symlink or hardlink the same file (or folder) in multiple places 
     --profile-mem <path>
 
     --debug
+
+
+Flags
+.....
+
+
+``--archive``
+    The path of the CDB file that contains the archived website.
+    (It can be created with the ``kawipiko-archiver`` tool.)
+
+``--archive-inmem``
+    Reads the CDB file in memory, and thus all requests are served from RAM.
+    (This can be used if enough RAM is available to avoid swapping.)
+
+``--archive-mmap``
+    The CDB file is `memory mapped <#mmap>`__.
+    (**Highly recommended!**)
+
+``--archive-preload``
+    Before starting to serve requests, read the CDB file so that its contents is buffered by the OS.
+    (**Highly recommended!**)
+
+``--index-all``, ``--index-paths``, ``--index-data-meta``,  and ``--index-data-content``
+    In order to serve a request:
+
+    * the request URL's path is used to locate a resource's metadata (i.e. response headers) and data (i.e. response body) fingerprints;
+      by using ``--index-paths`` an RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+
+    * based on the resource's metadata fingerprint, the actual metadata (i.e. the response headers) is located;
+      by using ``--index-data-meta`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+
+    * based on the resource's data fingerprint, the actual contents (i.e. the response body) is located;
+      by using ``--index-data-content`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+
+    * ``--index-all`` enables all these indices;
+
+    * (depending on the use-case) it is highly recommended to use ``--index-paths``;   if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
+
+    * it is highly recommended to use ``--archive-inmem`` or ``--archive-mmap`` or else (especially if data is indexed) the net effect is that of loading everything in RAM;
+
+``--bind``
+    The IP and port to listen for requests.
+
+``--processes`` and ``--threads``
+    The number of processes and threads per each process to start.
+    It is highly recommended to use 1 process and as many threads as there are cores.
+
+    Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
+    (However note that if using ``--archive-inmem`` each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
+
+``--debug``
+    Enables verbose logging.
+    (**Highly discouraged!**)
+
+``--profile-cpu`` and `--profile-mem``
+    Enables CPU and memory profiling using Go's profiling infrastructure.
 
 
 
