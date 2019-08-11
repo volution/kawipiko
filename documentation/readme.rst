@@ -10,7 +10,7 @@ kawipiko -- blazingly fast static HTTP server
 About
 =====
 
-This is a simple static HTTP server written in Go, whose main purpose is to serve (public) static content as efficient as possible.
+This is a simple static HTTP server written in Go_, whose main purpose is to serve (public) static content as efficient as possible.
 As such, it basically supports only ``GET`` requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
 
 However it does provide something unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost zero latency.
@@ -18,8 +18,8 @@ However it does provide something unique, that no other HTTP server offers:  the
 CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
 This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
 
-For a complete list of features please consult the `features section <#features>`_.
-Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`_ (although none are critical).
+For a complete list of features please consult the `features section <#features>`__.
+Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`__ (although none are critical).
 
 
 
@@ -221,7 +221,7 @@ Download binaries
 .. warning ::
 
   No binaries are currently available for download!
-  Please consult the `build from sources section <#build-from-sources>`_ for now.
+  Please consult the `build from sources section <#build-from-sources>`__ for now.
 
 
 
@@ -350,7 +350,7 @@ The following is a list of the most important features that are currently missin
 Limitations
 -----------
 
-As stated in the `about section <#about>`_, nothing comes for free, and in order to provide all these features, some corners had to be cut:
+As stated in the `about section <#about>`__, nothing comes for free, and in order to provide all these features, some corners had to be cut:
 
 * (TODO)  currently if the CDB database file changes, the server needs to be restarted in order to pickup the changed files;
 
@@ -384,7 +384,7 @@ Bottom line (**even on my 6 years old laptop**):
 * **under extreme conditions (2048 concurrent connections), you get arround 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
 * (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting;)
 * (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
-* **the raw performance is comparable with NGinx** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
+* **the raw performance is comparable with NGinx_** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
 
 
 
@@ -468,7 +468,7 @@ Results notes
 * the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
 * the served file contains the content ``Hello World!``;
 * the protocol was HTTP (i.e. no TLS), with keep-alive;
-* see the `methodology section <#methodology>`_ for details;
+* see the `methodology section <#methodology>`__ for details;
 
 
 
@@ -515,13 +515,13 @@ Comparisons with NGinx
       2805639 requests in 30.09s, 703.70MB read
       Socket errors: connect 0, read 25, write 0, timeout 66
 
-* (the NGinx configuration file can be found in the `examples folder <./examples>`_;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small static files;)
+* (the NGinx configuration file can be found in the `examples folder <./examples>`__;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small static files;)
 
 
 Comparisons with others
 .......................
 
-* `darkhttpd`_ 512 connections / 1 server process / 4 wrk threads: ::
+* darkhttpd_ 512 connections / 1 server process / 4 wrk threads: ::
 
     Requests/sec:  38191.65
     Transfer/sec:      8.74MB
@@ -545,8 +545,8 @@ Methodology
 -----------
 
 
-* get the binaries (either `download <#download-binaries>`_ or `build <#build-from-sources>`_ them);
-* get the ``hello-world.cdb`` (from the `examples <./examples>`_ folder inside the repository);
+* get the binaries (either `download <#download-binaries>`__ or `build <#build-from-sources>`__ them);
+* get the ``hello-world.cdb`` (from the `examples <./examples>`__ folder inside the repository);
 
 
 Single process / single threaded
@@ -666,9 +666,9 @@ Authors
 =======
 
 Ciprian Dorin Craciun
-  * `ciprian@volution.ro <mailto:ciprian@volution.ro>`_ or `ciprian.craciun@gmail.com <mailto:ciprian.craciun@gmail.com>`_
-  * `<https://volution.ro/ciprian>`_
-  * `<https://github.com/cipriancraciun>`_
+  * `ciprian@volution.ro <mailto:ciprian@volution.ro>`__ or `ciprian.craciun@gmail.com <mailto:ciprian.craciun@gmail.com>`__
+  * `<https://volution.ro/ciprian>`__
+  * `<https://github.com/cipriancraciun>`__
 
 
 
@@ -697,7 +697,7 @@ If you **change** the code within this repository **and use** it for **non-perso
 Notice -- long version
 ----------------------
 
-For details about the copyright and licensing, please consult the `notice <./documentation/licensing/notice.txt>`_ file in the `documentation/licensing <./documentation/licensing>`_ folder.
+For details about the copyright and licensing, please consult the `notice <./documentation/licensing/notice.txt>`__ file in the `documentation/licensing <./documentation/licensing>`__ folder.
 
 If someone requires the sources and/or documentation to be released
 under a different license, please send an email to the authors,
