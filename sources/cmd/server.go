@@ -58,7 +58,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_timestamp := time.Now ()
 	_timestampHttp := _timestamp.AppendFormat (_timestampBuffer[:0], http.TimeFormat)
 	
-	_responseHeaders.SetCanonical ([]byte ("Date"), _timestampHttp)
+	_responseHeaders.SetCanonical (StringToBytes ("Date"), _timestampHttp)
 	
 	_method := _requestHeaders.Method ()
 	
@@ -73,7 +73,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_pathIsRoot := _pathLen == 1
 	_pathHasSlash := !_pathIsRoot && (_path[_pathLen - 1] == '/')
 	
-	if ! bytes.Equal ([]byte (http.MethodGet), _method) {
+	if ! bytes.Equal (StringToBytes (http.MethodGet), _method) {
 		log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", _requestHeaders.Method (), _requestHeaders.RequestURI ())
 		_server.ServeError (_context, http.StatusMethodNotAllowed, nil, true)
 		return
@@ -84,14 +84,14 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		return
 	}
 	
-	if bytes.HasPrefix (_path, []byte ("/__/")) {
-		if bytes.Equal (_path, []byte ("/__/heartbeat")) || bytes.HasPrefix (_path, []byte ("/__/heartbeat/")) {
+	if bytes.HasPrefix (_path, StringToBytes ("/__/")) {
+		if bytes.Equal (_path, StringToBytes ("/__/heartbeat")) || bytes.HasPrefix (_path, StringToBytes ("/__/heartbeat/")) {
 			_server.ServeStatic (_context, http.StatusOK, HeartbeatDataOk, HeartbeatContentType, HeartbeatContentEncoding, false)
 			return
-		} else if bytes.Equal (_path, []byte ("/__/about")) {
-			_server.ServeStatic (_context, http.StatusOK, []byte (AboutBannerData), AboutBannerContentType, AboutBannerContentEncoding, true)
+		} else if bytes.Equal (_path, StringToBytes ("/__/about")) {
+			_server.ServeStatic (_context, http.StatusOK, AboutBannerData, AboutBannerContentType, AboutBannerContentEncoding, true)
 			return
-		} else if bytes.HasPrefix (_path, []byte ("/__/errors/banners/")) {
+		} else if bytes.HasPrefix (_path, StringToBytes ("/__/errors/banners/")) {
 			_code := _path[len ("/__/errors/banners/") :]
 			if _code, _error := strconv.Atoi (BytesToString (*NoEscapeBytes (&_code))); _error == nil {
 				_banner, _bannerFound := ErrorBannersData[uint (_code)]
@@ -108,20 +108,23 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	
-	// _responseHeaders.SetCanonical ([]byte ("Content-Security-Policy"), []byte ("upgrade-insecure-requests"))
-	_responseHeaders.SetCanonical ([]byte ("Referrer-Policy"), []byte ("strict-origin-when-cross-origin"))
-	_responseHeaders.SetCanonical ([]byte ("X-Frame-Options"), []byte ("SAMEORIGIN"))
-	_responseHeaders.SetCanonical ([]byte ("X-content-type-Options"), []byte ("nosniff"))
-	_responseHeaders.SetCanonical ([]byte ("X-XSS-Protection"), []byte ("1; mode=block"))
+	// _responseHeaders.SetCanonical (StringToBytes ("Content-Security-Policy"), StringToBytes ("upgrade-insecure-requests"))
+	_responseHeaders.SetCanonical (StringToBytes ("Referrer-Policy"), StringToBytes ("strict-origin-when-cross-origin"))
+	_responseHeaders.SetCanonical (StringToBytes ("X-Frame-Options"), StringToBytes ("SAMEORIGIN"))
+	_responseHeaders.SetCanonical (StringToBytes ("X-content-type-Options"), StringToBytes ("nosniff"))
+	_responseHeaders.SetCanonical (StringToBytes ("X-XSS-Protection"), StringToBytes ("1; mode=block"))
 	
 	var _fingerprints []byte
 	
+	var _namespaceAndPathSuffixes = [][2]string {
+			{NamespaceFilesContent, ""},
+			{NamespaceFilesContent, "/"},
+			{NamespaceFoldersContent, ""},
+		}
+	
 	if _fingerprints == nil {
-		_loop_1 : for _, _namespaceAndPathSuffix := range [][2]string {
-					{NamespaceFilesContent, ""},
-					{NamespaceFilesContent, "/"},
-					{NamespaceFoldersContent, ""},
-		} {
+		_loop_1 : for _namespaceAndPathSuffixIndex := range _namespaceAndPathSuffixes {
+			_namespaceAndPathSuffix := _namespaceAndPathSuffixes[_namespaceAndPathSuffixIndex]
 			_namespace := _namespaceAndPathSuffix[0]
 			_pathSuffix := _namespaceAndPathSuffix[1]
 			
@@ -168,7 +171,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if _fingerprints == nil {
-		if bytes.Equal ([]byte ("/favicon.ico"), _path) {
+		if bytes.Equal (StringToBytes ("/favicon.ico"), _path) {
 			_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
 			return
 		}
@@ -219,7 +222,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_fingerprintContent := _fingerprints[0:64]
 	_fingerprintMeta := _fingerprints[65:129]
 	
-	_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+	_responseHeaders.SetCanonical (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	
 	var _data []byte
 	if _server.cachedDataContent != nil {
@@ -271,7 +274,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 					_responseStatus = http.StatusInternalServerError
 				case _name[0] != '_' :
 					_responseHeaders.SetCanonical (_name, _value)
-				case bytes.Equal (_name, []byte ("_Status")) :
+				case bytes.Equal (_name, StringToBytes ("_Status")) :
 					if _value, _error := strconv.Atoi (BytesToString (_value)); _error == nil {
 						if (_value >= 200) && (_value <= 599) {
 							_responseStatus = _value
@@ -308,13 +311,13 @@ func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint,
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
-	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (_contentType))
-	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte (_contentEncoding))
+	_responseHeaders.SetCanonical (StringToBytes ("Content-Type"), StringToBytes (_contentType))
+	_responseHeaders.SetCanonical (StringToBytes ("Content-Encoding"), StringToBytes (_contentEncoding))
 	
 	if _cache {
-		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+		_responseHeaders.SetCanonical (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	} else {
-		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
+		_responseHeaders.SetCanonical (StringToBytes ("Cache-Control"), StringToBytes ("no-cache"))
 	}
 	
 	_response.SetStatusCode (int (_status))
@@ -327,17 +330,17 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
-	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
-	_responseHeaders.SetCanonical ([]byte ("Location"), _path)
+	_responseHeaders.SetCanonical (StringToBytes ("Content-Encoding"), StringToBytes ("identity"))
+	_responseHeaders.SetCanonical (StringToBytes ("Location"), _path)
 	
 	if _cache {
-		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+		_responseHeaders.SetCanonical (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	} else {
-		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
+		_responseHeaders.SetCanonical (StringToBytes ("Cache-Control"), StringToBytes ("no-cache"))
 	}
 	
-	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (MimeTypeText))
-	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte ("identity"))
+	_responseHeaders.SetCanonical (StringToBytes ("Content-Type"), StringToBytes (MimeTypeText))
+	_responseHeaders.SetCanonical (StringToBytes ("Content-Encoding"), StringToBytes ("identity"))
 	
 	_response.SetStatusCode (int (_status))
 }
@@ -349,13 +352,13 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
 	if _cache {
-		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("public, immutable, max-age=3600"))
+		_responseHeaders.SetCanonical (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	} else {
-		_responseHeaders.SetCanonical ([]byte ("Cache-Control"), []byte ("no-cache"))
+		_responseHeaders.SetCanonical (StringToBytes ("Cache-Control"), StringToBytes ("no-cache"))
 	}
 	
-	_responseHeaders.SetCanonical ([]byte ("Content-Type"), []byte (ErrorBannerContentType))
-	_responseHeaders.SetCanonical ([]byte ("Content-Encoding"), []byte (ErrorBannerContentEncoding))
+	_responseHeaders.SetCanonical (StringToBytes ("Content-Type"), StringToBytes (ErrorBannerContentType))
+	_responseHeaders.SetCanonical (StringToBytes ("Content-Encoding"), StringToBytes (ErrorBannerContentEncoding))
 	
 	if _banner, _bannerFound := ErrorBannersData[_status]; _bannerFound {
 		_response.SetBodyRaw (_banner)
