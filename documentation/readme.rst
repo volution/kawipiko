@@ -322,7 +322,7 @@ The following is a list of the most important features:
 
 * "atomic" site content changes;  because the entire site content is held in a single CDB database file, and because the file replacement is atomically achieved via the ``rename`` syscall (or the ``mv`` tool), all the site's resources are "changed" at the same time;
 
-* `_wildcard.*` files (where `.*` are the regular extensions like `.txt`, `.html`, etc.) which will be used if an actual resource is not found under that folder;  (these files respect the hierarchical tree structure, i.e. "deeper" ones override the ones closer to "root";)
+* ``_wildcard.*`` files (where ``.*`` are the regular extensions like ``.txt``, ``.html``, etc.) which will be used if an actual resource is not found under that folder;  (these files respect the hierarchical tree structure, i.e. "deeper" ones override the ones closer to "root";)
 
 
 
@@ -334,9 +334,9 @@ The following is a list of the most important features that are currently missin
 
 * support for HTTPS;  (although for HTTPS it is strongly recommended to use a dedicated TLS terminator like HAProxy_;)
 
-* support for custom HTTP response headers (for specific files, for specific folders, etc.);  (currently only ``Content-Type``, ``Content-Length``, ``Content-Encoding`` and optionally ``ETag`` is included;  additionally `Cache-Control: public, immutable, max-age=3600` and a few security related headers are also included;)
+* support for custom HTTP response headers (for specific files, for specific folders, etc.);  (currently only ``Content-Type``, ``Content-Length``, ``Content-Encoding`` and optionally ``ETag`` is included;  additionally ``Cache-Control: public, immutable, max-age=3600`` and a few security related headers are also included;)
 
-* support for mapping virtual hosts to key prefixes;  (currently virtual hosts, i.e. the `Host` header, are ignored;)
+* support for mapping virtual hosts to key prefixes;  (currently virtual hosts, i.e. the ``Host`` header, are ignored;)
 
 * support for mapping virtual hosts to multiple CDB database files;  (i.e. the ability to serve multiple domains, each with its own CDB database;)
 
@@ -354,9 +354,9 @@ As stated in the `about section <#about>`_, nothing comes for free, and in order
 
 * (TODO)  currently if the CDB database file changes, the server needs to be restarted in order to pickup the changed files;
 
-* (won't fix)  the CDB database **maximum size is 2 GiB**;  (however if you have a site this large, you are probabbly doing something extreemly wrong, as large files should be offloaded to something like AWS S3 and served through a CDN like CloudFlare or AWS CloudFront;)
+* (won't fix)  the CDB database **maximum size is 4 GiB**;  (however if you have a site this large, you are probabbly doing something extreemly wrong, as large files should be offloaded to something like AWS S3 and served through a CDN like CloudFlare or AWS CloudFront;)
 
-* (won't fix)  the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding : gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
+* (won't fix)  the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding: gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
 
 * (won't fix)  regarding the "atomic" site changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extreemly small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**  always use fingerprints in your resources URL, and perhaps always include the current and previous version on each deploy;)
 
@@ -399,8 +399,8 @@ Results values
 
 .. note ::
 
-  Please note that the values under ``Thread Stats`` are reported per thread.
-  Therefore it is best to look at the first two values, i.e. ``Requests/sec``.
+  Please note that the values under *Thread Stats* are reported per thread.
+  Therefore it is best to look at the first two values, i.e. *Requests/sec*.
 
 * 16 connections / 2 server threads / 4 wrk threads: ::
 
@@ -546,7 +546,7 @@ Methodology
 
 
 * get the binaries (either `download <#download-binaries>`_ or `build <#build-from-sources>`_ them);
-* get the ``hello-world.cdb`` (from the `examples <./examples>`__ folder inside the repository);
+* get the ``hello-world.cdb`` (from the `examples <./examples>`_ folder inside the repository);
 
 
 Single process / single threaded
@@ -579,7 +579,7 @@ Single process / single threaded
 Single process / two threads
 ............................
 
-* this scenario is the usual setup;  configure `--threads` to equal the number of cores;
+* this scenario is the usual setup;  configure ``--threads`` to equal the number of cores;
 
 * execute the server (memory mapped): ::
 
@@ -697,7 +697,7 @@ If you **change** the code within this repository **and use** it for **non-perso
 Notice -- long version
 ----------------------
 
-For details about the copyright and licensing, please consult the `notice <./documentation/licensing/notice.txt>`__ file in the `documentation/licensing <./documentation/licensing>`_ folder.
+For details about the copyright and licensing, please consult the `notice <./documentation/licensing/notice.txt>`_ file in the `documentation/licensing <./documentation/licensing>`_ folder.
 
 If someone requires the sources and/or documentation to be released
 under a different license, please send an email to the authors,
