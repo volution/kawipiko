@@ -10,16 +10,27 @@ kawipiko -- blazingly fast static HTTP server
 About
 =====
 
-This is a simple static HTTP server written in Go_, whose main purpose is to serve (public) static content as efficient as possible.
-As such, it basically supports only ``GET`` requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
+``kawipiko`` is a simple static HTTP server written in Go_, whose main purpose is to serve static content as fast as possible.
+However "simple" doesn't imply "dumb" or "limited", instead it implies "efficiency" and removal of superfluous features, inline with UNIX's philosophy of `do one thing and do it well <https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well>`__.
+As such ``kawipiko`` basically supports only ``GET`` (and ``HEAD``) requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
 
-However it does provide something unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost zero latency.
+However, ``kawipiko`` does provide something unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost zero latency.
+Moreover, the static content can be compressed (with either ``gzip`` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwith and latency.
 
 CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
 This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
 
+For those familiar with Netlify_, ``kawipiko`` is a "host-it-yourself" alternative featuring:
+
+* simple deployment and configuration;  (i.e. just `fetch the binaries <#installation>`__ and use the `proper flags <#kawipiko-server>`__;)
+* low and constant resource consumption (both in terms of CPU and RAM);  (i.e. you won't have surprises when under load;)
+* (hopefully) extremly secure;  (i.e. it doesn't launch processes, it doesn't open any files, etc.;  basically you can easly ``chroot`` it;)
+
 For a complete list of features please consult the `features section <#features>`__.
 Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`__ (although none are critical).
+
+With regard to performance, as described in the `benchmarks section <#benchmarks>`__, ``kawipiko`` is on par with NGinx, sustaining 72k requests / second with 0.4ms latency for 99% of the requests even on my 6 years old laptop.
+However the main advantage over NGinx is not raw performance, but deployment and configuration simplicity, plus efficient management and storage of large collections of many small static files.
 
 
 
@@ -736,6 +747,9 @@ References
     * `Brotli <https://en.wikipedia.org/wiki/Brotli>`__ (@WikiPedia);
     * `Brotli <https://github.com/google/brotli>`__ (project);
     * `Results of experimenting with Brotli for dynamic web content <https://blog.cloudflare.com/results-experimenting-brotli/>`__ (article);
+
+.. [Netlify]
+    * `Netlify <https://www.netlify.com/>`__ (cloud provider);
 
 .. [HAProxy]
     * `HAProxy <https://en.wikipedia.org/wiki/HAProxy>`__ (@WikiPedia);
