@@ -1,4 +1,36 @@
 
+
+#############################################
+kawipiko -- blazingly fast static HTTP server
+#############################################
+
+
+
+
+About
+=====
+
+This is a simple static HTTP server written in Go, whose main purpose is to serve (public) static content as efficient as possible.
+As such, it basically supports only ``GET`` requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
+
+However it does provide something unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost zero latency.
+
+CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
+This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
+
+For a complete list of features please consult the `features section <#features>`_.
+Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`_ (although none are critical).
+
+
+
+
+.. contents::
+    :depth: 1
+    :backlinks: none
+
+
+
+
 ::
 
     +---------------------------------------------------------------------------+
@@ -23,40 +55,14 @@
 
 
 
-
-
-#############################################
-kawipiko -- blazingly fast static HTTP server
-#############################################
-
+Documentation
+=============
 
 .. contents::
     :depth: 2
-    :backlinks: top
     :local:
+    :backlinks: none
 
-
-
-
-About
-=====
-
-This is a simple static HTTP server written in Go, whose main purpose is to serve (public) static content as efficient as possible.
-As such, it basically supports only ``GET`` requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
-
-However it does provide something unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost zero latency.
-
-CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
-This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
-
-For a complete list of features please consult the `features section <#features>`_.
-Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`_ (although none are critical).
-
-
-
-
-Documentation
-=============
 
 The project provides two binaries:
 
@@ -201,6 +207,11 @@ Examples
 Installation
 ============
 
+.. contents::
+    :depth: 2
+    :local:
+    :backlinks: none
+
 
 
 
@@ -290,6 +301,11 @@ Deploy the binaries
 Features
 ========
 
+.. contents::
+    :depth: 2
+    :local:
+    :backlinks: none
+
 
 
 
@@ -349,6 +365,11 @@ As stated in the `about section <#about>`_, nothing comes for free, and in order
 
 Benchmarks
 ==========
+
+.. contents::
+    :depth: 2
+    :local:
+    :backlinks: none
 
 
 
@@ -654,6 +675,11 @@ Ciprian Dorin Craciun
 
 Notice (copyright and licensing)
 ================================
+
+.. contents::
+    :depth: 2
+    :local:
+    :backlinks: none
 
 
 
