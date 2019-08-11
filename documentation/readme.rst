@@ -712,15 +712,47 @@ References
 ==========
 
 
-.. [CDB] `CDB @WikiPedia <https://goo.gl/nvWKcY>`_
+.. [Go]
+    * `Go <https://en.wikipedia.org/wiki/Go_(programming_language)>`__ (@WikiPedia);
+    * `Go <https://golang.com/>`__ (project);
 
-.. [Brotli] `Brotli @WikiPedia <https://goo.gl/qJHmdm>`_
+.. [CDB]
+    * `CDB <https://en.wikipedia.org/wiki/Cdb_(software)>`__ (@WikiPedia);
+    * `cdb <http://cr.yp.to/cdb.html>`__ (project);
+    * `cdb internals <http://www.unixuser.org/~euske/doc/cdbinternals/index.html>`__ (article);
+    * `Benchmarking LevelDB vs. RocksDB vs. HyperLevelDB vs. LMDB Performance for InfluxDB <https://www.influxdata.com/blog/benchmarking-leveldb-vs-rocksdb-vs-hyperleveldb-vs-lmdb-performance-for-influxdb/>`__ (article);
+    * `Badger vs LMDB vs BoltDB: Benchmarking key-value databases in Go <https://blog.dgraph.io/post/badger-lmdb-boltdb/>`__ (article);
+    * `Benchmarking BDB, CDB and Tokyo Cabinet on large datasets <https://www.dmo.ca/blog/benchmarking-hash-databases-on-large-data/>`__ (article);
+    * `TinyCDB <http://www.corpit.ru/mjt/tinycdb.html>`__ (fork project);
+    * `tinydns <https://cr.yp.to/djbdns/tinydns.html>`__ (DNS server using CDB);
+    * `qmail <https://cr.yp.to/qmail.html>`__ (SMTP server using CDB);
 
-.. [mmap] `Memory mapping @WikiPedia <https://goo.gl/3u6pXC>`_
+.. [wrk]
+    * `wrk <https://github.com/wg/wrk>`__ (project);
+    * modern HTTP benchmarking tool;
+    * multi threaded, with event loop and Lua support;
 
-.. [HAProxy] `HAProxy Load Balancer <https://goo.gl/43dnu8>`_
+.. [Brotli]
+    * `Brotli <https://en.wikipedia.org/wiki/Brotli>`__ (@WikiPedia);
+    * `Brotli <https://github.com/google/brotli>`__ (project);
+    * `Results of experimenting with Brotli for dynamic web content <https://blog.cloudflare.com/results-experimenting-brotli/>`__ (article);
 
-.. [wrk] `wrk -- modern HTTP benchmarking tool <https://goo.gl/BjpjND>`_
+.. [HAProxy]
+    * `HAProxy <https://en.wikipedia.org/wiki/HAProxy>`__ (@WikiPedia);
+    * `HAProxy <https://www.haproxy.org/>`__ (project);
+    * reliable high performance TCP/HTTP load-balancer;
+    * multi threaded, with event loop and Lua support;
 
-.. [darkhttpd] `darkhttpd -- simple static HTTP server <https://unix4lyfe.org/darkhttpd/>`_ (single threaded, with event loop and ``sendfile`` support)
+.. [NGinx]
+    * `NGinx <https://en.wikipedia.org/wiki/Nginx>`__ (@WikiPedia);
+    * `NGinx <https://nginx.org/>`__ (project);
+
+.. [darkhttpd]
+    * `darkhttpd <https://unix4lyfe.org/darkhttpd/>`__ (project);
+    * simple static HTTP server;
+    * single threaded, with event loop and ``sendfile`` support;
+
+.. [mmap]
+    * `Memory mapping <https://en.wikipedia.org/wiki/Memory-mapped_file>`__ (@WikiPedia);
+    * `mmap(2) <http://man7.org/linux/man-pages/man2/mmap.2.html>`__ (Linux man page);
 
