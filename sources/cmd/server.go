@@ -847,6 +847,14 @@ func main_0 () (error) {
 		}
 	}
 	
+	if _indexPaths && _indexDataMeta && _indexDataContent {
+		if _error := _cdbReader.Close (); _error == nil {
+			_cdbReader = nil
+		} else {
+			AbortError (_error, "[d7aa79e1]  failed closing archive!")
+		}
+	}
+	
 	
 	_server := & server {
 			httpServer : nil,
