@@ -10,15 +10,15 @@ kawipiko -- blazingly fast static HTTP server
 About
 =====
 
-``kawipiko`` is a simple static HTTP server written in Go_, whose main purpose is to serve static content as fast as possible.
+``kawipiko`` is a simple static website HTTP server written in Go_, whose main purpose is to serve static website content as fast as possible.
 However "simple" doesn't imply "dumb" or "limited", instead it implies "efficiency" and removal of superfluous features, inline with UNIX's philosophy of `do one thing and do it well <https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well>`__.
 As such ``kawipiko`` basically supports only ``GET`` (and ``HEAD``) requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
 
-However, ``kawipiko`` does provide something unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost zero latency.
-Moreover, the static content can be compressed (with either ``gzip`` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwith and latency.
+However, ``kawipiko`` does provide something unique, that no other HTTP server offers:  the static website content is served from a CDB_ database with almost zero latency.
+Moreover, the static website content can be compressed (with either ``gzip`` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwith and latency.
 
 CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
-This also makes them suitable for low-latency static content serving over HTTP, which this project provides.
+This also makes them suitable for low-latency static website content serving over HTTP, which this project provides.
 
 For those familiar with Netlify_, ``kawipiko`` is a "host-it-yourself" alternative featuring:
 
@@ -30,7 +30,7 @@ For a complete list of features please consult the `features section <#features>
 Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`__ (although none are critical).
 
 With regard to performance, as described in the `benchmarks section <#benchmarks>`__, ``kawipiko`` is on par with NGinx, sustaining 72k requests / second with 0.4ms latency for 99% of the requests even on my 6 years old laptop.
-However the main advantage over NGinx is not raw performance, but deployment and configuration simplicity, plus efficient management and storage of large collections of many small static files.
+However the main advantage over NGinx is not raw performance, but deployment and configuration simplicity, plus efficient management and storage of large collections of many small files.
 
 
 
@@ -75,10 +75,28 @@ Documentation
     :backlinks: none
 
 
+
+
+Workflow
+--------
+
 The project provides two binaries:
 
-* ``kawipiko-server`` -- which serves the static content from the CDB database;
-* ``kawipiko-archiver`` -- which creates the CDB database from a source folder holding the static content;
+* ``kawipiko-server`` -- which serves the static website content from the CDB file;
+* ``kawipiko-archiver`` -- which creates the CDB file from a source folder holding the static website content;
+
+Unlike most (if not all) other webservers out-there, in which you just point your web server to the folder holding the static website content root, ``kawipiko`` takes a radically different approach.
+In order to serve the static website content, one has to first "compile" it into the CDB file through ``kawipiko-archiver``, and then one can "serve" it from the CDB file through ``kawipiko-server``.
+
+This two step phase also presents a few opportunities:
+
+* one can decouple the "building", "testing", and "publishing" phases of a static website, by using a similar CI/CD pipeline as done for other software projects;
+* one can instantaneously rollback to a previous version if the newly published one has issues;
+
+
+.. note ::
+
+   As described in the `limitations section <#limitations>`__, at the moment, if one rebuilds the CDB file, the server has to be restarted.
 
 
 
@@ -114,10 +132,10 @@ Flags
 .....
 
 ``--sources``
-    The path to the input folder that is the root of the website.
+    The path to the input folder that is the root of the static website content.
 
 ``--archive``
-    The path to the output CDB file that contains the archived website.
+    The path to the output CDB file that contains the archived static website content.
 
 ``--compress``
     Each individual file (and consequently of the corresponding HTTP response body) is compressed with either ``gzip`` or Brotli_;  by default (or alternatively ``identity``) no compression is used.
@@ -169,11 +187,11 @@ These wildcard files respect the folder hierarchy, in that wildcard files in (di
 Symlinks, hardlinks, loops, and duplicated files
 ................................................
 
-You freely use symlinks (including pointing outside of the website root) and they will be crawled during archival respecting the "logical" hierarchy they introduce.
+You freely use symlinks (including pointing outside of the content root) and they will be crawled during archival respecting the "logical" hierarchy they introduce.
 (Any loop that you introduce into the hierarchy will be ignored and a warning will be issued.)
 
-You can safely symlink or hardlink the same file (or folder) in multiple places (within the website root), and its contents will be stored only once.
-(The same applies to duplicated files that have exactly the same contents.)
+You can safely symlink or hardlink the same file (or folder) in multiple places (within the content hierarchy), and its data will be stored only once.
+(The same applies to duplicated files that have exactly the same data.)
 
 
 
@@ -215,7 +233,7 @@ Flags
 
 
 ``--archive``
-    The path of the CDB file that contains the archived website.
+    The path of the CDB file that contains the archived static website content.
     (It can be created with the ``kawipiko-archiver`` tool.)
 
 ``--archive-inmem``
@@ -227,7 +245,7 @@ Flags
     (**Highly recommended!**)
 
 ``--archive-preload``
-    Before starting to serve requests, read the CDB file so that its contents is buffered by the OS.
+    Before starting to serve requests, read the CDB file so that its data is buffered by the OS.
     (**Highly recommended!**)
 
 ``--index-all``, ``--index-paths``, ``--index-data-meta``,  and ``--index-data-content``
@@ -239,7 +257,7 @@ Flags
     * based on the resource's metadata fingerprint, the actual metadata (i.e. the response headers) is located;
       by using ``--index-data-meta`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
 
-    * based on the resource's data fingerprint, the actual contents (i.e. the response body) is located;
+    * based on the resource's data fingerprint, the actual data (i.e. the response body) is located;
       by using ``--index-data-content`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
 
     * ``--index-all`` enables all these indices;
@@ -448,13 +466,13 @@ Implemented
 
 The following is a list of the most important features:
 
-* (optionally)  the static content is compressed when the CDB database is created, thus no CPU cycles are used while serving requests;
+* (optionally)  the static website content is compressed when the CDB database is created, thus no CPU cycles are used while serving requests;
 
-* (optionally)  the static content can be compressed with either ``gzip`` or Brotli_;
+* (optionally)  the static website content can be compressed with either ``gzip`` or Brotli_;
 
 * (optionally)  in order to reduce the serving latency even further, one can preload the entire CDB database in memory, or alternatively mapping it in memory (mmap_);  this trades memory for CPU;
 
-* "atomic" site content changes;  because the entire site content is held in a single CDB database file, and because the file replacement is atomically achieved via the ``rename`` syscall (or the ``mv`` tool), all the site's resources are "changed" at the same time;
+* "atomic" static website content changes;  because the entire content is held in a single CDB database file, and because the file replacement is atomically achieved via the ``rename`` syscall (or the ``mv`` tool), all resources are "changed" at the same time;
 
 * ``_wildcard.*`` files (where ``.*`` are the regular extensions like ``.txt``, ``.html``, etc.) which will be used if an actual resource is not found under that folder;  (these files respect the hierarchical tree structure, i.e. "deeper" ones override the ones closer to "root";)
 
@@ -488,11 +506,11 @@ As stated in the `about section <#about>`__, nothing comes for free, and in orde
 
 * (TODO)  currently if the CDB database file changes, the server needs to be restarted in order to pickup the changed files;
 
-* (won't fix)  the CDB database **maximum size is 4 GiB**;  (however if you have a site this large, you are probabbly doing something extreemly wrong, as large files should be offloaded to something like AWS S3 and served through a CDN like CloudFlare or AWS CloudFront;)
+* (won't fix)  the CDB database **maximum size is 4 GiB**;  (however if you have a static website this large, you are probabbly doing something extreemly wrong, as large files should be offloaded to something like AWS S3 and served through a CDN like CloudFlare or AWS CloudFront;)
 
-* (won't fix)  the server **does not support per-request decompression / recompression**;  this implies that if the site content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding: gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
+* (won't fix)  the server **does not support per-request decompression / recompression**;  this implies that if the content was saved in the CDB database with compression (say ``gzip``), the server will serve all resources compressed (i.e. ``Content-Encoding: gzip``), regardless of what the browser accepts (i.e. ``Accept-Encoding: gzip``);  the same applies for uncompressed content;  (however always using ``gzip`` compression is safe enough as it is implemented in virtually all browsers and HTTP clients out there;)
 
-* (won't fix)  regarding the "atomic" site changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extreemly small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**  always use fingerprints in your resources URL, and perhaps always include the current and previous version on each deploy;)
+* (won't fix)  regarding the "atomic" static website changes, there is a small time window in which a client that has fetched an "old" version of a resource (say an HTML page), but which has not yet fetched the required resources (say the CSS or JS files), and the CDB database was swapped, it will consequently fetch the "new" version of these required resources;  however due to the low latency serving, this time window is extreemly small;  (**this is not a limitation of this HTTP server, but a limitation of the way the "web" is built;**  always use fingerprints in your resources URL, and perhaps always include the current and previous version on each deploy;)
 
 
 
@@ -600,7 +618,7 @@ Results notes
 * both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
 * both ``kawipiko-server`` and ``wrk`` tools were pinned on different physical cores;
 * the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
-* the served file contains the content ``Hello World!``;
+* the served file contains ``Hello World!``;
 * the protocol was HTTP (i.e. no TLS), with keep-alive;
 * see the `methodology section <#methodology>`__ for details;
 
@@ -649,7 +667,7 @@ Comparisons with NGinx
       2805639 requests in 30.09s, 703.70MB read
       Socket errors: connect 0, read 25, write 0, timeout 66
 
-* (the NGinx configuration file can be found in the `examples folder <./examples>`__;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small static files;)
+* (the NGinx configuration file can be found in the `examples folder <./examples>`__;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small files;)
 
 
 Comparisons with others
