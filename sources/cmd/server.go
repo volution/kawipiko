@@ -1000,6 +1000,7 @@ func main_0 () (error) {
 			
 			NoDefaultServerHeader : true,
 			NoDefaultContentType : true,
+			NoDefaultDate : true,
 			DisableHeaderNamesNormalizing : true,
 			
 			Concurrency : 4 * 1024 + 128,

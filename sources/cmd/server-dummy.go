@@ -33,6 +33,7 @@ func main () () {
 			
 			NoDefaultServerHeader : true,
 			NoDefaultContentType : true,
+			NoDefaultDate : true,
 			DisableHeaderNamesNormalizing : true,
 			
 			Concurrency : 4 * 1024 + 128,
@@ -42,9 +43,9 @@ func main () () {
 			WriteBufferSize : 16 * 1024,
 			MaxRequestBodySize : 16 * 1024,
 			
-	//		ReadTimeout : 30 * time.Second,
-	//		WriteTimeout : 30 * time.Second,
-	//		IdleTimeout : 360 * time.Second,
+		//	ReadTimeout : 30 * time.Second,
+		//	WriteTimeout : 30 * time.Second,
+		//	IdleTimeout : 360 * time.Second,
 			
 			TCPKeepalive : true,
 			TCPKeepalivePeriod : 60 * time.Second,
