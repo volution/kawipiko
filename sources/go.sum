@@ -2,8 +2,8 @@ github.com/Pallinder/go-randomdata v1.2.0 h1:DZ41wBchNRb/0GfsePLiSwb0PHZmT67XY00
 github.com/Pallinder/go-randomdata v1.2.0/go.mod h1:yHmJgulpD2Nfrm0cR9tI/+oAgRqCQQixsA8HyRZfV9Y=
 github.com/cipriancraciun/go-cdb-lib v0.0.0-20190809203657-d959ce9cc674 h1:UyoEJxLS9OPdjyinKfCA2aKgIf1NhXyIxneRSMrqZls=
 github.com/cipriancraciun/go-cdb-lib v0.0.0-20190809203657-d959ce9cc674/go.mod h1:/M2lSbkwYzIP5OqU4u+aygk4LCVpB7wi60O0Myhs05g=
-github.com/cipriancraciun/go-fasthttp v0.0.0-20190802150928-b97bc32543cb h1:zkmV9MQlubdj7O9/faxHeMdGNMMReWc5PoCJQvZQupc=
-github.com/cipriancraciun/go-fasthttp v0.0.0-20190802150928-b97bc32543cb/go.mod h1:4vX61m6KN+xDduDNwXrhIAVZaZaZiQ1luJk8LWSxF3s=
+github.com/cipriancraciun/go-fasthttp v0.0.0-20190812185442-4ac031052252 h1:RtCq6tOQYYsM/A8xBj4WNw0y2+X1iwT3VSZ3DMasZRc=
+github.com/cipriancraciun/go-fasthttp v0.0.0-20190812185442-4ac031052252/go.mod h1:4vX61m6KN+xDduDNwXrhIAVZaZaZiQ1luJk8LWSxF3s=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
