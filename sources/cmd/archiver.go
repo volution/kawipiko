@@ -410,7 +410,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 	}
 	
 	_dataMeta := make (map[string]string, 16)
-	_dataMeta["Content-Length"] = fmt.Sprintf ("%d", _dataSize)
+	// _dataMeta["Content-Length"] = fmt.Sprintf ("%d", _dataSize)
 	_dataMeta["Content-Type"] = _dataType
 	_dataMeta["Content-Encoding"] = _dataEncoding
 	if _context.includeEtag {
