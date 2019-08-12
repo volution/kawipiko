@@ -536,3 +536,22 @@
 	#
 !!
 
+
+
+
+<< benchmark / dummy
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-v \
+			-tags netgo \
+			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
+			-gcflags 'all=-l=4' \
+			-o "${_outputs}/binaries/release/kawipiko-server-dummy" \
+			-- ./cmd/server-dummy.go \
+	#
+	exec env -i -- "${_outputs}/binaries/release/kawipiko-server-dummy" "${@}"
+!!
+
