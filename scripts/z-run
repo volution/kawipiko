@@ -527,10 +527,15 @@
 
 
 << examples / hello-world / archive
-	exec -- "${ZRUN[@]}" ':: execute / archiver / debug' \
+	"${ZRUN[@]}" ':: execute / archiver / debug' \
 			--sources ./examples/hello-world \
 			--archive ./examples/hello-world.cdb \
 			--debug \
+	#
+	cdb -d -- ./examples/hello-world.cdb \
+	| tr -d '\r' \
+	| sed -r -e 's#^(\+[0-9]+,[0-9]+):(.+?)->#\n\1\n\2\n#' \
+		>| ./examples/hello-world.cdb-dump \
 	#
 !!
 
