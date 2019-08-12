@@ -506,6 +506,8 @@
 	exec -- env -i "$( type -P -- curl )" \
 			--silent \
 			--compressed \
+			--output /dev/stdout \
+			--dump-header /dev/stdout \
 			"${@}" \
 			-- "http://127.9.185.194:8080/${_path}" \
 	#

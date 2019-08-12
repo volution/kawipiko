@@ -15,6 +15,10 @@ var HeartbeatContentEncoding = "identity"
 var HeartbeatDataOk = []byte ("OK\n")
 var HeartbeatDataNok = []byte ("NOK\n")
 
+var DummyContentType = MimeTypeText
+var DummyContentEncoding = "identity"
+var DummyData = []byte ("hello world!\n")
+
 
 var FaviconContentType = "image/vnd.microsoft.icon"
 var FaviconContentEncoding = "identity"

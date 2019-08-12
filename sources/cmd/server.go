@@ -39,6 +39,7 @@ type server struct {
 	cachedDataMeta map[string][]byte
 	cachedDataContent map[string][]byte
 	debug bool
+	dummy bool
 }
 
 
@@ -364,6 +365,17 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 }
 
 
+func (_server *server) ServeDummy (_context *fasthttp.RequestCtx) () {
+	_server.ServeStatic (_context, http.StatusOK, DummyData, DummyContentType, DummyContentEncoding, false)
+}
+
+func ServeDummyRaw (_context *fasthttp.RequestCtx) () {
+	_context.Response.SetBodyRaw (DummyData)
+	_context.Response.SetStatusCode (200)
+}
+
+
+
 
 
 func main () () {
@@ -375,7 +387,7 @@ func main_0 () (error) {
 	
 	
 	var _bind string
-	var _archive string
+	var _archivePath string
 	var _archiveInmem bool
 	var _archiveMmap bool
 	var _archivePreload bool
@@ -386,6 +398,7 @@ func main_0 () (error) {
 	var _threads uint
 	var _slave uint
 	var _debug bool
+	var _dummy bool
 	var _isFirst bool
 	
 	var _profileCpu string
@@ -429,6 +442,7 @@ func main_0 () (error) {
     --profile-mem <path>
 
     --debug
+    --dummy
 
   ** for details see:
      https://github.com/volution/kawipiko#kawipiko-server
@@ -437,7 +451,7 @@ func main_0 () (error) {
 		}
 		
 		_bind_0 := _flags.String ("bind", "", "")
-		_archive_0 := _flags.String ("archive", "", "")
+		_archivePath_0 := _flags.String ("archive", "", "")
 		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "")
 		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "")
 		_archivePreload_0 := _flags.Bool ("archive-preload", false, "")
@@ -451,11 +465,12 @@ func main_0 () (error) {
 		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
 		_profileMem_0 := _flags.String ("profile-mem", "", "")
 		_debug_0 := _flags.Bool ("debug", false, "")
+		_dummy_0 := _flags.Bool ("dummy", false, "")
 		
 		FlagsParse (_flags, 0, 0)
 		
 		_bind = *_bind_0
-		_archive = *_archive_0
+		_archivePath = *_archivePath_0
 		_archiveInmem = *_archiveInmem_0
 		_archiveMmap = *_archiveMmap_0
 		_archivePreload = *_archivePreload_0
@@ -467,6 +482,7 @@ func main_0 () (error) {
 		_threads = *_threads_0
 		_slave = *_slave_0
 		_debug = *_debug_0
+		_dummy = *_dummy_0
 		
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
@@ -474,16 +490,28 @@ func main_0 () (error) {
 		if _bind == "" {
 			AbortError (nil, "[6edd9512]  expected bind address argument!")
 		}
-		if _archive == "" {
-			AbortError (nil, "[eefe1a38]  expected archive file argument!")
-		}
 		
-		if _archiveInmem && _archiveMmap {
-			AbortError (nil, "[a2101041]  archive 'memory-loaded' and 'memory-mapped' are mutually exclusive!")
-		}
-		if _archiveInmem && _archivePreload {
-			log.Printf ("[ww] [3e8a40e4]  archive 'memory-loaded' implies preloading!\n")
+		if !_dummy {
+			if _archivePath == "" {
+				AbortError (nil, "[eefe1a38]  expected archive file argument!")
+			}
+			if _archiveInmem && _archiveMmap {
+				AbortError (nil, "[a2101041]  archive 'memory-loaded' and 'memory-mapped' are mutually exclusive!")
+			}
+			if _archiveInmem && _archivePreload {
+				log.Printf ("[ww] [3e8a40e4]  archive 'memory-loaded' implies preloading!\n")
+				_archivePreload = false
+			}
+		} else {
+			log.Printf ("[ww] [8e014192]  running in dummy mode;  all archive related arguments are ignored!\n")
+			_archivePath = ""
+			_archiveInmem = false
+			_archiveMmap = false
 			_archivePreload = false
+			_indexAll = false
+			_indexPaths = false
+			_indexDataMeta = false
+			_indexDataContent = false
 		}
 		
 		if (_processes > 1) && ((_profileCpu != "") || (_profileMem != "")) {
@@ -526,8 +554,10 @@ func main_0 () (error) {
 		_processArguments := make ([]string, 0, len (os.Args))
 		_processArguments = append (_processArguments,
 				"--bind", _bind,
-				"--archive", _archive,
 			)
+		if _archivePath != "" {
+			_processArguments = append (_processArguments, "--archive", _archivePath)
+		}
 		if _archiveInmem {
 			_processArguments = append (_processArguments, "--archive-inmem")
 		}
@@ -539,6 +569,9 @@ func main_0 () (error) {
 		}
 		if _debug {
 			_processArguments = append (_processArguments, "--debug")
+		}
+		if _dummy {
+			_processArguments = append (_processArguments, "--dummy")
 		}
 		_processArguments = append (_processArguments, "--threads", fmt.Sprintf ("%d", _threads))
 		
@@ -619,13 +652,14 @@ func main_0 () (error) {
 	
 	
 	var _cdbReader *cdb.CDB
-	{
+	if _archivePath != "" {
+		
 		if _debug || _isFirst {
-			log.Printf ("[ii] [3b788396]  opening archive file `%s`...\n", _archive)
+			log.Printf ("[ii] [3b788396]  opening archive file `%s`...\n", _archivePath)
 		}
 		
 		var _cdbFile *os.File
-		if _cdbFile_0, _error := os.Open (_archive); _error == nil {
+		if _cdbFile_0, _error := os.Open (_archivePath); _error == nil {
 			_cdbFile = _cdbFile_0
 		} else {
 			AbortError (_error, "[9e0b5ed3]  failed opening archive file!")
@@ -733,17 +767,18 @@ func main_0 () (error) {
 			}
 			
 		}
+		
+		if _schemaVersion, _error := _cdbReader.GetWithCdbHash ([]byte (NamespaceSchemaVersion)); _error == nil {
+			if _schemaVersion == nil {
+				AbortError (nil, "[09316866]  missing archive schema version!")
+			} else if string (_schemaVersion) != CurrentSchemaVersion {
+				AbortError (nil, "[e6482cf7]  invalid archive schema version!")
+			}
+		} else {
+			AbortError (_error, "[87cae197]  failed opening archive!")
+		}
 	}
 	
-	if _schemaVersion, _error := _cdbReader.GetWithCdbHash ([]byte (NamespaceSchemaVersion)); _error == nil {
-		if _schemaVersion == nil {
-			AbortError (nil, "[09316866]  missing archive schema version!")
-		} else if string (_schemaVersion) != CurrentSchemaVersion {
-			AbortError (nil, "[e6482cf7]  invalid archive schema version!")
-		}
-	} else {
-		AbortError (_error, "[87cae197]  failed opening archive!")
-	}
 	
 	var _cachedFileFingerprints map[string][]byte
 	if _indexPaths {
@@ -857,6 +892,7 @@ func main_0 () (error) {
 			cachedDataMeta : _cachedDataMeta,
 			cachedDataContent : _cachedDataContent,
 			debug : _debug,
+			dummy : _dummy,
 		}
 	
 	
@@ -920,6 +956,11 @@ func main_0 () (error) {
 			ReduceMemoryUsage : _httpServerReduceMemory,
 			
 		}
+	
+	if _dummy {
+		// _httpServer.Handler = _server.ServeDummy
+		_httpServer.Handler = ServeDummyRaw
+	}
 	
 	_server.httpServer = _httpServer
 	
