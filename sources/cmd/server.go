@@ -366,7 +366,11 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 
 
 func (_server *server) ServeDummy (_context *fasthttp.RequestCtx) () {
-	_server.ServeStatic (_context, http.StatusOK, DummyData, DummyContentType, DummyContentEncoding, false)
+	if true {
+		_server.ServeStatic (_context, http.StatusOK, DummyData, DummyContentType, DummyContentEncoding, false)
+	} else {
+		ServeDummyRaw (_context)
+	}
 }
 
 func ServeDummyRaw (_context *fasthttp.RequestCtx) () {
@@ -394,12 +398,14 @@ func main_0 () (error) {
 	var _indexPaths bool
 	var _indexDataMeta bool
 	var _indexDataContent bool
+	var _timeoutDisabled bool
 	var _processes uint
 	var _threads uint
 	var _slave uint
 	var _debug bool
 	var _dummy bool
 	var _isFirst bool
+	var _isMaster bool
 	
 	var _profileCpu string
 	var _profileMem string
@@ -438,6 +444,8 @@ func main_0 () (error) {
     --processes <count>  (of slave processes)
     --threads <count>    (of threads per process)
 
+    --timeout-disable
+
     --profile-cpu <path>
     --profile-mem <path>
 
@@ -459,6 +467,7 @@ func main_0 () (error) {
 		_indexPaths_0 := _flags.Bool ("index-paths", false, "")
 		_indexDataMeta_0 := _flags.Bool ("index-data-meta", false, "")
 		_indexDataContent_0 := _flags.Bool ("index-data-content", false, "")
+		_timeoutDisabled_0 := _flags.Bool ("timeout-disable", false, "")
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
 		_slave_0 := _flags.Uint ("slave", 0, "")
@@ -478,6 +487,7 @@ func main_0 () (error) {
 		_indexPaths = _indexAll || *_indexPaths_0
 		_indexDataMeta = _indexAll || *_indexDataMeta_0
 		_indexDataContent = _indexAll || *_indexDataContent_0
+		_timeoutDisabled = *_timeoutDisabled_0
 		_processes = *_processes_0
 		_threads = *_threads_0
 		_slave = *_slave_0
@@ -486,6 +496,13 @@ func main_0 () (error) {
 		
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
+		
+		if _slave == 0 {
+			_isMaster = true
+		}
+		if _slave <= 1 {
+			_isFirst = true
+		}
 		
 		if _bind == "" {
 			AbortError (nil, "[6edd9512]  expected bind address argument!")
@@ -503,7 +520,9 @@ func main_0 () (error) {
 				_archivePreload = false
 			}
 		} else {
-			log.Printf ("[ww] [8e014192]  running in dummy mode;  all archive related arguments are ignored!\n")
+			if _isMaster {
+				log.Printf ("[ww] [8e014192]  running in dummy mode;  all archive related arguments are ignored!\n")
+			}
 			_archivePath = ""
 			_archiveInmem = false
 			_archiveMmap = false
@@ -524,14 +543,25 @@ func main_0 () (error) {
 		if _threads < 1 {
 			_threads = 1
 		}
+		
+		if _processes > 1024 {
+			AbortError (nil, "[45736c1d]  maximum number of allowed processes is 1024!")
+		}
+		if _threads > 1024 {
+			AbortError (nil, "[c5df3c8d]  maximum number of allowed threads is 1024!")
+		}
+		if (_processes * _threads) > 1024 {
+			AbortError (nil, "[b0177488]  maximum number of allowed threads in total is 1024!")
+		}
 	}
 	
 	
 	runtime.GOMAXPROCS (int (_threads))
 	
 	debug.SetGCPercent (50)
-	debug.SetMaxThreads (128)
+	debug.SetMaxThreads (int (128 * (_threads / 64 + 1)))
 	debug.SetMaxStack (16 * 1024)
+	
 	
 	_httpServerReduceMemory := false
 	
@@ -566,6 +596,18 @@ func main_0 () (error) {
 		}
 		if _archivePreload {
 			_processArguments = append (_processArguments, "--archive-preload")
+		}
+		if _indexPaths {
+			_processArguments = append (_processArguments, "--index-paths")
+		}
+		if _indexDataMeta {
+			_processArguments = append (_processArguments, "--index-data-meta")
+		}
+		if _indexDataContent {
+			_processArguments = append (_processArguments, "--index-data-content")
+		}
+		if _timeoutDisabled {
+			_processArguments = append (_processArguments, "--timeout-disable")
 		}
 		if _debug {
 			_processArguments = append (_processArguments, "--debug")
@@ -643,10 +685,7 @@ func main_0 () (error) {
 	}
 	
 	
-	if _slave <= 1 {
-		_isFirst = true
-	}
-	if _slave == 0 {
+	if _isMaster {
 		log.Printf ("[ii] [6602a54a]  starting (with `%d` threads)...\n", _threads)
 	}
 	
@@ -933,22 +972,22 @@ func main_0 () (error) {
 			
 			Name : "kawipiko",
 			Handler : _server.Serve,
+			GetOnly : true,
 			
 			NoDefaultServerHeader : true,
 			NoDefaultContentType : true,
 			DisableHeaderNamesNormalizing : true,
 			
 			Concurrency : 4 * 1024 + 128,
+			MaxRequestsPerConn : 256 * 1024,
 			
-			ReadBufferSize : 2 * 1024,
-			WriteBufferSize : 2 * 1024,
+			ReadBufferSize : 16 * 1024,
+			WriteBufferSize : 16 * 1024,
+			MaxRequestBodySize : 16 * 1024,
 			
 			ReadTimeout : 30 * time.Second,
 			WriteTimeout : 30 * time.Second,
-			MaxKeepaliveDuration : 360 * time.Second,
-			MaxRequestsPerConn : 256 * 1024,
-			MaxRequestBodySize : 2 * 1024,
-			GetOnly : true,
+			IdleTimeout : 360 * time.Second,
 			
 			TCPKeepalive : true,
 			TCPKeepalivePeriod : 60 * time.Second,
@@ -957,9 +996,14 @@ func main_0 () (error) {
 			
 		}
 	
+	if _timeoutDisabled {
+		_httpServer.ReadTimeout = 0
+		_httpServer.WriteTimeout = 0
+		_httpServer.IdleTimeout = 0
+	}
+	
 	if _dummy {
-		// _httpServer.Handler = _server.ServeDummy
-		_httpServer.Handler = ServeDummyRaw
+		_httpServer.Handler = _server.ServeDummy
 	}
 	
 	_server.httpServer = _httpServer
