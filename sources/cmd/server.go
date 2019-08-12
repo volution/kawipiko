@@ -38,6 +38,8 @@ type server struct {
 	cachedFileFingerprints map[string][]byte
 	cachedDataMeta map[string][]byte
 	cachedDataContent map[string][]byte
+	securityHeadersEnabled bool
+	securityHeadersTls bool
 	debug bool
 	dummy bool
 }
@@ -103,11 +105,18 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	
-	// _responseHeaders.SetCanonical (StringToBytes ("Content-Security-Policy"), StringToBytes ("upgrade-insecure-requests"))
-	_responseHeaders.SetCanonical (StringToBytes ("Referrer-Policy"), StringToBytes ("strict-origin-when-cross-origin"))
-	_responseHeaders.SetCanonical (StringToBytes ("X-Frame-Options"), StringToBytes ("SAMEORIGIN"))
-	_responseHeaders.SetCanonical (StringToBytes ("X-content-type-Options"), StringToBytes ("nosniff"))
-	_responseHeaders.SetCanonical (StringToBytes ("X-XSS-Protection"), StringToBytes ("1; mode=block"))
+	if _server.securityHeadersEnabled {
+		if _server.securityHeadersTls {
+			_responseHeaders.SetCanonical (StringToBytes ("Strict-Transport-Security"), StringToBytes ("max-age=31536000"))
+			_responseHeaders.SetCanonical (StringToBytes ("Content-Security-Policy"), StringToBytes ("upgrade-insecure-requests"))
+		}
+		{
+			_responseHeaders.SetCanonical (StringToBytes ("Referrer-Policy"), StringToBytes ("strict-origin-when-cross-origin"))
+			_responseHeaders.SetCanonical (StringToBytes ("X-Content-Type-Options"), StringToBytes ("nosniff"))
+			_responseHeaders.SetCanonical (StringToBytes ("X-XSS-Protection"), StringToBytes ("1; mode=block"))
+			_responseHeaders.SetCanonical (StringToBytes ("X-Frame-Options"), StringToBytes ("sameorigin"))
+		}
+	}
 	
 	var _fingerprints []byte
 	
@@ -398,6 +407,8 @@ func main_0 () (error) {
 	var _indexPaths bool
 	var _indexDataMeta bool
 	var _indexDataContent bool
+	var _securityHeadersEnabled bool
+	var _securityHeadersTls bool
 	var _timeoutDisabled bool
 	var _processes uint
 	var _threads uint
@@ -444,6 +455,8 @@ func main_0 () (error) {
     --processes <count>  (of slave processes)
     --threads <count>    (of threads per process)
 
+    --security-headers-tls
+    --security-headers-disable
     --timeout-disable
 
     --profile-cpu <path>
@@ -468,6 +481,8 @@ func main_0 () (error) {
 		_indexDataMeta_0 := _flags.Bool ("index-data-meta", false, "")
 		_indexDataContent_0 := _flags.Bool ("index-data-content", false, "")
 		_timeoutDisabled_0 := _flags.Bool ("timeout-disable", false, "")
+		_securityHeadersTls_0 := _flags.Bool ("security-headers-tls", false, "")
+		_securityHeadersDisabled_0 := _flags.Bool ("security-headers-disable", false, "")
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
 		_slave_0 := _flags.Uint ("slave", 0, "")
@@ -487,6 +502,8 @@ func main_0 () (error) {
 		_indexPaths = _indexAll || *_indexPaths_0
 		_indexDataMeta = _indexAll || *_indexDataMeta_0
 		_indexDataContent = _indexAll || *_indexDataContent_0
+		_securityHeadersTls = *_securityHeadersTls_0
+		_securityHeadersEnabled = ! *_securityHeadersDisabled_0
 		_timeoutDisabled = *_timeoutDisabled_0
 		_processes = *_processes_0
 		_threads = *_threads_0
@@ -605,6 +622,12 @@ func main_0 () (error) {
 		}
 		if _indexDataContent {
 			_processArguments = append (_processArguments, "--index-data-content")
+		}
+		if _securityHeadersTls {
+			_processArguments = append (_processArguments, "--security-headers-tls")
+		}
+		if !_securityHeadersEnabled {
+			_processArguments = append (_processArguments, "--security-headers-disable")
 		}
 		if _timeoutDisabled {
 			_processArguments = append (_processArguments, "--timeout-disable")
@@ -930,6 +953,8 @@ func main_0 () (error) {
 			cachedFileFingerprints : _cachedFileFingerprints,
 			cachedDataMeta : _cachedDataMeta,
 			cachedDataContent : _cachedDataContent,
+			securityHeadersTls : _securityHeadersTls,
+			securityHeadersEnabled : _securityHeadersEnabled,
 			debug : _debug,
 			dummy : _dummy,
 		}

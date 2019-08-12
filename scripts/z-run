@@ -374,6 +374,7 @@
 	./.outputs/binaries/release/kawipiko-server \
 			--bind 127.9.185.194:8080 \
 			--archive "${_archive}" \
+			--security-headers-disable \
 			--timeout-disable \
 			"${@}" \
 	#
