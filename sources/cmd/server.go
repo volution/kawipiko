@@ -105,19 +105,6 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	
-	if _server.securityHeadersEnabled {
-		if _server.securityHeadersTls {
-			_responseHeaders.AddRaw (StringToBytes ("Strict-Transport-Security"), StringToBytes ("max-age=31536000"))
-			_responseHeaders.AddRaw (StringToBytes ("Content-Security-Policy"), StringToBytes ("upgrade-insecure-requests"))
-		}
-		{
-			_responseHeaders.AddRaw (StringToBytes ("Referrer-Policy"), StringToBytes ("strict-origin-when-cross-origin"))
-			_responseHeaders.AddRaw (StringToBytes ("X-Content-Type-Options"), StringToBytes ("nosniff"))
-			_responseHeaders.AddRaw (StringToBytes ("X-XSS-Protection"), StringToBytes ("1; mode=block"))
-			_responseHeaders.AddRaw (StringToBytes ("X-Frame-Options"), StringToBytes ("sameorigin"))
-		}
-	}
-	
 	var _fingerprints []byte
 	
 	var _namespaceAndPathSuffixes = [][2]string {
@@ -226,8 +213,6 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_fingerprintContent := _fingerprints[0:64]
 	_fingerprintMeta := _fingerprints[65:129]
 	
-	_responseHeaders.AddRaw (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
-	
 	var _data []byte
 	if _server.cachedDataContent != nil {
 		_data, _ = _server.cachedDataContent[BytesToString (_fingerprintContent)]
@@ -271,31 +256,52 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	}
 	
 	_responseStatus := http.StatusOK
-	_handleHeader := func (_name []byte, _value []byte) {
-			if _name[0] != '_' {
-				_responseHeaders.AddRaw (_name, _value)
-			} else {
-				switch BytesToString (_name) {
-					case "_Status" :
-						if _value, _error := strconv.Atoi (BytesToString (_value)); _error == nil {
-							if (_value >= 200) && (_value <= 599) {
-								_responseStatus = _value
-							} else {
-								log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-								_responseStatus = http.StatusInternalServerError
-								}
-							} else {
-								log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-								_responseStatus = http.StatusInternalServerError
-							}
-					default :
-						log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
-				}
-			}
+	
+	_responseHeaders.AddRawLines (_dataMetaRaw)
+	
+//	FIXME:  Re-enable this part!
+//	_handleHeader := func (_name []byte, _value []byte) {
+//			if _name[0] != '_' {
+//				_responseHeaders.AddRawKv (_name, _value)
+//			} else {
+//				switch BytesToString (_name) {
+//					case "!Status" :
+//						if _value, _error := strconv.Atoi (BytesToString (_value)); _error == nil {
+//							if (_value >= 200) && (_value <= 599) {
+//								_responseStatus = _value
+//							} else {
+//								log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+//								_responseStatus = http.StatusInternalServerError
+//								}
+//							} else {
+//								log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+//								_responseStatus = http.StatusInternalServerError
+//							}
+//					default :
+//						log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+//				}
+//			}
+//		}
+//	if _error := MetadataDecodeIterate (_dataMetaRaw, _handleHeader); _error != nil {
+//		_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+//		return
+//	}
+	
+	if _server.securityHeadersEnabled {
+		if _server.securityHeadersTls {
+			const _lines = (
+					"Strict-Transport-Security: max-age=31536000" + "\r\n" +
+					"Content-Security-Policy: upgrade-insecure-requests" + "\r\n")
+			_responseHeaders.AddRawLines (StringToBytes (_lines))
 		}
-	if _error := MetadataDecodeIterate (_dataMetaRaw, _handleHeader); _error != nil {
-		_server.ServeError (_context, http.StatusInternalServerError, _error, false)
-		return
+		{
+			const _lines = (
+					"Referrer-Policy: strict-origin-when-cross-origin" + "\r\n" +
+					"X-Content-Type-Options: nosniff" + "\r\n" +
+					"X-XSS-Protection: 1; mode=block" + "\r\n" +
+					"X-Frame-Options: sameorigin" + "\r\n")
+			_responseHeaders.AddRawLines (StringToBytes (_lines))
+		}
 	}
 	
 	if _server.debug {
@@ -314,13 +320,13 @@ func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint,
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
-	_responseHeaders.AddRaw (StringToBytes ("Content-Type"), StringToBytes (_contentType))
-	_responseHeaders.AddRaw (StringToBytes ("Content-Encoding"), StringToBytes (_contentEncoding))
+	_responseHeaders.AddRawKv (StringToBytes ("Content-Type"), StringToBytes (_contentType))
+	_responseHeaders.AddRawKv (StringToBytes ("Content-Encoding"), StringToBytes (_contentEncoding))
 	
 	if _cache {
-		_responseHeaders.AddRaw (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
+		_responseHeaders.AddRawLines (StringToBytes ("Cache-Control: public, immutable, max-age=3600\r\n"))
 	} else {
-		_responseHeaders.AddRaw (StringToBytes ("Cache-Control"), StringToBytes ("no-cache"))
+		_responseHeaders.AddRawLines (StringToBytes ("Cache-Control: private, no-cache, no-store\r\n"))
 	}
 	
 	_response.SetStatusCode (int (_status))
@@ -333,17 +339,13 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
-	_responseHeaders.AddRaw (StringToBytes ("Content-Encoding"), StringToBytes ("identity"))
-	_responseHeaders.AddRaw (StringToBytes ("Location"), _path)
+	_responseHeaders.SetCanonical (StringToBytes ("Location"), _path)
 	
 	if _cache {
-		_responseHeaders.AddRaw (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
+		_responseHeaders.AddRawLines (StringToBytes ("Cache-Control: public, immutable, max-age=3600\r\n"))
 	} else {
-		_responseHeaders.AddRaw (StringToBytes ("Cache-Control"), StringToBytes ("no-cache"))
+		_responseHeaders.AddRawLines (StringToBytes ("Cache-Control: private, no-cache, no-store\r\n"))
 	}
-	
-	_responseHeaders.AddRaw (StringToBytes ("Content-Type"), StringToBytes (MimeTypeText))
-	_responseHeaders.AddRaw (StringToBytes ("Content-Encoding"), StringToBytes ("identity"))
 	
 	_response.SetStatusCode (int (_status))
 }
@@ -354,14 +356,14 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
 	
-	if _cache {
-		_responseHeaders.AddRaw (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
-	} else {
-		_responseHeaders.AddRaw (StringToBytes ("Cache-Control"), StringToBytes ("no-cache"))
-	}
+	_responseHeaders.AddRawKv (StringToBytes ("Content-Type"), StringToBytes (ErrorBannerContentType))
+	_responseHeaders.AddRawKv (StringToBytes ("Content-Encoding"), StringToBytes (ErrorBannerContentEncoding))
 	
-	_responseHeaders.AddRaw (StringToBytes ("Content-Type"), StringToBytes (ErrorBannerContentType))
-	_responseHeaders.AddRaw (StringToBytes ("Content-Encoding"), StringToBytes (ErrorBannerContentEncoding))
+	if _cache {
+		_responseHeaders.AddRawLines (StringToBytes ("Cache-Control: public, immutable, max-age=3600\r\n"))
+	} else {
+		_responseHeaders.AddRawLines (StringToBytes ("Cache-Control: private, no-cache, no-store\r\n"))
+	}
 	
 	if _banner, _bannerFound := ErrorBannersData[_status]; _bannerFound {
 		_response.SetBodyRaw (_banner)

@@ -37,6 +37,7 @@ type context struct {
 	compress string
 	includeIndex bool
 	includeStripped bool
+	includeCache bool
 	includeEtag bool
 	includeFileListing bool
 	includeFolderListing bool
@@ -410,9 +411,14 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 	}
 	
 	_dataMeta := make (map[string]string, 16)
+	
 	// _dataMeta["Content-Length"] = fmt.Sprintf ("%d", _dataSize)
 	_dataMeta["Content-Type"] = _dataType
 	_dataMeta["Content-Encoding"] = _dataEncoding
+	
+	if _context.includeCache {
+		_dataMeta["Cache-Control"] = "public, immutable, max-age=3600"
+	}
 	if _context.includeEtag {
 		_dataMeta["ETag"] = _fingerprintContent
 	}
@@ -631,6 +637,7 @@ func main_0 () (error) {
 	var _compress string
 	var _includeIndex bool
 	var _includeStripped bool
+	var _includeCache bool
 	var _includeEtag bool
 	var _includeFileListing bool
 	var _includeFolderListing bool
@@ -662,6 +669,7 @@ func main_0 () (error) {
 
     --exclude-index
     --exclude-strip
+    --exclude-cache
     --exclude-etag
 
     --exclude-file-listing
@@ -680,6 +688,7 @@ func main_0 () (error) {
 		_compress_0 := _flags.String ("compress", "", "")
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
 		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
+		_excludeCache_0 := _flags.Bool ("exclude-cache", false, "")
 		_excludeEtag_0 := _flags.Bool ("exclude-etag", false, "")
 		_excludeFileListing_0 := _flags.Bool ("exclude-file-listing", false, "")
 		_includeFolderListing_0 := _flags.Bool ("include-folder-listing", false, "")
@@ -692,6 +701,7 @@ func main_0 () (error) {
 		_compress = *_compress_0
 		_includeIndex = ! *_excludeIndex_0
 		_includeStripped = ! *_excludeStripped_0
+		_includeCache = ! *_excludeCache_0
 		_includeEtag = ! *_excludeEtag_0
 		_includeFileListing = ! *_excludeFileListing_0
 		_includeFolderListing = *_includeFolderListing_0
@@ -728,6 +738,7 @@ func main_0 () (error) {
 			compress : _compress,
 			includeIndex : _includeIndex,
 			includeStripped : _includeStripped,
+			includeCache : _includeCache,
 			includeEtag : _includeEtag,
 			includeFileListing : _includeFileListing,
 			includeFolderListing : _includeFolderListing,

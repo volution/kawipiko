@@ -37,9 +37,9 @@ func MetadataEncode (_metadata map[string]string) ([]byte, error) {
 			return nil, fmt.Errorf ("[e8faf5bd]  invalid metadata value:  `%s`", _value)
 		}
 		_buffer.Write ([]byte (_key))
-		_buffer.Write ([]byte (" : "))
+		_buffer.Write ([]byte (": "))
 		_buffer.Write ([]byte (_value))
-		_buffer.Write ([]byte ("\n"))
+		_buffer.Write ([]byte ("\r\n"))
 	}
 	
 	_data := _buffer.Bytes ()
@@ -73,14 +73,17 @@ func MetadataDecodeIterate (_data []byte, _callback func ([]byte, []byte) ()) (e
 		}
 		
 		_data := _data[_headerOffset :]
-		_headerLimit := bytes.IndexByte (_data, '\n')
+		_headerLimit := bytes.IndexByte (_data, '\r')
 		if (_headerLimit == -1) {
 			return fmt.Errorf ("[2d0d442a]  invalid metadata encoding")
 		}
-		_headerOffset += _headerLimit + 1
+		if ((_headerOffset + _headerLimit) == (_dataSize - 1)) || (_data[_headerLimit + 1] != '\n') {
+			return fmt.Errorf ("[0e319685]  invalid metadata encoding")
+		}
+		_headerOffset += _headerLimit + 2
 		
 		_data = _data[: _headerLimit]
-		_separator := bytes.Index (_data, []byte (" : "))
+		_separator := bytes.Index (_data, []byte (": "))
 		if _separator == -1 {
 			return fmt.Errorf ("[41f3756c]  invalid metadata encoding")
 		}
