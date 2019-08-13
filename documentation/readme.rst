@@ -120,7 +120,8 @@ This two step phase also presents a few opportunities:
 
     --exclude-index
     --exclude-strip
-    --exclude-etag
+    --exclude-cache
+    --include-etag
 
     --exclude-file-listing
     --include-folder-listing
@@ -150,8 +151,12 @@ Flags
     Disables using a file with the suffix ``.html``, ``.htm``, ``.xhtml``, ``.xht``, and ``.txt`` to respond to a request whose URL does not exactly match an existing file.
     (This can be used to implement "suffix-less" blog style URL's like ``/blog/whatever`` which maps to ``/blog/whatever.html``.)
 
-``--exclude-etag``
-    Disables adding an ``ETag`` response header that contains the SHA256 of the response body.
+``--exclude-cache``
+    Disables adding an ``Cache-Control: public, immutable, max-age=3600`` header that forces the browser (and other intermediary proxies) to cache the response for an hour (the ``public`` and ``max-age=3600`` arguments), and furthermore not request it even on reloads (the ``immutable`` argument).
+
+``--include-etag``
+    Enables adding an ``ETag`` response header that contains the SHA256 of the response body.
+    By not including the ``ETag`` header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without ``ETag`` generates the same headers), this can lead to significant reduction in stored headers, including reducing RAM usage.
     (At this moment it does not support HTTP conditional requests, i.e. the ``If-None-Match``, ``If-Modified-Since`` and their counterparts;  however this ``ETag`` header might be used in conjuction with ``HEAD`` requests to see if the resource has changed.)
 
 ``--exclude-file-listing``
@@ -222,10 +227,14 @@ You can safely symlink or hardlink the same file (or folder) in multiple places 
     --processes <count>  (of slave processes)
     --threads <count>    (of threads per process)
 
+    --security-headers-tls
+    --security-headers-disable
+
     --profile-cpu <path>
     --profile-mem <path>
 
     --debug
+    --dummy
 
 
 Flags
@@ -276,9 +285,26 @@ Flags
     Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
     (However note that if using ``--archive-inmem`` each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
 
+``--security-headers-tls``
+    Enables adding the ``Strict-Transport-Security: max-age=31536000`` and ``Content-Security-Policy: upgrade-insecure-requests`` to the response headers.
+    (Although at the moment ``kawipiko`` does not support HTTPS, it can be used behind a TLS terminator, load-balancer or proxy that do support HTTPS;  therefore these headers instruct the browser to always use HTTPS for the served domain.)
+
+``--security-headers-disable``
+    Disables adding a few security related headers: ::
+
+      Referrer-Policy: strict-origin-when-cross-origin
+      X-Content-Type-Options: nosniff
+      X-XSS-Protection: 1; mode=block
+      X-Frame-Options: sameorigin
+
 ``--debug``
     Enables verbose logging.
     (**Highly discouraged!**)
+
+``--dummy``
+    It starts the server in "dummy" mode, ignoring all archive related arguments and always responding with ``hello world!\n`` and without additional headers except the HTTP status line and ``Content-Length``.
+    This argument can be used to benchmark the raw performance of the underlying Go and ``fasthttp`` performance;  this is the upper limit on the achievable performance given the underlying technologies.
+    (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
 
 ``--profile-cpu`` and `--profile-mem``
     Enables CPU and memory profiling using Go's profiling infrastructure.
@@ -420,7 +446,7 @@ Prepare the Go environment: ::
     mkdir /tmp/kawipiko/go
     mkdir /tmp/kawipiko/bin
 
-Compile the Go binnaries: ::
+Compile the Go binaries: ::
 
     cd /tmp/kawipiko/src/sources
 
