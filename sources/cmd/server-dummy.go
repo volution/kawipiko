@@ -70,8 +70,10 @@ func main () () {
 
 
 func serve (_context *fasthttp.RequestCtx) () {
+	_context.Response.Header.SetRaw (serveMeta)
 	_context.Response.SetBodyRaw (serveData)
 }
 
+var serveMeta = []byte ("HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\n")
 var serveData = []byte ("hello world!\n")
 

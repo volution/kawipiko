@@ -17,6 +17,7 @@ var HeartbeatDataNok = []byte ("NOK\n")
 
 var DummyContentType = MimeTypeText
 var DummyContentEncoding = "identity"
+var DummyMeta = []byte ("HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\n")
 var DummyData = []byte ("hello world!\n")
 
 

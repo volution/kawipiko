@@ -376,7 +376,7 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 
 
 func (_server *server) ServeDummy (_context *fasthttp.RequestCtx) () {
-	if true {
+	if false {
 		_server.ServeStatic (_context, http.StatusOK, DummyData, DummyContentType, DummyContentEncoding, false)
 	} else {
 		ServeDummyRaw (_context)
@@ -384,10 +384,9 @@ func (_server *server) ServeDummy (_context *fasthttp.RequestCtx) () {
 }
 
 func ServeDummyRaw (_context *fasthttp.RequestCtx) () {
+	_context.Response.Header.SetRaw (DummyMeta)
 	_context.Response.SetBodyRaw (DummyData)
-	_context.Response.SetStatusCode (200)
 }
-
 
 
 
