@@ -991,6 +991,126 @@ Methodology notes
 
 
 
+OpenStreetMap tiles
+-------------------
+
+
+Scenario notes
+..............
+
+As a benchmark much closer to the "real world" use-cases for ``kawipiko`` I've done the following:
+
+* downloaded from OpenStreetMap servers all tiles for my home town (from zoom level 0 to zoom level 19), which resulted in:
+
+  * around ~250K PNG files totaling ~330 MiB;
+  * with an average of 1.3 KiB and a median of 103B;  (i.e. lots of extreemly small files;)
+  * occupying actualy around 1.1 GiB of storage (on Ext4) due to file-system overheads;
+
+* created a CDB archive, which resulted in:
+
+  * a single file totaling ~376 MiB (both "apparent" and "occupied" storage);  (i.e. no storage space wasted;)
+  * which contains only ~100K PNG files, due to elimination of duplicate PNG files;  (i.e. at higher zoom levels, the tiles start to repeat;)
+
+* listed all the available tiles, and benchmarked both ``kawipiko`` and NGinx, with 16K concurrent connections;
+* the methodology is the same one described above, with the following changes:
+
+  * the host used in benchmarks has a desktop-grade Intel Core i7 4770 (i.e. 4th generation, about 6 years old) with 4 physical cores and 32 GiB of RAM;
+  * the files (both CDB and tiles folder) were put in ``tmpfs``;
+  * both ``kawipiko``, NGinx and ``wrk`` were configured to use 8 threads / processes, and were pinned on two separate physical cores each;
+  * (the host had almost nothing running on it except the minimal required services;)
+
+
+Results notes
+.............
+
+Based on my benchmark the following are my findings:
+
+* ``kawipiko`` outperformed NGinx by ~25% in requests / second;
+* ``kawipiko`` outperformed NGinx by ~29% in average response latency;
+* ``kawipiko`` outperformed NGinx by ~40% in 90-percentile response latency;
+* ``kawipiko`` used ~6% less CPU while serving requests for 2 minutes;
+* ``kawipiko`` used ~25% less CPU per request;
+* NGinx used the least amount of RAM, meanwhile ``kawipiko`` (due to either in RAM loading or ``mmap`` usage) used around 1GiB of RAM;
+
+
+Results values
+..............
+
+* ``kawipiko`` with ``--archive-inmem`` and ``--index-all`` (1 process, 8 threads): ::
+
+    Requests/sec: 238499.86
+    Transfer/sec:    383.59MB
+
+    Running 2m test @ http://127.9.185.194:8080/
+      8 threads and 16384 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   195.39ms  412.84ms   5.99s    92.33%
+        Req/Sec    30.65k    10.20k  213.08k    79.41%
+      Latency Distribution
+         50%   28.02ms
+         75%  221.17ms
+         90%  472.41ms
+         99%    2.19s
+      28640139 requests in 2.00m, 44.98GB read
+      Socket errors: connect 0, read 0, write 0, timeout 7032
+
+* ``kawipiko`` with ``--archive-mmap`` (1 process, 8 threads): ::
+
+    Requests/sec: 237239.35
+    Transfer/sec:    381.72MB
+
+    Running 2m test @ http://127.9.185.194:8080/
+      8 threads and 16384 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   210.44ms  467.84ms   6.00s    92.57%
+        Req/Sec    30.77k    12.29k  210.17k    86.67%
+      Latency Distribution
+         50%   26.51ms
+         75%  221.63ms
+         90%  494.93ms
+         99%    2.67s
+      28489533 requests in 2.00m, 44.77GB read
+      Socket errors: connect 0, read 0, write 0, timeout 10730
+
+* ``kawipiko`` with ``--archive-mmap`` (8 processes, 1 thread): ::
+
+    Requests/sec: 248266.83
+    Transfer/sec:    399.29MB
+
+    Running 2m test @ http://127.9.185.194:8080/
+      8 threads and 16384 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   209.30ms  469.05ms   5.98s    92.25%
+        Req/Sec    31.86k     8.58k   83.99k    69.93%
+      Latency Distribution
+         50%   23.08ms
+         75%  215.28ms
+         90%  502.80ms
+         99%    2.64s
+      29816650 requests in 2.00m, 46.83GB read
+      Socket errors: connect 0, read 0, write 0, timeout 15244
+
+* NGinx (8 workers): ::
+
+    Requests/sec: 188255.32
+    Transfer/sec:    302.88MB
+
+    Running 2m test @ http://127.9.185.194:8080/
+      8 threads and 16384 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   266.18ms  538.72ms   5.93s    90.78%
+        Req/Sec    24.15k     8.34k  106.48k    74.56%
+      Latency Distribution
+         50%   34.34ms
+         75%  253.57ms
+         90%  750.29ms
+         99%    2.97s
+      22607727 requests in 2.00m, 35.52GB read
+      Socket errors: connect 0, read 109, write 0, timeout 16833
+
+
+
+
 Why CDB?
 ========
 
