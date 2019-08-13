@@ -317,12 +317,16 @@ Examples
 
 * fetch and extract the Python 3.7 documentation HTML archive: ::
 
-    curl -s -S -f \
+    curl \
+            -s -S -f \
             -o ./python-3.7.3-docs-html.tar.bz2 \
             https://docs.python.org/3/archives/python-3.7.3-docs-html.tar.bz2 \
     #
 
-    tar -x -j -v -f ./python-3.7.3-docs-html.tar.bz2
+    tar \
+            -x -j -v \
+            -f ./python-3.7.3-docs-html.tar.bz2 \
+    #
 
 * create the CDB archive (without any compression): ::
 
@@ -362,7 +366,8 @@ Examples
 
 * compare sources and archive sizes: ::
 
-    du -h -s \
+    du \
+            -h -s \
             \
             ./python-3.7.3-docs-html-nozip.cdb \
             ./python-3.7.3-docs-html-gzip.cdb \
@@ -424,42 +429,83 @@ Install the prerequisites
     zypper install libbrotli-devel
 
 
-Fetch the sources
-.................
+Prepare the environment
+.......................
 
 ::
 
-    git clone \
-            --depth 1 \
-            https://github.com/volution/kawipiko.git \
+    mkdir -- \
+            /tmp/kawipiko \
+            /tmp/kawipiko/bin \
             /tmp/kawipiko/src \
+            /tmp/kawipiko/go \
+    #
+
+
+Fetch the sources
+.................
+
+Either clone the full Git repository: ::
+
+    git clone \
+            -b development \
+            git://github.com/volution/kawipiko.git \
+            /tmp/kawipiko/src \
+    #
+
+Either fetch and extract the latest sources bundle: ::
+
+    curl \
+            -s -S -f \
+            -o /tmp/kawipiko/src.tar.gz \
+            https://codeload.github.com/volution/kawipiko/tar.gz/development \
+    #
+
+    tar \
+            -x -z -v \
+            -f /tmp/kawipiko/src.tar.gz \
+            -C /tmp/kawipiko/src \
+            --strip-components 1 \
     #
 
 
 Compile the binaries
 ....................
 
-Prepare the Go environment: ::
-
-    export GOPATH=/tmp/kawipiko/go
-
-    mkdir /tmp/kawipiko/go
-    mkdir /tmp/kawipiko/bin
-
-Compile the Go binaries: ::
+Compile the Go (dynamic) binaries: ::
 
     cd /tmp/kawipiko/src/sources
 
+    env \
+            GOPATH=/tmp/kawipiko/go \
     go build \
-            -ldflags '-s' \
+            -ldflags 'all=-s' \
+            -gcflags 'all=-l=4' \
             -o /tmp/kawipiko/bin/kawipiko-server \
             ./cmd/server.go \
     #
 
+    env \
+            GOPATH=/tmp/kawipiko/go \
     go build \
-            -ldflags '-s' \
+            -ldflags 'all=-s' \
+            -gcflags 'all=-l=4' \
             -o /tmp/kawipiko/bin/kawipiko-archiver \
             ./cmd/archiver.go \
+    #
+
+Compile the Go (static) binaries (available only for the server): ::
+
+    cd /tmp/kawipiko/src/sources
+
+    env \
+            GOPATH=/tmp/kawipiko/go \
+    go build \
+            -tags netgo \
+            -ldflags 'all=-s -extld=gcc -extldflags=-static' \
+            -gcflags 'all=-l=4' \
+            -o /tmp/kawipiko/bin/kawipiko-server \
+            ./cmd/server.go \
     #
 
 
