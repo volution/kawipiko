@@ -368,7 +368,7 @@
 		nice -n -19 -- \
 		ionice -c 2 -n 0 -- \
 		chrt -r 10 \
-		prlimit -n16384 -- \
+		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	./.outputs/binaries/release/kawipiko-server \
@@ -424,6 +424,8 @@
 
 
 
+:: benchmark / client / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 16384 --timeout 6s
+:: benchmark / client / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 4096
 :: benchmark / client / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 2048
 :: benchmark / client / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 1024
 :: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 512
@@ -456,7 +458,7 @@
 		nice -n -19 -- \
 		ionice -c 2 -n 0 -- \
 		chrt -r 10 \
-		prlimit -n16384 -- \
+		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	"$( type -P -- wrk )" \
@@ -481,7 +483,7 @@
 		nice -n -19 -- \
 		ionice -c 2 -n 0 -- \
 		chrt -r 10 \
-		prlimit -n16384 -- \
+		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	"$( type -P -- wrk )" \
@@ -574,7 +576,7 @@
 		nice -n -19 -- \
 		ionice -c 2 -n 0 -- \
 		chrt -r 10 \
-		prlimit -n16384 -- \
+		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	./.outputs/binaries/release/kawipiko-server-dummy \
