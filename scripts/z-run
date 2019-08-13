@@ -166,7 +166,7 @@
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	mkdir -p -- "${_outputs}/binaries/release"
-	rm -f -- "${_outputs}/binaries/release/kawipiko-server"
+	rm -f -- "${_outputs}/binaries/release/kawipiko"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
