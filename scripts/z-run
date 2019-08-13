@@ -129,7 +129,8 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
-			-ldflags 'all=-s' \
+			-tags 'netgo nobrotli' \
+			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
 			-gcflags 'all=-l=4' \
 			-o "${_outputs}/binaries/release/kawipiko-archiver" \
 			-- ./cmd/archiver.go \
