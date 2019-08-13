@@ -1004,7 +1004,7 @@ func main_0 () (error) {
 			NoDefaultDate : true,
 			DisableHeaderNamesNormalizing : true,
 			
-			Concurrency : 4 * 1024 + 128,
+			Concurrency : 16 * 1024 + 128,
 			MaxRequestsPerConn : 256 * 1024,
 			
 			ReadBufferSize : 16 * 1024,
