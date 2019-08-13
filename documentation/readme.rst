@@ -29,7 +29,7 @@ For those familiar with Netlify_, ``kawipiko`` is a "host-it-yourself" alternati
 For a complete list of features please consult the `features section <#features>`__.
 Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`__ (although none are critical).
 
-With regard to performance, as described in the `benchmarks section <#benchmarks>`__, ``kawipiko`` is on par with NGinx, sustaining 72k requests / second with 0.4ms latency for 99% of the requests even on my 6 years old laptop.
+With regard to performance, as described in the `benchmarks section <#benchmarks>`__, ``kawipiko`` is at least on-par with NGinx, sustaining over 100K requests / second with 0.25ms latency for 99% of the requests even on my 6 years old laptop.
 However the main advantage over NGinx is not raw performance, but deployment and configuration simplicity, plus efficient management and storage of large collections of many small files.
 
 
@@ -613,7 +613,7 @@ Bottom line (**even on my 6 years old laptop**):
 * under extreme stress conditions (16384 concurrent connections) (i.e. someone tries to DDOS the server), you get around 53k requests / second, at about 2.8s latency for 99% of the requests (meanwhile the average is 200ms);
 * (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting while connecting or receiving the full response;)
 * (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
-* **the raw performance is comparable with NGinx_** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
+* **the raw performance is at least on-par with NGinx**;  (from my measurements ``kawipiko`` serves in fact 30% more requests / second than NGinx, at least for my "synthetic" benchmark;)  however, especially for a "real world" scenarios (i.e. thousand of small files, accessed in a random patterns), I think ``kawipiko`` fares better;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
 
 
 
@@ -835,7 +835,15 @@ Comparisons with NGinx
       1320562 requests in 30.07s, 331.22MB read
       Socket errors: connect 0, read 12596, write 34, timeout 1121
 
-* (the NGinx configuration file can be found in the `examples folder <./examples>`__;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small files;)
+* the NGinx configuration file can be found in the `examples folder <./examples>`__;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small files;
+
+* moreover NGinx seems to be quite sensitive to the actual path requested:
+
+    * if one requests ``http://127.0.0.1:8080/``, and one has configured NGinx to look for ``index.txt``, and that file actually exists, the performance is quite a bit lower than just asking for that file;  (perhaps it issues more syscalls, searching for the index file;)
+    * if one requests ``http://127.0.0.1:8080/index.txt``, as mentioned above, it achieves the higher performance;  (perhaps it issues fewer syscalls;)
+    * if one requests ``http://127.0.0.1:8080/does-not-exist``, it seems to achieve the "best" performance;  (perhaps it issues the least amount of syscalls;)  (however this is not an actual "use-ful" corner-case;)
+    * it must be noted that ``kawipiko`` doesn't exhibit this behaviour, the same performance is achieved regardless of the path variant;
+    * therefore the benchmarks above use ``/index.txt`` as opposed to ``/``;
 
 
 Comparisons with others
