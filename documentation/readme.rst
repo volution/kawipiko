@@ -22,7 +22,7 @@ This also makes them suitable for low-latency static website content serving ove
 
 For those familiar with Netlify_, ``kawipiko`` is a "host-it-yourself" alternative featuring:
 
-* simple deployment and configuration;  (i.e. just `fetch the binaries <#installation>`__ and use the `proper flags <#kawipiko-server>`__;)
+* simple deployment and configuration;  (i.e. just `fetch the executable <#installation>`__ and use the `proper flags <#kawipiko-server>`__;)
 * low and constant resource consumption (both in terms of CPU and RAM);  (i.e. you won't have surprises when under load;)
 * (hopefully) extremely secure;  (i.e. it doesn't launch processes, it doesn't open any files, etc.;  basically you can easily ``chroot`` it;)
 
@@ -80,10 +80,11 @@ Documentation
 Workflow
 --------
 
-The project provides two binaries:
+The project provides the following executables:
 
 * ``kawipiko-server`` -- which serves the static website content from the CDB file;
 * ``kawipiko-archiver`` -- which creates the CDB file from a source folder holding the static website content;
+* ``kawipiko`` -- an all-in-one executable that bundles all functionality in one executable;  (i.e. ``kawipiko server ...`` or ``kawipiko archiver ...``);
 
 Unlike most (if not all) other servers out-there, in which you just point your web server to the folder holding the static website content root, ``kawipiko`` takes a radically different approach.
 In order to serve the static website content, one has to first "compile" it into the CDB file through ``kawipiko-archiver``, and then one can "serve" it from the CDB file through ``kawipiko-server``.
@@ -97,6 +98,18 @@ This two step phase also presents a few opportunities:
 .. note ::
 
    As described in the `limitations section <#limitations>`__, at the moment, if one rebuilds the CDB file, the server has to be restarted.
+
+
+
+
+``kawipiko``
+------------
+
+::
+
+  >> kawipiko server ...
+
+  >> kawipiko archiver ...
 
 
 
@@ -398,12 +411,12 @@ Installation
 
 
 
-Download binaries
------------------
+Download prebuilt executables
+-----------------------------
 
 .. warning ::
 
-  No binaries are currently available for download!
+  No executables are currently available for download!
   Please consult the `build from sources section <#build-from-sources>`__ for now.
 
 
@@ -471,13 +484,24 @@ Either fetch and extract the latest sources bundle: ::
     #
 
 
-Compile the binaries
-....................
+Build the dynamic executables
+.............................
 
-Compile the Go (dynamic) binaries: ::
+Compile the (dynamic) executables: ::
 
     cd /tmp/kawipiko/src/sources
 
+    #### build `kawipiko` dynamic all-in-one executable
+    env \
+            GOPATH=/tmp/kawipiko/go \
+    go build \
+            -ldflags 'all=-s' \
+            -gcflags 'all=-l=4' \
+            -o /tmp/kawipiko/bin/kawipiko \
+            ./cmd/wrapper.go \
+    #
+
+    #### build `kawipiko-server` dynamic executable
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
@@ -487,6 +511,7 @@ Compile the Go (dynamic) binaries: ::
             ./cmd/server.go \
     #
 
+    #### build `kawipiko-archiver` dynamic executable
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
@@ -496,10 +521,26 @@ Compile the Go (dynamic) binaries: ::
             ./cmd/archiver.go \
     #
 
-Compile the Go (static) binaries (for archiver it removes Brotli support): ::
+
+Build the static executables
+............................
+
+Compile the (static) executables (for archiver it removes Brotli support): ::
 
     cd /tmp/kawipiko/src/sources
 
+    #### build `kawipiko` static all-in-one executable
+    env \
+            GOPATH=/tmp/kawipiko/go \
+    go build \
+            -tags 'netgo nobrotli' \
+            -ldflags 'all=-s -extld=gcc -extldflags=-static' \
+            -gcflags 'all=-l=4' \
+            -o /tmp/kawipiko/bin/kawipiko \
+            ./cmd/wrapper.go \
+    #
+
+    #### build `kawipiko-server` static executable
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
@@ -510,6 +551,7 @@ Compile the Go (static) binaries (for archiver it removes Brotli support): ::
             ./cmd/server.go \
     #
 
+    #### build `kawipiko-archiver` static executable (without Brotli support)
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
@@ -521,8 +563,8 @@ Compile the Go (static) binaries (for archiver it removes Brotli support): ::
     #
 
 
-Deploy the binaries
-...................
+Deploy the executables
+......................
 
 (Basically just copy the two executables anywhere on the system, or any compatible remote system.)
 
@@ -864,7 +906,7 @@ Methodology
 -----------
 
 
-* get the binaries (either `download <#download-binaries>`__ or `build <#build-from-sources>`__ them);
+* get the executables (either `download <#download-prebuilt-executables>`__ or `build <#build-from-sources>`__ them);
 * get the ``hello-world.cdb`` (from the `examples <./examples>`__ folder inside the repository);
 
 
