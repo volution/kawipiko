@@ -287,7 +287,7 @@ Ignored files
 * any file with the following prefixes: ``.``, ``#``;
 * any file with the following suffixes: ``~``, ``#``, ``.log``, ``.tmp``, ``.temp``, ``.lock``;
 * any file that contains the following: ``#``;
-* any file that exactly matches the following:: ``Thumbs.db``, ``.DS_Store``;
+* any file that exactly matches the following: ``Thumbs.db``, ``.DS_Store``;
 * (at the moment these rules are not configurable through flags;)
 
 
@@ -318,8 +318,8 @@ Examples
 * fetch and extract the Python 3.7 documentation HTML archive: ::
 
     curl -s -S -f \
-        -o ./python-3.7.3-docs-html.tar.bz2 \
-        https://docs.python.org/3/archives/python-3.7.3-docs-html.tar.bz2 \
+            -o ./python-3.7.3-docs-html.tar.bz2 \
+            https://docs.python.org/3/archives/python-3.7.3-docs-html.tar.bz2 \
     #
 
     tar -x -j -v -f ./python-3.7.3-docs-html.tar.bz2
@@ -327,49 +327,49 @@ Examples
 * create the CDB archive (without any compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.3-docs-html-nozip.cdb \
-        --sources ./python-3.7.3-docs-html \
-        --debug \
+            --archive ./python-3.7.3-docs-html-nozip.cdb \
+            --sources ./python-3.7.3-docs-html \
+            --debug \
     #
 
 * create the CDB archive (with ``gzip`` compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.3-docs-html-gzip.cdb \
-        --sources ./python-3.7.3-docs-html \
-        --compress gzip \
-        --debug \
+            --archive ./python-3.7.3-docs-html-gzip.cdb \
+            --sources ./python-3.7.3-docs-html \
+            --compress gzip \
+            --debug \
     #
 
 * create the CDB archive (with ``brotli`` compression): ::
 
     kawipiko-archiver \
-        --archive ./python-3.7.3-docs-html-brotli.cdb \
-        --sources ./python-3.7.3-docs-html \
-        --compress brotli \
-        --debug \
+            --archive ./python-3.7.3-docs-html-brotli.cdb \
+            --sources ./python-3.7.3-docs-html \
+            --compress brotli \
+            --debug \
     #
 
 * serve the CDB archive (with ``gzip`` compression): ::
 
     kawipiko-server \
-        --bind 127.0.0.1:8080 \
-        --archive ./python-3.7.3-docs-html-gzip.cdb \
-        --archive-mmap \
-        --archive-preload \
-        --debug \
+            --bind 127.0.0.1:8080 \
+            --archive ./python-3.7.3-docs-html-gzip.cdb \
+            --archive-mmap \
+            --archive-preload \
+            --debug \
     #
 
 * compare sources and archive sizes: ::
 
     du -h -s \
-        \
-        ./python-3.7.3-docs-html-nozip.cdb \
-        ./python-3.7.3-docs-html-gzip.cdb \
-        ./python-3.7.3-docs-html-brotli.cdb \
-        \
-        ./python-3.7.3-docs-html \
-        ./python-3.7.3-docs-html.tar.bz2 \
+            \
+            ./python-3.7.3-docs-html-nozip.cdb \
+            ./python-3.7.3-docs-html-gzip.cdb \
+            ./python-3.7.3-docs-html-brotli.cdb \
+            \
+            ./python-3.7.3-docs-html \
+            ./python-3.7.3-docs-html.tar.bz2 \
     #
 
     45M     ./python-3.7.3-docs-html-nozip.cdb
@@ -430,9 +430,9 @@ Fetch the sources
 ::
 
     git clone \
-        --depth 1 \
-        https://github.com/volution/kawipiko.git \
-        /tmp/kawipiko/src \
+            --depth 1 \
+            https://github.com/volution/kawipiko.git \
+            /tmp/kawipiko/src \
     #
 
 
@@ -451,15 +451,15 @@ Compile the Go binaries: ::
     cd /tmp/kawipiko/src/sources
 
     go build \
-        -ldflags '-s' \
-        -o /tmp/kawipiko/bin/kawipiko-archiver \
-        ./cmd/archiver.go \
+            -ldflags '-s' \
+            -o /tmp/kawipiko/bin/kawipiko-server \
+            ./cmd/server.go \
     #
 
     go build \
-        -ldflags '-s' \
-        -o /tmp/kawipiko/bin/kawipiko-server \
-        ./cmd/server.go \
+            -ldflags '-s' \
+            -o /tmp/kawipiko/bin/kawipiko-archiver \
+            ./cmd/archiver.go \
     #
 
 
@@ -470,8 +470,11 @@ Deploy the binaries
 
 ::
 
-    cp /tmp/kawipiko/bin/kawipiko-archiver /usr/local/bin
-    cp /tmp/kawipiko/bin/kawipiko-server /usr/local/bin
+    cp \
+            -t /usr/local/bin \
+            /tmp/kawipiko/bin/kawipiko-server \
+            /tmp/kawipiko/bin/kawipiko-archiver \
+    #
 
 
 
@@ -828,22 +831,22 @@ Single process / single threaded
 * execute the server (in-memory and indexed) (i.e. the "best case scenario"): ::
 
     kawipiko-server \
-        --bind 127.0.0.1:8080 \
-        --archive ./hello-world.cdb \
-        --archive-inmem \
-        --index-all \
-        --processes 1 \
-        --threads 1 \
+            --bind 127.0.0.1:8080 \
+            --archive ./hello-world.cdb \
+            --archive-inmem \
+            --index-all \
+            --processes 1 \
+            --threads 1 \
     #
 
 * execute the server (memory mapped) (i.e. the "the recommended scenario"): ::
 
     kawipiko-server \
-        --bind 127.0.0.1:8080 \
-        --archive ./hello-world.cdb \
-        --archive-mmap \
-        --processes 1 \
-        --threads 1 \
+            --bind 127.0.0.1:8080 \
+            --archive ./hello-world.cdb \
+            --archive-mmap \
+            --processes 1 \
+            --threads 1 \
     #
 
 
@@ -855,11 +858,11 @@ Single process / two threads
 * execute the server (memory mapped): ::
 
     kawipiko-server \
-        --bind 127.0.0.1:8080 \
-        --archive ./hello-world.cdb \
-        --archive-mmap \
-        --processes 1 \
-        --threads 2 \
+            --bind 127.0.0.1:8080 \
+            --archive ./hello-world.cdb \
+            --archive-mmap \
+            --processes 1 \
+            --threads 2 \
     #
 
 
@@ -869,23 +872,23 @@ Load generators
 * 512 concurrent connections (handled by 2 threads): ::
 
     wrk \
-        --threads 2 \
-        --connections 512 \
-        --timeout 1s \
-        --duration 30s \
-        --latency \
-        http://127.0.0.1:8080/ \
+            --threads 2 \
+            --connections 512 \
+            --timeout 1s \
+            --duration 30s \
+            --latency \
+            http://127.0.0.1:8080/index.txt \
     #
 
 * 4096 concurrent connections (handled by 2 threads): ::
 
     wrk \
-        --threads 2 \
-        --connections 4096 \
-        --timeout 1s \
-        --duration 30s \
-        --latency \
-        http://127.0.0.1:8080/ \
+            --threads 2 \
+            --connections 4096 \
+            --timeout 1s \
+            --duration 30s \
+            --latency \
+            http://127.0.0.1:8080/index.txt \
     #
 
 
@@ -902,11 +905,11 @@ Methodology notes
 
     sudo -u root -n -E -P -- \
     \
-    taskset -c 0,1 \
-    nice -n -19 -- \
-    ionice -c 2 -n 0 -- \
-    chrt -r 10 \
-    prlimit -n262144 -- \
+        taskset -c 0,1 \
+        nice -n -19 -- \
+        ionice -c 2 -n 0 -- \
+        chrt -r 10 \
+        prlimit -n262144 -- \
     \
     sudo -u "${USER}" -n -E -P -- \
     \
@@ -918,11 +921,11 @@ Methodology notes
 
     sudo -u root -n -E -P -- \
     \
-    taskset -c 2,3 \
-    nice -n -19 -- \
-    ionice -c 2 -n 0 -- \
-    chrt -r 10 \
-    prlimit -n262144 -- \
+        taskset -c 2,3 \
+        nice -n -19 -- \
+        ionice -c 2 -n 0 -- \
+        chrt -r 10 \
+        prlimit -n262144 -- \
     \
     sudo -u "${USER}" -n -E -P -- \
     \
