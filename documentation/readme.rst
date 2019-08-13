@@ -441,6 +441,11 @@ Install the prerequisites
     zypper install go
     zypper install libbrotli-devel
 
+* other Linux / FreeBSD / Apple macOS:
+
+  * fetch and install Go from: https://golang.org/dl
+  * add ``/usr/local/go/bin`` to your ``PATH``;
+
 * ``libbrotli-*`` is not required if building without Brotli support;  (i.e. by adding ``-tags nobrotli`` to ``go build``);
 
 
