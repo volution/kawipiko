@@ -440,6 +440,11 @@ func main_0 () (error) {
 
   kawipiko-server
 
+    --bind <ip>:<port>
+
+    --processes <count>  (of slave processes)
+    --threads <count>    (of threads per process)
+
     --archive <path>
     --archive-inmem      (memory-loaded archive file)
     --archive-mmap       (memory-mapped archive file)
@@ -449,11 +454,6 @@ func main_0 () (error) {
     --index-paths
     --index-data-meta
     --index-data-content
-
-    --bind <ip>:<port>
-
-    --processes <count>  (of slave processes)
-    --threads <count>    (of threads per process)
 
     --security-headers-tls
     --security-headers-disable

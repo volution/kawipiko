@@ -101,6 +101,117 @@ This two step phase also presents a few opportunities:
 
 
 
+``kawipiko-server``
+-------------------
+
+::
+
+    >> kawipiko-server --help
+
+::
+
+    Usage of kawipiko-server:
+
+    --bind <ip>:<port>
+
+    --processes <count>  (of slave processes)
+    --threads <count>    (of threads per process)
+
+    --archive <path>
+    --archive-inmem      (memory-loaded archive file)
+    --archive-mmap       (memory-mapped archive file)
+    --archive-preload    (preload archive file)
+
+    --index-all
+    --index-paths
+    --index-data-meta
+    --index-data-content
+
+    --security-headers-tls
+    --security-headers-disable
+
+    --profile-cpu <path>
+    --profile-mem <path>
+
+    --debug
+    --dummy
+
+
+Flags
+.....
+
+
+``--bind``
+    The IP and port to listen for requests.
+
+``--processes`` and ``--threads``
+    The number of processes and threads per each process to start.
+    It is highly recommended to use 1 process and as many threads as there are cores.
+
+    Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
+    (However note that if using ``--archive-inmem`` each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
+
+``--archive``
+    The path of the CDB file that contains the archived static website content.
+    (It can be created with the ``kawipiko-archiver`` tool.)
+
+``--archive-inmem``
+    Reads the CDB file in memory, and thus all requests are served from RAM.
+    (This can be used if enough RAM is available to avoid swapping.)
+
+``--archive-mmap``
+    The CDB file is `memory mapped <#mmap>`__.
+    (**Highly recommended!**)
+
+``--archive-preload``
+    Before starting to serve requests, read the CDB file so that its data is buffered by the OS.
+    (**Highly recommended!**)
+
+``--index-all``, ``--index-paths``, ``--index-data-meta``,  and ``--index-data-content``
+    In order to serve a request:
+
+    * the request URL's path is used to locate a resource's metadata (i.e. response headers) and data (i.e. response body) fingerprints;
+      by using ``--index-paths`` an RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+
+    * based on the resource's metadata fingerprint, the actual metadata (i.e. the response headers) is located;
+      by using ``--index-data-meta`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+
+    * based on the resource's data fingerprint, the actual data (i.e. the response body) is located;
+      by using ``--index-data-content`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+
+    * ``--index-all`` enables all these indices;
+
+    * (depending on the use-case) it is highly recommended to use ``--index-paths``;   if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
+
+    * it is highly recommended to use ``--archive-inmem`` or ``--archive-mmap`` or else (especially if data is indexed) the net effect is that of loading everything in RAM;
+
+``--security-headers-tls``
+    Enables adding the ``Strict-Transport-Security: max-age=31536000`` and ``Content-Security-Policy: upgrade-insecure-requests`` to the response headers.
+    (Although at the moment ``kawipiko`` does not support HTTPS, it can be used behind a TLS terminator, load-balancer or proxy that do support HTTPS;  therefore these headers instruct the browser to always use HTTPS for the served domain.)
+
+``--security-headers-disable``
+    Disables adding a few security related headers: ::
+
+      Referrer-Policy: strict-origin-when-cross-origin
+      X-Content-Type-Options: nosniff
+      X-XSS-Protection: 1; mode=block
+      X-Frame-Options: sameorigin
+
+``--debug``
+    Enables verbose logging.
+    (**Highly discouraged!**)
+
+``--dummy``
+    It starts the server in "dummy" mode, ignoring all archive related arguments and always responding with ``hello world!\n`` and without additional headers except the HTTP status line and ``Content-Length``.
+    This argument can be used to benchmark the raw performance of the underlying Go and ``fasthttp`` performance;  this is the upper limit on the achievable performance given the underlying technologies.
+    (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
+
+``--profile-cpu`` and `--profile-mem``
+    Enables CPU and memory profiling using Go's profiling infrastructure.
+
+
+
+
 ``kawipiko-archiver``
 ---------------------
 
@@ -197,117 +308,6 @@ You freely use symlinks (including pointing outside of the content root) and the
 
 You can safely symlink or hardlink the same file (or folder) in multiple places (within the content hierarchy), and its data will be stored only once.
 (The same applies to duplicated files that have exactly the same data.)
-
-
-
-
-``kawipiko-server``
--------------------
-
-::
-
-    >> kawipiko-server --help
-
-::
-
-    Usage of kawipiko-server:
-
-    --archive <path>
-    --archive-inmem      (memory-loaded archive file)
-    --archive-mmap       (memory-mapped archive file)
-    --archive-preload    (preload archive file)
-
-    --index-all
-    --index-paths
-    --index-data-meta
-    --index-data-content
-
-    --bind <ip>:<port>
-
-    --processes <count>  (of slave processes)
-    --threads <count>    (of threads per process)
-
-    --security-headers-tls
-    --security-headers-disable
-
-    --profile-cpu <path>
-    --profile-mem <path>
-
-    --debug
-    --dummy
-
-
-Flags
-.....
-
-
-``--archive``
-    The path of the CDB file that contains the archived static website content.
-    (It can be created with the ``kawipiko-archiver`` tool.)
-
-``--archive-inmem``
-    Reads the CDB file in memory, and thus all requests are served from RAM.
-    (This can be used if enough RAM is available to avoid swapping.)
-
-``--archive-mmap``
-    The CDB file is `memory mapped <#mmap>`__.
-    (**Highly recommended!**)
-
-``--archive-preload``
-    Before starting to serve requests, read the CDB file so that its data is buffered by the OS.
-    (**Highly recommended!**)
-
-``--index-all``, ``--index-paths``, ``--index-data-meta``,  and ``--index-data-content``
-    In order to serve a request:
-
-    * the request URL's path is used to locate a resource's metadata (i.e. response headers) and data (i.e. response body) fingerprints;
-      by using ``--index-paths`` an RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
-
-    * based on the resource's metadata fingerprint, the actual metadata (i.e. the response headers) is located;
-      by using ``--index-data-meta`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
-
-    * based on the resource's data fingerprint, the actual data (i.e. the response body) is located;
-      by using ``--index-data-content`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
-
-    * ``--index-all`` enables all these indices;
-
-    * (depending on the use-case) it is highly recommended to use ``--index-paths``;   if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
-
-    * it is highly recommended to use ``--archive-inmem`` or ``--archive-mmap`` or else (especially if data is indexed) the net effect is that of loading everything in RAM;
-
-``--bind``
-    The IP and port to listen for requests.
-
-``--processes`` and ``--threads``
-    The number of processes and threads per each process to start.
-    It is highly recommended to use 1 process and as many threads as there are cores.
-
-    Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
-    (However note that if using ``--archive-inmem`` each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
-
-``--security-headers-tls``
-    Enables adding the ``Strict-Transport-Security: max-age=31536000`` and ``Content-Security-Policy: upgrade-insecure-requests`` to the response headers.
-    (Although at the moment ``kawipiko`` does not support HTTPS, it can be used behind a TLS terminator, load-balancer or proxy that do support HTTPS;  therefore these headers instruct the browser to always use HTTPS for the served domain.)
-
-``--security-headers-disable``
-    Disables adding a few security related headers: ::
-
-      Referrer-Policy: strict-origin-when-cross-origin
-      X-Content-Type-Options: nosniff
-      X-XSS-Protection: 1; mode=block
-      X-Frame-Options: sameorigin
-
-``--debug``
-    Enables verbose logging.
-    (**Highly discouraged!**)
-
-``--dummy``
-    It starts the server in "dummy" mode, ignoring all archive related arguments and always responding with ``hello world!\n`` and without additional headers except the HTTP status line and ``Content-Length``.
-    This argument can be used to benchmark the raw performance of the underlying Go and ``fasthttp`` performance;  this is the upper limit on the achievable performance given the underlying technologies.
-    (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
-
-``--profile-cpu`` and `--profile-mem``
-    Enables CPU and memory profiling using Go's profiling infrastructure.
 
 
 
