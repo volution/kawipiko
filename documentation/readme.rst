@@ -717,38 +717,74 @@ Comparisons with NGinx
 
 * NGinx 512 connections / 2 server workers / 2 wrk thread: ::
 
-    Requests/sec:  97910.36
-    Transfer/sec:     24.56MB
+    Requests/sec:  79816.08
+    Transfer/sec:     20.02MB
 
     Running 30s test @ http://127.0.0.1:8080/index.txt
-      4 threads and 512 connections
+      2 threads and 512 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency     5.11ms    1.30ms  17.59ms   85.08%
-        Req/Sec    24.65k     1.35k   42.68k    78.83%
+        Latency     6.07ms    1.90ms  19.83ms   71.67%
+        Req/Sec    40.17k     1.16k   43.35k    69.83%
       Latency Distribution
-         50%    5.02ms
-         75%    5.32ms
-         90%    6.08ms
-         99%    9.62ms
-      2944219 requests in 30.07s, 738.46MB read
+         50%    6.13ms
+         75%    6.99ms
+         90%    8.51ms
+         99%   11.10ms
+      2399069 requests in 30.06s, 601.73MB read
 
 * NGinx 2048 connections / 2 server workers / 2 wrk thread: ::
 
-    Requests/sec:  93240.70
-    Transfer/sec:     23.39MB
+    Requests/sec:  78211.46
+    Transfer/sec:     19.62MB
 
     Running 30s test @ http://127.0.0.1:8080/index.txt
-      4 threads and 2048 connections
+      2 threads and 2048 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    36.33ms   56.44ms 859.65ms   90.18%
-        Req/Sec    23.61k     6.24k   51.88k    74.33%
+        Latency    27.11ms   20.27ms 490.12ms   97.76%
+        Req/Sec    39.45k     2.45k   49.98k    70.74%
       Latency Distribution
-         50%   19.25ms
-         75%   25.46ms
-         90%   89.69ms
-         99%  251.04ms
-      2805639 requests in 30.09s, 703.70MB read
-      Socket errors: connect 0, read 25, write 0, timeout 66
+         50%   24.80ms
+         75%   29.67ms
+         90%   34.99ms
+         99%  126.97ms
+      2351933 requests in 30.07s, 589.90MB read
+      Socket errors: connect 0, read 0, write 0, timeout 11
+
+* NGinx 4096 connections / 2 server workers / 2 wrk thread: ::
+
+    Requests/sec:  75970.82
+    Transfer/sec:     19.05MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      2 threads and 4096 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    70.25ms   73.68ms 943.82ms   87.21%
+        Req/Sec    38.37k     3.79k   49.06k    70.30%
+      Latency Distribution
+         50%   46.37ms
+         75%   58.28ms
+         90%  179.08ms
+         99%  339.05ms
+      2282223 requests in 30.04s, 572.42MB read
+      Socket errors: connect 0, read 0, write 0, timeout 187
+
+* NGinx 16384 connections / 2 server workers / 2 wrk thread: ::
+
+    Requests/sec:  43909.67
+    Transfer/sec:     11.01MB
+
+    Running 30s test @ http://127.0.0.1:8080/index.txt
+      2 threads and 16384 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   223.87ms  551.14ms   5.94s    92.92%
+        Req/Sec    32.95k    13.35k   51.56k    76.71%
+      Latency Distribution
+         50%   32.62ms
+         75%  222.93ms
+         90%  558.04ms
+         99%    3.17s
+      1320562 requests in 30.07s, 331.22MB read
+      Socket errors: connect 0, read 12596, write 34, timeout 1121
 
 * (the NGinx configuration file can be found in the `examples folder <./examples>`__;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small files;)
 
@@ -762,7 +798,7 @@ Comparisons with others
     Transfer/sec:      8.74MB
 
     Running 30s test @ http://127.0.0.1:8080/index.txt
-      4 threads and 512 connections
+      2 threads and 512 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
         Latency    17.51ms   17.30ms 223.22ms   78.55%
         Req/Sec     9.62k     1.94k   17.01k    72.98%
@@ -870,7 +906,7 @@ Methodology notes
     nice -n -19 -- \
     ionice -c 2 -n 0 -- \
     chrt -r 10 \
-    prlimit -n16384 -- \
+    prlimit -n262144 -- \
     \
     sudo -u "${USER}" -n -E -P -- \
     \
@@ -886,7 +922,7 @@ Methodology notes
     nice -n -19 -- \
     ionice -c 2 -n 0 -- \
     chrt -r 10 \
-    prlimit -n16384 -- \
+    prlimit -n262144 -- \
     \
     sudo -u "${USER}" -n -E -P -- \
     \
