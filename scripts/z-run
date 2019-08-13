@@ -156,6 +156,47 @@
 
 
 
+<< execute / wrapper / release
+	"${ZRUN[@]}" ':: go / build / wrapper / release'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko "${@}"
+!!
+
+
+<< go / build / wrapper / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	rm -f -- "${_outputs}/binaries/release/kawipiko-server"
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			build \
+			-v \
+			-tags 'netgo nobrotli' \
+			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
+			-gcflags 'all=-l=4' \
+			-o "${_outputs}/binaries/release/kawipiko" \
+			-- ./cmd/wrapper.go \
+	#
+!!
+
+
+<< go / build / wrapper / publish
+	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: go / build / wrapper / release'
+	if test ! -e ./.outputs/publish ; then
+		mkdir -- ./.outputs/publish
+	fi
+	if test ! -e ./.outputs/publish/binaries ; then
+		mkdir -- ./.outputs/publish/binaries
+	fi
+	cp -T -- \
+			./.outputs/binaries/release/kawipiko \
+			./.outputs/publish/binaries/kawipiko \
+	#
+!!
+
+
+
+
 << go / build / debug
 	"${ZRUN[@]}" ':: go / build / archiver / debug' "${@}"
 	"${ZRUN[@]}" ':: go / build / server / debug' "${@}"
@@ -164,11 +205,13 @@
 << go / build / release
 	"${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
 	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
+	"${ZRUN[@]}" ':: go / build / wrapper / release' "${@}"
 !!
 
 ++<< go / build / publish
 	"${ZRUN[@]}" ':: go / build / archiver / publish' "${@}"
 	"${ZRUN[@]}" ':: go / build / server / publish' "${@}"
+	"${ZRUN[@]}" ':: go / build / wrapper / publish' "${@}"
 !!
 
 
