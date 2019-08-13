@@ -670,7 +670,7 @@ func main_0 () (error) {
     --exclude-index
     --exclude-strip
     --exclude-cache
-    --exclude-etag
+    --include-etag
 
     --exclude-file-listing
     --include-folder-listing
@@ -689,7 +689,7 @@ func main_0 () (error) {
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
 		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
 		_excludeCache_0 := _flags.Bool ("exclude-cache", false, "")
-		_excludeEtag_0 := _flags.Bool ("exclude-etag", false, "")
+		_includeEtag_0 := _flags.Bool ("include-etag", false, "")
 		_excludeFileListing_0 := _flags.Bool ("exclude-file-listing", false, "")
 		_includeFolderListing_0 := _flags.Bool ("include-folder-listing", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
@@ -702,7 +702,7 @@ func main_0 () (error) {
 		_includeIndex = ! *_excludeIndex_0
 		_includeStripped = ! *_excludeStripped_0
 		_includeCache = ! *_excludeCache_0
-		_includeEtag = ! *_excludeEtag_0
+		_includeEtag = *_includeEtag_0
 		_includeFileListing = ! *_excludeFileListing_0
 		_includeFolderListing = *_includeFolderListing_0
 		_debug = *_debug_0
