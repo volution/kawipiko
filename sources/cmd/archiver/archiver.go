@@ -62,7 +62,7 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 	if _stat, _error := _file.Stat (); _error == nil {
 		_stat := _stat.Sys()
 		if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
-			_fileId = [2]uint64 { _stat.Dev, _stat.Ino }
+			_fileId = [2]uint64 { uint64 (_stat.Dev), uint64 (_stat.Ino) }
 		} else {
 			return fmt.Errorf ("[6578d2d7]  failed `stat`-ing:  `%s`!", _pathResolved)
 		}
