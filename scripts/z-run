@@ -17,7 +17,7 @@
 
 
 
-<< execute / server / debug
+++<< execute / server / debug
 	"${ZRUN[@]}" ':: go / build / server / debug'
 	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-server "${@}"
 !!
@@ -97,7 +97,7 @@
 
 
 
-<< execute / archiver / debug
+++<< execute / archiver / debug
 	"${ZRUN[@]}" ':: go / build / archiver / debug'
 	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-archiver "${@}"
 !!
@@ -165,7 +165,7 @@
 	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
 !!
 
-<< go / build / publish
+++<< go / build / publish
 	"${ZRUN[@]}" ':: go / build / archiver / publish' "${@}"
 	"${ZRUN[@]}" ':: go / build / server / publish' "${@}"
 !!
@@ -343,7 +343,7 @@
 
 :: benchmark / server / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 1 --threads 1
 :: benchmark / server / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 2 --threads 1
-:: benchmark / server / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 1 --threads 2
+++:: benchmark / server / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 1 --threads 2
 :: benchmark / server / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 2 --threads 2
 
 
@@ -428,7 +428,7 @@
 :: benchmark / client / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 1024
 :: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 512
 :: benchmark / client / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 256
-:: benchmark / client / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 128
+++:: benchmark / client / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 128
 :: benchmark / client / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 64
 :: benchmark / client / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 32
 :: benchmark / client / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 16
