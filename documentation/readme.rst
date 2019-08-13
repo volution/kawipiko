@@ -557,10 +557,12 @@ Summary
 
 Bottom line (**even on my 6 years old laptop**):
 
-* under normal conditions (16 concurrent connections), you get around 72k requests / second, at about 0.4ms latency for 99% of the requests;
-* under stress conditions (512 concurrent connections), you get around 74k requests / second, at about 15ms latency for 99% of the requests;
-* **under extreme conditions (2048 concurrent connections), you get around 74k requests / second, at about 500ms latency for 99% of the requests (meanwhile the average is 50ms);**
-* (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting;)
+* under normal conditions (16 concurrent connections), you get around 111k requests / second, at about 0.25ms latency for 99% of the requests;
+* under light stress conditions (128 concurrent connections), you get around 118k requests / second, at about 2.5ms latency for 99% of the requests;
+* under medium stress conditions (512 concurrent connections), you get around 106k requests / second, at about 10ms latency for 99% of the requests (meanwhile the average is 4.5ms);
+* **under high stress conditions (2048 concurrent connections), you get around 100k requests / second, at about 400ms latency for 99% of the requests (meanwhile the average is 45ms);**
+* under extreme stress conditions (16384 concurrent connections) (i.e. someone tries to DDOS the server), you get around 53k requests / second, at about 2.8s latency for 99% of the requests (meanwhile the average is 200ms);
+* (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting while connecting or receiving the full response;)
 * (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
 * **the raw performance is comparable with NGinx_** (only 20% few requests / second for this "synthetic" benchmark);  however for a "real" scenario (i.e. thousand of small files accessed in a random pattern) I think they are on-par;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
 
@@ -580,58 +582,111 @@ Results values
   Please note that the values under *Thread Stats* are reported per thread.
   Therefore it is best to look at the first two values, i.e. *Requests/sec*.
 
-* 16 connections / 2 server threads / 4 wrk threads: ::
+* 16 connections / 2 server threads / 2 wrk threads: ::
 
-    Requests/sec:  71935.39
-    Transfer/sec:     29.02MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      4 threads and 16 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   220.12us   96.77us   1.98ms   64.61%
-        Req/Sec    18.08k   234.07    18.71k    82.06%
-      Latency Distribution
-         50%  223.00us
-         75%  295.00us
-         90%  342.00us
-         99%  397.00us
-      2165220 requests in 30.10s, 0.85GB read
-
-* 512 connections / 2 server threads / 4 wrk threads: ::
-
-    Requests/sec:  74050.48
-    Transfer/sec:     29.87MB
+    Requests/sec: 111720.73
+    Transfer/sec:     18.01MB
 
     Running 30s test @ http://127.0.0.1:8080/
-      4 threads and 512 connections
+      2 threads and 16 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency     6.86ms    6.06ms 219.10ms   54.85%
-        Req/Sec    18.64k     1.62k   36.19k    91.42%
+        Latency   139.36us   60.27us   1.88ms   64.91%
+        Req/Sec    56.14k   713.04    57.60k    91.36%
       Latency Distribution
-         50%    7.25ms
-         75%   12.54ms
-         90%   13.56ms
-         99%   14.84ms
-      2225585 requests in 30.05s, 0.88GB read
-      Socket errors: connect 0, read 89, write 0, timeout 0
+         50%  143.00us
+         75%  184.00us
+         90%  212.00us
+         99%  261.00us
+      3362742 requests in 30.10s, 541.98MB read
 
-* 2048 connections / 2 server threads / 4 wrk threads: ::
+* 128 connections / 2 server threads / 2 wrk threads: ::
 
-    Requests/sec:  74714.23
-    Transfer/sec:     30.14MB
+    Requests/sec: 118811.41
+    Transfer/sec:     19.15MB
 
     Running 30s test @ http://127.0.0.1:8080/
-      4 threads and 2048 connections
+      2 threads and 128 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    52.45ms   87.02ms 997.26ms   88.24%
-        Req/Sec    18.84k     3.18k   35.31k    80.77%
+        Latency     1.03ms  705.69us  19.53ms   63.54%
+        Req/Sec    59.71k     1.69k   61.70k    96.67%
       Latency Distribution
-         50%   23.60ms
-         75%   34.86ms
-         90%  162.92ms
-         99%  435.41ms
-      2244296 requests in 30.04s, 0.88GB read
-      Socket errors: connect 0, read 106, write 0, timeout 51
+         50%    0.99ms
+         75%    1.58ms
+         90%    1.89ms
+         99%    2.42ms
+      3564527 requests in 30.00s, 574.50MB read
+
+* 512 connections / 2 server threads / 2 wrk threads: ::
+
+    Requests/sec: 106698.89
+    Transfer/sec:     17.20MB
+
+    Running 30s test @ http://127.0.0.1:8080/
+      2 threads and 512 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     4.73ms    3.89ms  39.32ms   39.74%
+        Req/Sec    53.71k     1.73k   69.18k    84.33%
+      Latency Distribution
+         50%    4.96ms
+         75%    8.63ms
+         90%    9.19ms
+         99%   10.30ms
+      3206540 requests in 30.05s, 516.80MB read
+      Socket errors: connect 0, read 105, write 0, timeout 0
+
+* 2048 connections / 2 server threads / 2 wrk threads: ::
+
+    Requests/sec: 100296.65
+    Transfer/sec:     16.16MB
+
+    Running 30s test @ http://127.0.0.1:8080/
+      2 threads and 2048 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    45.42ms   85.14ms 987.70ms   88.62%
+        Req/Sec    50.61k     5.59k   70.14k    71.74%
+      Latency Distribution
+         50%   16.30ms
+         75%   28.44ms
+         90%  147.60ms
+         99%  417.40ms
+      3015868 requests in 30.07s, 486.07MB read
+      Socket errors: connect 0, read 128, write 0, timeout 86
+
+* 4096 connections / 2 server threads / 2 wrk threads: ::
+
+    Requests/sec:  95628.34
+    Transfer/sec:     15.41MB
+
+    Running 30s test @ http://127.0.0.1:8080/
+      2 threads and 4096 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    90.50ms  146.08ms 999.65ms   88.49%
+        Req/Sec    48.27k     6.09k   66.05k    76.34%
+      Latency Distribution
+         50%   23.31ms
+         75%  112.06ms
+         90%  249.41ms
+         99%  745.94ms
+      2871404 requests in 30.03s, 462.79MB read
+      Socket errors: connect 0, read 27, write 0, timeout 4449
+
+* 16384 connections / 2 server threads / 2 wrk threads: ::
+
+    Requests/sec:  53548.52
+    Transfer/sec:      8.63MB
+
+    Running 30s test @ http://127.0.0.1:8080/
+      2 threads and 16384 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   206.21ms  513.75ms   6.00s    92.56%
+        Req/Sec    31.37k     5.68k   44.44k    76.13%
+      Latency Distribution
+         50%   35.38ms
+         75%   62.78ms
+         90%  551.33ms
+         99%    2.82s
+      1611294 requests in 30.09s, 259.69MB read
+      Socket errors: connect 0, read 115, write 0, timeout 2288
 
 
 Results notes
@@ -640,6 +695,8 @@ Results notes
 * the machine was my personal laptop:  6 years old with an Intel Core i7 3667U (2 cores with 2 threads each);
 * the ``kawipiko-server`` was started with ``--processes 1 --threads 2``;  (i.e. 2 threads handling the requests;)
 * the ``kawipiko-server`` was started with ``--archive-inmem``;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
+* the ``kawipiko-server`` was started with ``--security-headers-disable``;  (because these headers are not set by default by other HTTP servers;)
+* the ``kawipiko-server`` was started with ``--timeout-disable``;  (because, due to a known Go issue, using ``net.Conn.SetDeadline`` has an impact of about 20% of the raw performance;  thus the reported values above might be about 10%-15% smaller when used with timeouts;)
 * the benchmarking tool was wrk_;
 * both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
 * both ``kawipiko-server`` and ``wrk`` tools were pinned on different physical cores;
@@ -658,7 +715,7 @@ Comparisons
 Comparisons with NGinx
 ......................
 
-* NGinx 512 connections / 2 server workers / 4 wrk thread: ::
+* NGinx 512 connections / 2 server workers / 2 wrk thread: ::
 
     Requests/sec:  97910.36
     Transfer/sec:     24.56MB
@@ -675,7 +732,7 @@ Comparisons with NGinx
          99%    9.62ms
       2944219 requests in 30.07s, 738.46MB read
 
-* NGinx 2048 connections / 2 server workers / 4 wrk thread: ::
+* NGinx 2048 connections / 2 server workers / 2 wrk thread: ::
 
     Requests/sec:  93240.70
     Transfer/sec:     23.39MB
@@ -699,7 +756,7 @@ Comparisons with NGinx
 Comparisons with others
 .......................
 
-* darkhttpd_ 512 connections / 1 server process / 4 wrk threads: ::
+* darkhttpd_ 512 connections / 1 server process / 2 wrk threads: ::
 
     Requests/sec:  38191.65
     Transfer/sec:      8.74MB
@@ -778,18 +835,18 @@ Load generators
     wrk \
         --threads 2 \
         --connections 512 \
-        --timeout 6s \
+        --timeout 1s \
         --duration 30s \
         --latency \
         http://127.0.0.1:8080/ \
     #
 
-* 4096 concurrent connections (handled by 4 threads): ::
+* 4096 concurrent connections (handled by 2 threads): ::
 
     wrk \
-        --threads 4 \
+        --threads 2 \
         --connections 4096 \
-        --timeout 6s \
+        --timeout 1s \
         --duration 30s \
         --latency \
         http://127.0.0.1:8080/ \
