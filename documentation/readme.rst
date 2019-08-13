@@ -428,6 +428,8 @@ Install the prerequisites
     zypper install go
     zypper install libbrotli-devel
 
+* ``libbrotli-*`` is not required if building without Brotli support;  (i.e. by adding ``-tags nobrotli`` to ``go build``);
+
 
 Prepare the environment
 .......................
@@ -494,7 +496,7 @@ Compile the Go (dynamic) binaries: ::
             ./cmd/archiver.go \
     #
 
-Compile the Go (static) binaries (available only for the server): ::
+Compile the Go (static) binaries (for archiver it removes Brotli support): ::
 
     cd /tmp/kawipiko/src/sources
 
@@ -506,6 +508,16 @@ Compile the Go (static) binaries (available only for the server): ::
             -gcflags 'all=-l=4' \
             -o /tmp/kawipiko/bin/kawipiko-server \
             ./cmd/server.go \
+    #
+
+    env \
+            GOPATH=/tmp/kawipiko/go \
+    go build \
+            -tags 'netgo nobrotli' \
+            -ldflags 'all=-s -extld=gcc -extldflags=-static' \
+            -gcflags 'all=-l=4' \
+            -o /tmp/kawipiko/bin/kawipiko-archiver \
+            ./cmd/archiver.go \
     #
 
 
