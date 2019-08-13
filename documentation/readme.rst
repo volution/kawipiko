@@ -752,6 +752,7 @@ Results notes
 * the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
 * the served file contains ``Hello World!``;
 * the protocol was HTTP (i.e. no TLS), with keep-alive;
+* both the CDB and the NGinx folder were put on ``tmpfs`` (which implies that the disk is not a limiting factor);  (in fact ``kawipiko`` performs quite well even on spinning disks due to careful storage management;)
 * see the `methodology section <#methodology>`__ for details;
 
 
