@@ -505,7 +505,7 @@
 		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
-	"$( type -P -- wrk )" \
+	./.bin/wrk \
 			--threads 2 \
 			--connections 1 \
 			--timeout 1s \
@@ -530,7 +530,7 @@
 		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
-	"$( type -P -- wrk )" \
+	./.bin/wrk \
 			--threads 2 \
 			--connections 1 \
 			--timeout 1s \
