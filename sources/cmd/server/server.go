@@ -3,7 +3,9 @@
 package server
 
 
+import "bufio"
 import "bytes"
+import "crypto/tls"
 import "flag"
 import "fmt"
 import "io"
@@ -34,6 +36,7 @@ import . "github.com/volution/kawipiko/lib/server"
 
 type server struct {
 	httpServer *fasthttp.Server
+	httpsServer *http.Server
 	cdbReader *cdb.CDB
 	cachedFileFingerprints map[string][]byte
 	cachedDataMeta map[string][]byte
@@ -41,6 +44,7 @@ type server struct {
 	securityHeadersEnabled bool
 	securityHeadersTls bool
 	debug bool
+	quiet bool
 	dummy bool
 }
 
@@ -48,6 +52,11 @@ type server struct {
 
 
 func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
+	
+	if _server.dummy {
+		_server.ServeDummy (_context)
+		return
+	}
 	
 	// _request := (*fasthttp.Request) (NoEscape (unsafe.Pointer (&_context.Request)))
 	_requestHeaders := (*fasthttp.RequestHeader) (NoEscape (unsafe.Pointer (&_context.Request.Header)))
@@ -391,6 +400,50 @@ func ServeDummyRaw (_context *fasthttp.RequestCtx) () {
 
 
 
+func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.Request) () {
+	
+	_context := fasthttp.RequestCtx {}
+	_context.Request.Reset ()
+	_context.Response.Reset ()
+	
+	_context.Request.Header.SetMethod (_request.Method)
+	_context.Request.Header.SetRequestURI (_request.URL.Path)
+	
+	_server.Serve (&_context)
+	
+	{
+		_buffer := bytes.NewBuffer (make ([]byte, 0, 4096))
+		_writer := bufio.NewWriter (_buffer)
+		_context.Response.Header.Write (_writer)
+		_writer.Flush ()
+		_context.Response.Header.Read (bufio.NewReader (_buffer))
+	}
+	_responseBody := _context.Response.Body ()
+	
+	_responseHeaders := _response.Header ()
+	_context.Response.Header.VisitAll (
+			func (_key_0 []byte, _value_0 []byte) () {
+				switch string (_key_0) {
+					case "Connection" :
+						// NOP
+					default :
+						_key := string (_key_0)
+						_value := string (_value_0)
+						_responseHeaders[_key] = append (_responseHeaders[_key], _value)
+				}
+			})
+	
+	if len (_responseBody) > 0 {
+		_responseHeaders["Content-Length"] = []string { fmt.Sprintf ("%d", len (_responseBody)) }
+	}
+	
+	_response.WriteHeader (_context.Response.Header.StatusCode ())
+	_response.Write (_responseBody)
+}
+
+
+
+
 func Main () () {
 	Main_0 (main_0)
 }
@@ -400,6 +453,7 @@ func main_0 () (error) {
 	
 	
 	var _bind string
+	var _bindTls string
 	var _archivePath string
 	var _archiveInmem bool
 	var _archiveMmap bool
@@ -414,6 +468,7 @@ func main_0 () (error) {
 	var _threads uint
 	var _slave uint
 	var _debug bool
+	var _quiet bool
 	var _dummy bool
 	var _isFirst bool
 	var _isMaster bool
@@ -441,6 +496,7 @@ func main_0 () (error) {
   kawipiko-server
 
     --bind <ip>:<port>
+    --bind-tls <ip>:<port>
 
     --processes <count>  (of slave processes)
     --threads <count>    (of threads per process)
@@ -472,6 +528,7 @@ func main_0 () (error) {
 		}
 		
 		_bind_0 := _flags.String ("bind", "", "")
+		_bindTls_0 := _flags.String ("bind-tls", "", "")
 		_archivePath_0 := _flags.String ("archive", "", "")
 		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "")
 		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "")
@@ -489,11 +546,13 @@ func main_0 () (error) {
 		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
 		_profileMem_0 := _flags.String ("profile-mem", "", "")
 		_debug_0 := _flags.Bool ("debug", false, "")
+		_quiet_0 := _flags.Bool ("quiet", false, "")
 		_dummy_0 := _flags.Bool ("dummy", false, "")
 		
 		FlagsParse (_flags, 0, 0)
 		
 		_bind = *_bind_0
+		_bindTls = *_bindTls_0
 		_archivePath = *_archivePath_0
 		_archiveInmem = *_archiveInmem_0
 		_archiveMmap = *_archiveMmap_0
@@ -509,6 +568,7 @@ func main_0 () (error) {
 		_threads = *_threads_0
 		_slave = *_slave_0
 		_debug = *_debug_0
+		_quiet = *_quiet_0 && !_debug
 		_dummy = *_dummy_0
 		
 		_profileCpu = *_profileCpu_0
@@ -521,7 +581,7 @@ func main_0 () (error) {
 			_isFirst = true
 		}
 		
-		if _bind == "" {
+		if (_bind == "") && (_bindTls == "") {
 			AbortError (nil, "[6edd9512]  expected bind address argument!")
 		}
 		
@@ -577,7 +637,7 @@ func main_0 () (error) {
 	
 	debug.SetGCPercent (50)
 	debug.SetMaxThreads (int (128 * (_threads / 64 + 1)))
-	debug.SetMaxStack (16 * 1024)
+//	debug.SetMaxStack (16 * 1024)
 	
 	
 	_httpServerReduceMemory := false
@@ -599,9 +659,12 @@ func main_0 () (error) {
 		
 		_processName := os.Args[0]
 		_processArguments := make ([]string, 0, len (os.Args))
-		_processArguments = append (_processArguments,
-				"--bind", _bind,
-			)
+		if _bind != "" {
+			_processArguments = append (_processArguments, "--bind", _bind)
+		}
+		if _bindTls != "" {
+			_processArguments = append (_processArguments, "--bind-tls", _bindTls)
+		}
 		if _archivePath != "" {
 			_processArguments = append (_processArguments, "--archive", _archivePath)
 		}
@@ -635,6 +698,9 @@ func main_0 () (error) {
 		if _debug {
 			_processArguments = append (_processArguments, "--debug")
 		}
+		if _quiet {
+			_processArguments = append (_processArguments, "--quiet")
+		}
 		if _dummy {
 			_processArguments = append (_processArguments, "--dummy")
 		}
@@ -655,7 +721,7 @@ func main_0 () (error) {
 			if _processPid, _error := os.StartProcess (_processName, _processArguments, _processAttributes); _error == nil {
 				_processesJoin.Add (1)
 				_processesPid[_processIndex] = _processPid
-				if _debug {
+				if !_quiet {
 					log.Printf ("[ii] [63cb22f8]  sub-process `%d` started (with `%d` threads);\n", _processPid.Pid, _threads)
 				}
 				go func (_index int, _processPid *os.Process) () {
@@ -700,7 +766,7 @@ func main_0 () (error) {
 		
 		_processesJoin.Wait ()
 		
-		if _debug {
+		if !_quiet {
 			log.Printf ("[ii] [b949bafc]  sub-processes terminated;\n")
 		}
 		
@@ -716,7 +782,7 @@ func main_0 () (error) {
 	var _cdbReader *cdb.CDB
 	if _archivePath != "" {
 		
-		if _debug || _isFirst {
+		if !_quiet && (_debug || _isFirst) {
 			log.Printf ("[ii] [3b788396]  opening archive file `%s`...\n", _archivePath)
 		}
 		
@@ -745,7 +811,7 @@ func main_0 () (error) {
 		}
 		
 		if _archivePreload {
-			if _debug {
+			if !_quiet {
 				log.Printf ("[ii] [13f4ebf7]  preloading archive file...\n")
 			}
 			_buffer := [16 * 1024]byte {}
@@ -818,7 +884,7 @@ func main_0 () (error) {
 			
 		} else {
 			
-			if _debug || _isFirst {
+			if !_quiet && (_debug || _isFirst) {
 				log.Printf ("[ww] [dd697a66]  using `read`-based archive (with significant performance impact)!\n")
 			}
 			
@@ -856,7 +922,7 @@ func main_0 () (error) {
 	}
 	
 	if _indexPaths || _indexDataMeta || _indexDataContent {
-		if _debug {
+		if !_quiet {
 			log.Printf ("[ii] [fa5338fd]  indexing archive...\n")
 		}
 		if _filesIndex, _error := _cdbReader.GetWithCdbHash ([]byte (NamespaceFilesIndex)); _error == nil {
@@ -956,6 +1022,7 @@ func main_0 () (error) {
 			securityHeadersTls : _securityHeadersTls,
 			securityHeadersEnabled : _securityHeadersEnabled,
 			debug : _debug,
+			quiet : _quiet,
 			dummy : _dummy,
 		}
 	
@@ -1022,51 +1089,147 @@ func main_0 () (error) {
 			
 		}
 	
+	_httpsServer := & http.Server {
+			
+			Handler : _server,
+			TLSConfig : & tls.Config {},
+			
+			MaxHeaderBytes : 16 * 1024,
+			
+			ReadTimeout : 30 * time.Second,
+			ReadHeaderTimeout : 30 * time.Second,
+			WriteTimeout : 30 * time.Second,
+			IdleTimeout : 360 * time.Second,
+			
+		}
+	
 	if _timeoutDisabled {
+		
 		_httpServer.ReadTimeout = 0
 		_httpServer.WriteTimeout = 0
 		_httpServer.IdleTimeout = 0
+		
+		_httpsServer.ReadTimeout = 0
+		_httpsServer.ReadHeaderTimeout = 0
+		_httpsServer.WriteTimeout = 0
+		_httpsServer.IdleTimeout = 1 * time.Second
+		
 	}
 	
-	if _dummy {
-		_httpServer.Handler = _server.ServeDummy
+	
+	if !_quiet && (_debug || _isFirst) {
+		if _bind != "" {
+			log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`;\n", _bind)
+		}
+		if _bindTls != "" {
+			log.Printf ("[ii] [21f050c3]  listening on `https://%s/`;\n", _bindTls)
+		}
 	}
 	
-	_server.httpServer = _httpServer
+	
+	var _httpListener net.Listener
+	if _bind != "" {
+		if _listener_0, _error := reuseport.Listen ("tcp4", _bind); _error == nil {
+			_httpListener = _listener_0
+		} else {
+			AbortError (_error, "[d5f51e9f]  failed starting listener!")
+		}
+	}
+	
+	var _httpsListener net.Listener
+	if _bindTls != "" {
+		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls); _error == nil {
+			_httpsListener = _listener_0
+		} else {
+			AbortError (_error, "[e35cc693]  failed starting listener!")
+		}
+	}
+	if _bindTls != "" {
+		if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
+			_httpsServer.TLSConfig.Certificates = append (_httpsServer.TLSConfig.Certificates, _certificate)
+		} else {
+			AbortError (_error, "[98ba6d23]  failed parsing TLS certificate!")
+		}
+	}
 	
 	
-	{
-		_signals := make (chan os.Signal, 32)
-		signal.Notify (_signals, syscall.SIGINT, syscall.SIGTERM)
+	if _httpListener != nil {
+		_server.httpServer = _httpServer
+	}
+	if _httpsListener != nil {
+		_server.httpsServer = _httpsServer
+	}
+	
+	_httpServer = nil
+	_httpsServer = nil
+	
+	
+	var _waiter sync.WaitGroup
+	
+	if _server.httpServer != nil {
+		_waiter.Add (1)
 		go func () () {
-			<- _signals
-			if _debug {
-				log.Printf ("[ii] [691cb695]  shutingdown...\n")
+			defer _waiter.Done ()
+			if !_quiet {
+				log.Printf ("[ii] [f2061f1b]  starting HTTP server...\n")
 			}
-			_server.httpServer.Shutdown ()
+			if _error := _server.httpServer.Serve (_httpListener); _error != nil {
+				AbortError (_error, "[44f45c67]  failed executing server!")
+			}
+			if !_quiet {
+				log.Printf ("[ii] [aca4a14f]  stopped HTTP server;\n")
+			}
 		} ()
 	}
 	
-	
-	if _debug || _isFirst {
-		log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`;\n", _bind)
+	if _server.httpsServer != nil {
+		_waiter.Add (1)
+		go func () () {
+			defer _waiter.Done ()
+			if !_quiet {
+				log.Printf ("[ii] [46ec2e41]  starting HTTPS server...\n")
+			}
+			if _error := _server.httpsServer.ServeTLS (_httpsListener, "", ""); (_error != nil) && (_error != http.ErrServerClosed) {
+				AbortError (_error, "[9f6d28f4]  failed executing server!")
+			}
+			if !_quiet {
+				log.Printf ("[ii] [9a487770]  stopped HTTPS server;\n")
+			}
+		} ()
 	}
 	
-	var _httpListener net.Listener
-	if _httpListener_0, _error := reuseport.Listen ("tcp4", _bind); _error == nil {
-		_httpListener = _httpListener_0
-	} else {
-		AbortError (_error, "[d5f51e9f]  failed starting listener!")
+	{
+		_waiter.Add (1)
+		_signals := make (chan os.Signal, 32)
+		signal.Notify (_signals, syscall.SIGINT, syscall.SIGTERM)
+		go func () () {
+			defer _waiter.Done ()
+			<- _signals
+			if !_quiet {
+				log.Printf ("[ii] [691cb695]  shutingdown (1)...\n")
+			}
+			if _server.httpServer != nil {
+				if !_quiet {
+					log.Printf ("[ii] [8eea3f63]  stopping HTTP server...\n")
+				}
+				_server.httpServer.Shutdown ()
+			}
+			if _server.httpsServer != nil {
+				if !_quiet {
+					log.Printf ("[ii] [9ae5a25b]  stopping HTTPS server...\n")
+				}
+				_server.httpsServer.Close ()
+			}
+		} ()
 	}
 	
-	if _error := _httpServer.Serve (_httpListener); _error != nil {
-		AbortError (_error, "[44f45c67]  failed executing server!")
-	}
+	_waiter.Wait ()
 	
 	
-	if _debug {
+	if !_quiet {
 		defer log.Printf ("[ii] [a49175db]  done!\n")
 	}
+	
 	return nil
 }
 
