@@ -1366,6 +1366,13 @@ func main_0 () (error) {
 					}
 				} ()
 			}
+			if true {
+				go func () () {
+					time.Sleep (6 * time.Second)
+					log.Printf ("[ww] [827c672c]  forced exit!\n")
+					os.Exit (2)
+				} ()
+			}
 		} ()
 	}
 	
