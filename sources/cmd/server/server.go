@@ -5,6 +5,7 @@ package server
 
 import "bufio"
 import "bytes"
+import "context"
 import "crypto/tls"
 import "flag"
 import "fmt"
@@ -36,7 +37,8 @@ import . "github.com/volution/kawipiko/lib/server"
 
 type server struct {
 	httpServer *fasthttp.Server
-	httpsServer *http.Server
+	httpsServer *fasthttp.Server
+	https2Server *http.Server
 	cdbReader *cdb.CDB
 	cachedFileFingerprints map[string][]byte
 	cachedDataMeta map[string][]byte
@@ -454,6 +456,7 @@ func main_0 () (error) {
 	
 	var _bind string
 	var _bindTls string
+	var _bindTls2 string
 	var _archivePath string
 	var _archiveInmem bool
 	var _archiveMmap bool
@@ -529,6 +532,7 @@ func main_0 () (error) {
 		
 		_bind_0 := _flags.String ("bind", "", "")
 		_bindTls_0 := _flags.String ("bind-tls", "", "")
+		_bindTls2_0 := _flags.String ("bind-tls-2", "", "")
 		_archivePath_0 := _flags.String ("archive", "", "")
 		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "")
 		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "")
@@ -553,6 +557,7 @@ func main_0 () (error) {
 		
 		_bind = *_bind_0
 		_bindTls = *_bindTls_0
+		_bindTls2 = *_bindTls2_0
 		_archivePath = *_archivePath_0
 		_archiveInmem = *_archiveInmem_0
 		_archiveMmap = *_archiveMmap_0
@@ -581,7 +586,7 @@ func main_0 () (error) {
 			_isFirst = true
 		}
 		
-		if (_bind == "") && (_bindTls == "") {
+		if (_bind == "") && (_bindTls == "") && (_bindTls2 == "") {
 			AbortError (nil, "[6edd9512]  expected bind address argument!")
 		}
 		
@@ -664,6 +669,9 @@ func main_0 () (error) {
 		}
 		if _bindTls != "" {
 			_processArguments = append (_processArguments, "--bind-tls", _bindTls)
+		}
+		if _bindTls2 != "" {
+			_processArguments = append (_processArguments, "--bind-tls-2", _bindTls2)
 		}
 		if _archivePath != "" {
 			_processArguments = append (_processArguments, "--archive", _archivePath)
@@ -1060,6 +1068,14 @@ func main_0 () (error) {
 	}
 	
 	
+	_tlsConfig := & tls.Config {}
+	if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
+		_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
+	} else {
+		AbortError (_error, "[98ba6d23]  failed parsing TLS certificate!")
+	}
+	
+	
 	_httpServer := & fasthttp.Server {
 			
 			Name : "kawipiko",
@@ -1089,17 +1105,20 @@ func main_0 () (error) {
 			
 		}
 	
-	_httpsServer := & http.Server {
+	_httpsServer := & fasthttp.Server {}
+	*_httpsServer = *_httpServer
+	
+	_https2Server := & http.Server {
 			
 			Handler : _server,
-			TLSConfig : & tls.Config {},
+			TLSConfig : _tlsConfig.Clone (),
 			
-			MaxHeaderBytes : 16 * 1024,
+			MaxHeaderBytes : _httpsServer.ReadBufferSize,
 			
-			ReadTimeout : 30 * time.Second,
-			ReadHeaderTimeout : 30 * time.Second,
-			WriteTimeout : 30 * time.Second,
-			IdleTimeout : 360 * time.Second,
+			ReadTimeout : _httpsServer.ReadTimeout,
+			ReadHeaderTimeout : _httpsServer.ReadTimeout,
+			WriteTimeout : _httpsServer.WriteTimeout,
+			IdleTimeout : _httpsServer.IdleTimeout,
 			
 		}
 	
@@ -1110,19 +1129,26 @@ func main_0 () (error) {
 		_httpServer.IdleTimeout = 0
 		
 		_httpsServer.ReadTimeout = 0
-		_httpsServer.ReadHeaderTimeout = 0
 		_httpsServer.WriteTimeout = 0
-		_httpsServer.IdleTimeout = 1 * time.Second
+		_httpsServer.IdleTimeout = 0
+		
+		_https2Server.ReadTimeout = 0
+		_https2Server.ReadHeaderTimeout = 0
+		_https2Server.WriteTimeout = 0
+		_https2Server.IdleTimeout = 0
 		
 	}
 	
 	
 	if !_quiet && (_debug || _isFirst) {
 		if _bind != "" {
-			log.Printf ("[ii] [f11e4e37]  listening on `http://%s/`;\n", _bind)
+			log.Printf ("[ii] [f11e4e37]  listening on `http://%s/` (HTTP/1.1, HTTP/1.0);\n", _bind)
 		}
 		if _bindTls != "" {
-			log.Printf ("[ii] [21f050c3]  listening on `https://%s/`;\n", _bindTls)
+			log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (HTTP/1.1, HTTP/1.0);\n", _bindTls)
+		}
+		if _bindTls2 != "" {
+			log.Printf ("[ii] [e7f03c99]  listening on `https://%s/` (HTTP/2, HTTP/1.1, HTTP/1.0);\n", _bindTls2)
 		}
 	}
 	
@@ -1132,7 +1158,7 @@ func main_0 () (error) {
 		if _listener_0, _error := reuseport.Listen ("tcp4", _bind); _error == nil {
 			_httpListener = _listener_0
 		} else {
-			AbortError (_error, "[d5f51e9f]  failed starting listener!")
+			AbortError (_error, "[d5f51e9f]  failed creating HTTP listener!")
 		}
 	}
 	
@@ -1141,14 +1167,16 @@ func main_0 () (error) {
 		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls); _error == nil {
 			_httpsListener = _listener_0
 		} else {
-			AbortError (_error, "[e35cc693]  failed starting listener!")
+			AbortError (_error, "[e35cc693]  failed creating HTTPS listener!")
 		}
 	}
-	if _bindTls != "" {
-		if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
-			_httpsServer.TLSConfig.Certificates = append (_httpsServer.TLSConfig.Certificates, _certificate)
+	
+	var _https2Listener net.Listener
+	if _bindTls2 != "" {
+		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls2); _error == nil {
+			_https2Listener = _listener_0
 		} else {
-			AbortError (_error, "[98ba6d23]  failed parsing TLS certificate!")
+			AbortError (_error, "[63567445]  failed creating HTTPS+2 listener!")
 		}
 	}
 	
@@ -1159,9 +1187,13 @@ func main_0 () (error) {
 	if _httpsListener != nil {
 		_server.httpsServer = _httpsServer
 	}
+	if _https2Listener != nil {
+		_server.https2Server = _https2Server
+	}
 	
 	_httpServer = nil
 	_httpsServer = nil
+	_https2Server = nil
 	
 	
 	var _waiter sync.WaitGroup
@@ -1187,13 +1219,29 @@ func main_0 () (error) {
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
-				log.Printf ("[ii] [46ec2e41]  starting HTTPS server...\n")
+				log.Printf ("[ii] [83cb1f6f]  starting HTTPS server...\n")
 			}
-			if _error := _server.httpsServer.ServeTLS (_httpsListener, "", ""); (_error != nil) && (_error != http.ErrServerClosed) {
+			if _error := _server.httpsServer.Serve (tls.NewListener (_httpsListener, _tlsConfig)); _error != nil {
+				AbortError (_error, "[b2d50852]  failed executing server!")
+			}
+			if !_quiet {
+				log.Printf ("[ii] [ee4180b7]  stopped HTTPS server;\n")
+			}
+		} ()
+	}
+	
+	if _server.https2Server != nil {
+		_waiter.Add (1)
+		go func () () {
+			defer _waiter.Done ()
+			if !_quiet {
+				log.Printf ("[ii] [46ec2e41]  starting HTTPS+2 server...\n")
+			}
+			if _error := _server.https2Server.ServeTLS (_https2Listener, "", ""); (_error != nil) && (_error != http.ErrServerClosed) {
 				AbortError (_error, "[9f6d28f4]  failed executing server!")
 			}
 			if !_quiet {
-				log.Printf ("[ii] [9a487770]  stopped HTTPS server;\n")
+				log.Printf ("[ii] [9a487770]  stopped HTTPS+2 server;\n")
 			}
 		} ()
 	}
@@ -1209,22 +1257,39 @@ func main_0 () (error) {
 				log.Printf ("[ii] [691cb695]  shutingdown (1)...\n")
 			}
 			if _server.httpServer != nil {
-				if !_quiet {
-					log.Printf ("[ii] [8eea3f63]  stopping HTTP server...\n")
-				}
-				_server.httpServer.Shutdown ()
+				_waiter.Add (1)
+				go func () () {
+					defer _waiter.Done ()
+					if !_quiet {
+						log.Printf ("[ii] [8eea3f63]  stopping HTTP server...\n")
+					}
+					_server.httpServer.Shutdown ()
+				} ()
 			}
 			if _server.httpsServer != nil {
-				if !_quiet {
-					log.Printf ("[ii] [9ae5a25b]  stopping HTTPS server...\n")
-				}
-				_server.httpsServer.Close ()
+				_waiter.Add (1)
+				go func () () {
+					defer _waiter.Done ()
+					if !_quiet {
+						log.Printf ("[ii] [ff651007]  stopping HTTPS server...\n")
+					}
+					_server.httpsServer.Shutdown ()
+				} ()
+			}
+			if _server.https2Server != nil {
+				_waiter.Add (1)
+				go func () () {
+					defer _waiter.Done ()
+					if !_quiet {
+						log.Printf ("[ii] [9ae5a25b]  stopping HTTPS+2 server...\n")
+					}
+					_server.https2Server.Shutdown (context.TODO ())
+				} ()
 			}
 		} ()
 	}
 	
 	_waiter.Wait ()
-	
 	
 	if !_quiet {
 		defer log.Printf ("[ii] [a49175db]  done!\n")
