@@ -1068,7 +1068,29 @@ func main_0 () (error) {
 	}
 	
 	
-	_tlsConfig := & tls.Config {}
+	_tlsConfig := & tls.Config {
+			Certificates : nil,
+			MinVersion : tls.VersionTLS12,
+			CipherSuites : []uint16 {
+					// NOTE:  https://wiki.mozilla.org/Security/Server_Side_TLS#Modern_compatibility
+					// NOTE:  TLSv1.3
+					tls.TLS_AES_128_GCM_SHA256,
+					tls.TLS_AES_256_GCM_SHA384,
+					tls.TLS_CHACHA20_POLY1305_SHA256,
+					// NOTE:  TLSv1.2
+					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+					// NOTE:  Required for HTTP/2.
+					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+				},
+			Renegotiation : tls.RenegotiateNever,
+			PreferServerCipherSuites : true,
+			SessionTicketsDisabled : true,
+			DynamicRecordSizingDisabled : true,
+		}
+	
 	if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
 		_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
 	} else {
