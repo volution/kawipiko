@@ -1230,9 +1230,6 @@ func main_0 () (error) {
 			if _error := _server.httpServer.Serve (_httpListener); _error != nil {
 				AbortError (_error, "[44f45c67]  failed executing server!")
 			}
-			if !_quiet {
-				log.Printf ("[ii] [aca4a14f]  stopped HTTP server;\n")
-			}
 		} ()
 	}
 	
@@ -1246,9 +1243,6 @@ func main_0 () (error) {
 			if _error := _server.httpsServer.Serve (tls.NewListener (_httpsListener, _tlsConfig)); _error != nil {
 				AbortError (_error, "[b2d50852]  failed executing server!")
 			}
-			if !_quiet {
-				log.Printf ("[ii] [ee4180b7]  stopped HTTPS server;\n")
-			}
 		} ()
 	}
 	
@@ -1261,9 +1255,6 @@ func main_0 () (error) {
 			}
 			if _error := _server.https2Server.ServeTLS (_https2Listener, "", ""); (_error != nil) && (_error != http.ErrServerClosed) {
 				AbortError (_error, "[9f6d28f4]  failed executing server!")
-			}
-			if !_quiet {
-				log.Printf ("[ii] [9a487770]  stopped HTTPS+2 server;\n")
 			}
 		} ()
 	}
@@ -1286,6 +1277,9 @@ func main_0 () (error) {
 						log.Printf ("[ii] [8eea3f63]  stopping HTTP server...\n")
 					}
 					_server.httpServer.Shutdown ()
+					if !_quiet {
+						log.Printf ("[ii] [aca4a14f]  stopped HTTP server;\n")
+					}
 				} ()
 			}
 			if _server.httpsServer != nil {
@@ -1296,6 +1290,9 @@ func main_0 () (error) {
 						log.Printf ("[ii] [ff651007]  stopping HTTPS server...\n")
 					}
 					_server.httpsServer.Shutdown ()
+					if !_quiet {
+						log.Printf ("[ii] [ee4180b7]  stopped HTTPS server;\n")
+					}
 				} ()
 			}
 			if _server.https2Server != nil {
@@ -1306,6 +1303,9 @@ func main_0 () (error) {
 						log.Printf ("[ii] [9ae5a25b]  stopping HTTPS+2 server...\n")
 					}
 					_server.https2Server.Shutdown (context.TODO ())
+					if !_quiet {
+						log.Printf ("[ii] [9a487770]  stopped HTTPS+2 server;\n")
+					}
 				} ()
 			}
 		} ()
