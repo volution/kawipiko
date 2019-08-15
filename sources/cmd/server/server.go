@@ -457,6 +457,8 @@ func main_0 () (error) {
 	var _bind string
 	var _bindTls string
 	var _bindTls2 string
+	var _tlsPrivate string
+	var _tlsPublic string
 	var _archivePath string
 	var _archiveInmem bool
 	var _archiveMmap bool
@@ -544,6 +546,9 @@ func main_0 () (error) {
 		_timeoutDisabled_0 := _flags.Bool ("timeout-disable", false, "")
 		_securityHeadersTls_0 := _flags.Bool ("security-headers-tls", false, "")
 		_securityHeadersDisabled_0 := _flags.Bool ("security-headers-disable", false, "")
+		_tlsPrivate_0 := _flags.String ("tls-private", "", "")
+		_tlsPublic_0 := _flags.String ("tls-public", "", "")
+		_tlsBundle_0 := _flags.String ("tls-bundle", "", "")
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
 		_slave_0 := _flags.Uint ("slave", 0, "")
@@ -588,6 +593,22 @@ func main_0 () (error) {
 		
 		if (_bind == "") && (_bindTls == "") && (_bindTls2 == "") {
 			AbortError (nil, "[6edd9512]  expected bind address argument!")
+		}
+		if (*_tlsBundle_0 != "") && ((*_tlsPrivate_0 != "") || (*_tlsPublic_0 != "")) {
+			AbortError (nil, "[717f5f84]  TLS bundle and TLS private/public are mutually exclusive!")
+		}
+		if (*_tlsBundle_0 != "") {
+			_tlsPrivate = *_tlsBundle_0
+			_tlsPublic = *_tlsBundle_0
+		} else {
+			_tlsPrivate = *_tlsPrivate_0
+			_tlsPublic = *_tlsPublic_0
+		}
+		if ((_tlsPrivate != "") && (_tlsPublic == "")) || ((_tlsPublic != "") && (_tlsPrivate == "")) {
+			AbortError (nil, "[6e5b42e4]  TLS private/public must be specified together!")
+		}
+		if ((_tlsPrivate != "") || (_tlsPublic != "")) && ((_bindTls == "") && (_bindTls2 == "")) {
+			AbortError (nil, "[4e31f251]  TLS certificate specified, but TLS not enabled!")
 		}
 		
 		if !_dummy {
@@ -699,6 +720,12 @@ func main_0 () (error) {
 		}
 		if !_securityHeadersEnabled {
 			_processArguments = append (_processArguments, "--security-headers-disable")
+		}
+		if _tlsPrivate != "" {
+			_processArguments = append (_processArguments, "--tls-private")
+		}
+		if _tlsPublic != "" {
+			_processArguments = append (_processArguments, "--tls-public")
 		}
 		if _timeoutDisabled {
 			_processArguments = append (_processArguments, "--timeout-disable")
@@ -1092,12 +1119,25 @@ func main_0 () (error) {
 			NextProtos : []string { "http/1.1", "http/1.0" },
 		}
 	
-	if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
-		_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
-	} else {
-		AbortError (_error, "[98ba6d23]  failed parsing TLS certificate!")
+	if (_bindTls != "") || (_bindTls2 != "") {
+		if _tlsPrivate != "" {
+			if _certificate, _error := tls.LoadX509KeyPair (_tlsPublic, _tlsPrivate); _error == nil {
+				_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
+			} else {
+				AbortError (_error, "[ecdf443d]  failed loading TLS certificate!")
+			}
+		}
+		if len (_tlsConfig.Certificates) == 0 {
+			if !_quiet {
+				log.Printf ("[ii] [344ba198]  no TLS certificate specified;  using self-signed!")
+			}
+			if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
+				_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
+			} else {
+				AbortError (_error, "[98ba6d23]  failed parsing TLS certificate!")
+			}
+		}
 	}
-	
 	
 	_httpServer := & fasthttp.Server {
 			
