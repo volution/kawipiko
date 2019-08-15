@@ -1089,6 +1089,7 @@ func main_0 () (error) {
 			PreferServerCipherSuites : true,
 			SessionTicketsDisabled : true,
 			DynamicRecordSizingDisabled : true,
+			NextProtos : []string { "http/1.1", "http/1.0" },
 		}
 	
 	if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
@@ -1133,7 +1134,7 @@ func main_0 () (error) {
 	_https2Server := & http.Server {
 			
 			Handler : _server,
-			TLSConfig : _tlsConfig.Clone (),
+			TLSConfig : nil,
 			
 			MaxHeaderBytes : _httpsServer.ReadBufferSize,
 			
@@ -1143,6 +1144,9 @@ func main_0 () (error) {
 			IdleTimeout : _httpsServer.IdleTimeout,
 			
 		}
+	
+	_https2Server.TLSConfig = _tlsConfig.Clone ()
+	_https2Server.TLSConfig.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
 	
 	if _timeoutDisabled {
 		
