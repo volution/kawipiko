@@ -48,6 +48,7 @@ type server struct {
 	debug bool
 	quiet bool
 	dummy bool
+	delay time.Duration
 }
 
 
@@ -319,6 +320,10 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _requestHeaders.RequestURI ())
 	}
 	
+	if _server.delay != 0 {
+		time.Sleep (_server.delay)
+	}
+	
 	_response.SetStatusCode (_responseStatus)
 	_response.SetBodyRaw (_data)
 }
@@ -475,6 +480,7 @@ func main_0 () (error) {
 	var _debug bool
 	var _quiet bool
 	var _dummy bool
+	var _delay time.Duration
 	var _isFirst bool
 	var _isMaster bool
 	
@@ -557,6 +563,7 @@ func main_0 () (error) {
 		_debug_0 := _flags.Bool ("debug", false, "")
 		_quiet_0 := _flags.Bool ("quiet", false, "")
 		_dummy_0 := _flags.Bool ("dummy", false, "")
+		_delay_0 := _flags.Duration ("delay", 0, "")
 		
 		FlagsParse (_flags, 0, 0)
 		
@@ -580,6 +587,7 @@ func main_0 () (error) {
 		_debug = *_debug_0
 		_quiet = *_quiet_0 && !_debug
 		_dummy = *_dummy_0
+		_delay = *_delay_0
 		
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
@@ -634,6 +642,11 @@ func main_0 () (error) {
 			_indexPaths = false
 			_indexDataMeta = false
 			_indexDataContent = false
+		}
+		if !_dummy && (_delay != 0) {
+			if _isMaster {
+				log.Printf ("[ww] [e9296c03]  running with a response delay of `%s`!\n", _delay)
+			}
 		}
 		
 		if (_processes > 1) && ((_profileCpu != "") || (_profileMem != "")) {
@@ -1059,6 +1072,7 @@ func main_0 () (error) {
 			debug : _debug,
 			quiet : _quiet,
 			dummy : _dummy,
+			delay : _delay,
 		}
 	
 	
