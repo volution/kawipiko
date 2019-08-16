@@ -123,17 +123,23 @@ This two step phase also presents a few opportunities:
 
 ::
 
-    Usage of kawipiko-server:
-
-    --bind <ip>:<port>
-
-    --processes <count>  (of slave processes)
-    --threads <count>    (of threads per process)
+    kawipiko-server
 
     --archive <path>
-    --archive-inmem      (memory-loaded archive file)
-    --archive-mmap       (memory-mapped archive file)
-    --archive-preload    (preload archive file)
+    --archive-inmem           (memory-loaded archive file)
+    --archive-mmap            (memory-mapped archive file)
+    --archive-preload         (preload archive in OS cache)
+
+    --bind <ip>:<port>        (HTTP, only HTTP/1.1)
+    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1)
+    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2)
+
+    --tls-bundle <path>       (TLS certificate bundle)
+    --tls-public <path>       (TLS certificate public)
+    --tls-private <path>      (TLS certificate private)
+
+    --processes <count>       (of slave processes)
+    --threads <count>         (of threads per process)
 
     --index-all
     --index-paths
@@ -142,29 +148,39 @@ This two step phase also presents a few opportunities:
 
     --security-headers-tls
     --security-headers-disable
+    --timeout-disable
 
     --profile-cpu <path>
     --profile-mem <path>
 
     --debug
     --dummy
+    --delay <duration>
 
 
 Flags
 .....
 
 
-``--bind``
-    The IP and port to listen for requests.
+``--bind <ip:port>``, ``--bind-tls <ip:port>``, and ``--bind-tls-2 <ip:port>``
+    The IP and port to listen for requests with:
 
-``--processes`` and ``--threads``
+    * (HTTP) HTTP/1.1 only for ``--bind``, leveraging ``fasthttp``;
+    * (HTTPS) HTTP/1.1 over TLS for ``--bind-tls``, leveraging ``fasthttp``;
+    * (HTTPS) HTTP/2 or HTTP/1.1 over TLS for ``--bind-tls-2``, leveraging Go's ``net/http``;  (this can be safely used in production, however it is not as performant as the other two options;)
+
+``--tls-bundle <path>``, ``--tls-public <path>``, and ``--tls-private <path>`` (optional)
+    If TLS is used these options allows one to specify the certificate to use, either as a single file (the bundle) or separate files (the actual public certificate and the private key).
+    If one doesn't specify any of these options, an embedded self-signed certificate will be used.
+
+``--processes <count>`` and ``--threads <count>``
     The number of processes and threads per each process to start.
     It is highly recommended to use 1 process and as many threads as there are cores.
 
     Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
     (However note that if using ``--archive-inmem`` each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
 
-``--archive``
+``--archive <path>``
     The path of the CDB file that contains the archived static website content.
     (It can be created with the ``kawipiko-archiver`` tool.)
 
@@ -199,8 +215,8 @@ Flags
     * it is highly recommended to use ``--archive-inmem`` or ``--archive-mmap`` or else (especially if data is indexed) the net effect is that of loading everything in RAM;
 
 ``--security-headers-tls``
-    Enables adding the ``Strict-Transport-Security: max-age=31536000`` and ``Content-Security-Policy: upgrade-insecure-requests`` to the response headers.
-    (Although at the moment ``kawipiko`` does not support HTTPS, it can be used behind a TLS terminator, load-balancer or proxy that do support HTTPS;  therefore these headers instruct the browser to always use HTTPS for the served domain.)
+    Enables adding the ``Strict-Transport-Security: max-age=31536000`` and ``Content-Security-Policy: upgrade-insecure-requests`` to the response headers, which instruct the browser to always use HTTPS for the served domain.
+    (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)
 
 ``--security-headers-disable``
     Disables adding a few security related headers: ::
@@ -219,7 +235,13 @@ Flags
     This argument can be used to benchmark the raw performance of the underlying Go and ``fasthttp`` performance;  this is the upper limit on the achievable performance given the underlying technologies.
     (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
 
-``--profile-cpu`` and `--profile-mem``
+``--delay <duration>``
+    Enables delaying each response with a certain amount (for example ``1s``, ``1ms``, etc.)
+    It can be used to simulate the real-world network latencies, perhaps to see how a site with many resources loads in various conditions.
+    (For example, see `an experiment <https://notes.volution.ro/v1/2019/08/notes/e8700e9a/>`__ I made with an image made out of 1425 tiles.)
+    (**Highly discouraged!**)
+
+``--profile-cpu <path>`` and ``--profile-mem <path>``
     Enables CPU and memory profiling using Go's profiling infrastructure.
 
 
@@ -235,7 +257,7 @@ Flags
 
 ::
 
-    Usage of kawipiko-archiver:
+    kawipiko-archiver
 
     --sources <path>
 
@@ -610,6 +632,8 @@ The following is a list of the most important features:
 
 * ``_wildcard.*`` files (where ``.*`` are the regular extensions like ``.txt``, ``.html``, etc.) which will be used if an actual resource is not found under that folder;  (these files respect the hierarchical tree structure, i.e. "deeper" ones override the ones closer to "root";)
 
+* support for HTTPS, with HTTP/1.1 leveraging ``fasthttp`` and HTTP/2 leveraging Go's ``net/http``;
+
 
 
 
@@ -617,8 +641,6 @@ Pending
 -------
 
 The following is a list of the most important features that are currently missing and are planed to be implemented:
-
-* support for HTTPS;  (although for HTTPS it is strongly recommended to use a dedicated TLS terminator like HAProxy_;)
 
 * support for custom HTTP response headers (for specific files, for specific folders, etc.);  (currently only ``Content-Type``, ``Content-Length``, ``Content-Encoding`` and optionally ``ETag`` is included;  additionally ``Cache-Control: public, immutable, max-age=3600`` and a few security related headers are also included;)
 

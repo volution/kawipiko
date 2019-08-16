@@ -506,16 +506,21 @@ func main_0 () (error) {
 
   kawipiko-server
 
-    --bind <ip>:<port>
-    --bind-tls <ip>:<port>
-
-    --processes <count>  (of slave processes)
-    --threads <count>    (of threads per process)
-
     --archive <path>
-    --archive-inmem      (memory-loaded archive file)
-    --archive-mmap       (memory-mapped archive file)
-    --archive-preload    (preload archive file)
+    --archive-inmem           (memory-loaded archive file)
+    --archive-mmap            (memory-mapped archive file)
+    --archive-preload         (preload archive in OS cache)
+
+    --bind <ip>:<port>        (HTTP, only HTTP/1.1)
+    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1)
+    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2)
+
+    --tls-bundle <path>       (TLS certificate bundle)
+    --tls-public <path>       (TLS certificate public)
+    --tls-private <path>      (TLS certificate private)
+
+    --processes <count>       (of slave processes)
+    --threads <count>         (of threads per process)
 
     --index-all
     --index-paths
@@ -531,6 +536,7 @@ func main_0 () (error) {
 
     --debug
     --dummy
+    --delay <duration>
 
   ** for details see:
      https://github.com/volution/kawipiko#kawipiko-server
