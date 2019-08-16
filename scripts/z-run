@@ -577,6 +577,7 @@
 			--sources ./examples/hello-world \
 			--archive ./examples/hello-world.cdb \
 			--debug \
+			"${@}" \
 	#
 	cdb -d -- ./examples/hello-world.cdb \
 	| tr -d '\r' \
@@ -594,6 +595,7 @@
 			--processes 1 \
 			--threads 1 \
 			--debug \
+			"${@}" \
 	#
 !!
 
