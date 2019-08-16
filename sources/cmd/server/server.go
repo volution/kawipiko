@@ -19,6 +19,7 @@ import "runtime"
 import "runtime/debug"
 import "runtime/pprof"
 import "strconv"
+import "strings"
 import "sync"
 import "syscall"
 import "time"
@@ -1267,6 +1268,72 @@ func main_0 () (error) {
 	}
 	
 	
+	var _splitListenerClose func () ()
+	if (_httpsListener != nil) && (_https2Listener == nil) {
+		log.Printf ("[ii] [1098a405]  listening on `https://%s/` (HTTP/2 split);\n", _bindTls)
+		_tlsConfig.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
+		_tlsListener := tls.NewListener (_httpsListener, _tlsConfig)
+		_httpsListener_0 := & splitListener {
+				listener : _tlsListener,
+				queue : make (chan net.Conn),
+			}
+		_https2Listener_0 := & splitListener {
+				listener : _tlsListener,
+				queue : make (chan net.Conn),
+			}
+		_splitListenerClose = func () () {
+			if _error := _tlsListener.Close (); _error != nil {
+				LogError (_error, "[a5bce477]  failed closing TLS listener!")
+			}
+		}
+		go func () () {
+				for {
+					if _connection_0, _error := _tlsListener.Accept (); _error == nil {
+						go func () () {
+							_connection := _connection_0.(*tls.Conn)
+							if _error := _connection.Handshake (); _error != nil {
+								if !_quiet {
+									LogError (_error, "[d1c3dba3]  failed negotiating TLS connection!\n")
+								}
+							}
+							_protocol := _connection.ConnectionState () .NegotiatedProtocol
+							if _protocol == "h2" {
+								if _debug {
+									log.Printf ("[dd] [df9f3e7e]  dispatching HTTP/2 TLS connection!\n")
+								}
+								_https2Listener_0.queue <- _connection
+							} else if (_protocol == "http/1.1") || (_protocol == "http/1.0") {
+								if _debug {
+									log.Printf ("[dd] [d534c361]  dispatching HTTP/1.x TLS connection!\n")
+								}
+								_httpsListener_0.queue <- _connection
+							} else {
+								if !_quiet {
+									log.Printf ("[ww] [5cc0ebde]  unknown TLS protocol `%s`!\n", _protocol)
+								}
+								_connection.Close ()
+							}
+						} ()
+					} else if strings.Contains (_error.Error (), "use of closed network connection") {
+						break
+					} else {
+						LogError (_error, "[04b6637f]  failed accepting TLS connection!\n")
+						break
+					}
+				}
+			} ()
+		_httpsListener = _httpsListener_0
+		_https2Listener = _https2Listener_0
+	} else {
+		if _httpsListener != nil {
+			_httpsListener = tls.NewListener (_httpsListener, _tlsConfig)
+		}
+		if _https2Listener != nil {
+			_https2Listener = tls.NewListener (_https2Listener, _tlsConfig)
+		}
+	}
+	
+	
 	if _httpListener != nil {
 		_server.httpServer = _httpServer
 	}
@@ -1304,7 +1371,7 @@ func main_0 () (error) {
 			if !_quiet {
 				log.Printf ("[ii] [83cb1f6f]  starting HTTPS server...\n")
 			}
-			if _error := _server.httpsServer.Serve (tls.NewListener (_httpsListener, _tlsConfig)); _error != nil {
+			if _error := _server.httpsServer.Serve (_httpsListener); _error != nil {
 				AbortError (_error, "[b2d50852]  failed executing server!")
 			}
 		} ()
@@ -1317,7 +1384,7 @@ func main_0 () (error) {
 			if !_quiet {
 				log.Printf ("[ii] [46ec2e41]  starting HTTPS+2 server...\n")
 			}
-			if _error := _server.https2Server.ServeTLS (_https2Listener, "", ""); (_error != nil) && (_error != http.ErrServerClosed) {
+			if _error := _server.https2Server.Serve (_https2Listener); (_error != nil) && (_error != http.ErrServerClosed) {
 				AbortError (_error, "[9f6d28f4]  failed executing server!")
 			}
 		} ()
@@ -1344,6 +1411,13 @@ func main_0 () (error) {
 					if !_quiet {
 						log.Printf ("[ii] [aca4a14f]  stopped HTTP server;\n")
 					}
+				} ()
+			}
+			if _splitListenerClose != nil {
+				_waiter.Add (1)
+				go func () () {
+					defer _waiter.Done ()
+					_splitListenerClose ()
 				} ()
 			}
 			if _server.httpsServer != nil {
@@ -1389,5 +1463,34 @@ func main_0 () (error) {
 	}
 	
 	return nil
+}
+
+
+
+
+type splitListener struct {
+	listener net.Listener
+	queue chan net.Conn
+}
+
+func (_listener *splitListener) Accept () (net.Conn, error) {
+	if _connection, _ok := <- _listener.queue; _ok {
+		return _connection, nil
+	} else {
+		return nil, io.EOF
+	}
+}
+
+func (_listener *splitListener) Close () (error) {
+	close (_listener.queue)
+	return nil
+}
+
+func (_listener *splitListener) Addr () (net.Addr) {
+	if _listener.listener != nil {
+		return _listener.listener.Addr ()
+	} else {
+		return nil
+	}
 }
 
