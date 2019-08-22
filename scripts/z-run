@@ -36,6 +36,7 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
+			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-server" \
 			-- ./cmd/server.go \
 	#
@@ -49,6 +50,7 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
+			-mod readonly \
 			-tags netgo \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
 			-gcflags 'all=-l=4' \
@@ -65,6 +67,7 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
+			-mod readonly \
 			-gcflags '-m' \
 			-o "${_outputs}/binaries/debug/kawipiko-server" \
 			-- ./cmd/server.go \
@@ -116,6 +119,7 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
+			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-archiver" \
 			-- ./cmd/archiver.go \
 	#
@@ -129,6 +133,7 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
+			-mod readonly \
 			-tags 'netgo nobrotli' \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
 			-gcflags 'all=-l=4' \
@@ -156,6 +161,16 @@
 
 
 
+<< go / build / all
+	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: go / build / debug'
+	"${ZRUN[@]}" ':: go / build / release'
+	"${ZRUN[@]}" ':: go / build / publish'
+!!
+
+
+
+
 << execute / wrapper / release
 	"${ZRUN[@]}" ':: go / build / wrapper / release'
 	exec -- env -i -- ./.outputs/binaries/release/kawipiko "${@}"
@@ -170,6 +185,7 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
+			-mod readonly \
 			-tags 'netgo nobrotli' \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
 			-gcflags 'all=-l=4' \
@@ -230,11 +246,9 @@
 	test "${#}" -eq 0
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			get \
-			-v \
+			-m \
 			-d \
-			-u=patch \
-			-- \
-			./... \
+			-u \
 	#
 !!
 
@@ -244,6 +258,7 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			list \
 			-m \
+			-mod readonly \
 			-- \
 			all \
 	#
@@ -258,6 +273,23 @@
 !!
 
 
+<< go / dependencies / verify
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			mod verify \
+	#
+!!
+
+
+<< go / dependencies / upgrade
+	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: go / dependencies / update'
+	"${ZRUN[@]}" ':: go / dependencies / tidy'
+	"${ZRUN[@]}" ':: go / dependencies / verify'
+	"${ZRUN[@]}" ':: go / dependencies / list'
+!!
+
+
 
 
 << go / tool
@@ -269,6 +301,7 @@
 	export -- GOBIN="${_outputs}/go/bin"
 	export -- GOTMPDIR="${_outputs}/go/tmp"
 	export -- GOCACHE="${_outputs}/go/cache"
+	export -- GO111MODULE=on
 	
 	cd -- "${_sources}"
 	
@@ -610,6 +643,7 @@
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
 			-v \
+			-mod readonly \
 			-tags netgo \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
 			-gcflags 'all=-l=4' \
