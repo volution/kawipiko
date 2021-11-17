@@ -466,20 +466,16 @@ Install the prerequisites
 
     apt-get install git-core
     apt-get install golang
-    apt-get install libbrotli-dev
 
 * OpenSUSE: ::
 
     zypper install git-core
     zypper install go
-    zypper install libbrotli-devel
 
 * other Linux / FreeBSD / Apple macOS:
 
   * fetch and install Go from: https://golang.org/dl
   * add ``/usr/local/go/bin`` to your ``PATH``;
-
-* ``libbrotli-*`` is not required if building without Brotli support;  (i.e. by adding ``-tags nobrotli`` to ``go build``);
 
 
 Prepare the environment
@@ -571,9 +567,10 @@ Compile the (static) executables (for archiver it removes Brotli support): ::
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
-            -tags 'netgo nobrotli' \
-            -ldflags 'all=-s -extld=gcc -extldflags=-static' \
+            -tags 'netgo' \
             -gcflags 'all=-l=4' \
+            -ldflags 'all=-s' \
+            -trimpath \
             -o /tmp/kawipiko/bin/kawipiko \
             ./cmd/wrapper.go \
     #
@@ -582,21 +579,22 @@ Compile the (static) executables (for archiver it removes Brotli support): ::
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
-            -tags netgo \
-            -ldflags 'all=-s -extld=gcc -extldflags=-static' \
+            -tags 'netgo' \
             -gcflags 'all=-l=4' \
+            -ldflags 'all=-s' \
+            -trimpath \
             -o /tmp/kawipiko/bin/kawipiko-server \
             ./cmd/server.go \
     #
 
-    #### build `kawipiko-archiver` static executable (without Brotli support)
+    #### build `kawipiko-archiver` static executable
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
-            -tags 'netgo nobrotli' \
-            -ldflags 'all=-s -extld=gcc -extldflags=-static' \
+            -tags 'netgo' \
             -gcflags 'all=-l=4' \
-            -o /tmp/kawipiko/bin/kawipiko-archiver \
+            -ldflags 'all=-s' \
+            -trimpath \
             ./cmd/archiver.go \
     #
 
