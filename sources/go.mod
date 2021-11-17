@@ -18,4 +18,4 @@ require (
 
 replace github.com/colinmarc/cdb => github.com/cipriancraciun/go-cdb-lib v0.0.0-20190809203657-d959ce9cc674
 
-replace github.com/valyala/fasthttp => github.com/cipriancraciun/go-fasthttp v0.0.0-20190813060955-34223126fc19
+replace github.com/valyala/fasthttp => github.com/cipriancraciun/go-fasthttp v0.0.0-20190817151805-34223126fc19
