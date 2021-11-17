@@ -845,7 +845,7 @@ func main_0 () (error) {
 			if _cdbFileSize_0 < 1024 {
 				AbortError (nil, "[6635a2a8]  failed opening archive:  file is too small (or empty)!")
 			}
-			if _cdbFileSize_0 >= (2 * 1024 * 1024 * 1024) {
+			if _cdbFileSize_0 >= (4 * 1024 * 1024 * 1024) {
 				AbortError (nil, "[545bf6ce]  failed opening archive:  file is too large!")
 			}
 			_cdbFileSize = int (_cdbFileSize_0)
