@@ -50,8 +50,11 @@
 			build \
 			-mod readonly \
 			-tags netgo \
-			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
+			-a \
 			-gcflags 'all=-l=4' \
+			-ldflags 'all=-s' \
+			-buildmode exe \
+			-trimpath \
 			-o "${_outputs}/binaries/release/kawipiko-server" \
 			-- ./cmd/server.go \
 	#
@@ -129,9 +132,12 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-mod readonly \
-			-tags 'netgo brotli' \
-			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
+			-tags netgo \
+			-a \
 			-gcflags 'all=-l=4' \
+			-ldflags 'all=-s' \
+			-buildmode exe \
+			-trimpath \
 			-o "${_outputs}/binaries/release/kawipiko-archiver" \
 			-- ./cmd/archiver.go \
 	#
@@ -180,9 +186,12 @@
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-mod readonly \
-			-tags 'netgo brotli' \
-			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
+			-tags netgo \
+			-a \
 			-gcflags 'all=-l=4' \
+			-ldflags 'all=-s' \
+			-buildmode exe \
+			-trimpath \
 			-o "${_outputs}/binaries/release/kawipiko" \
 			-- ./cmd/wrapper.go \
 	#
