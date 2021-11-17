@@ -15,7 +15,7 @@ However "simple" doesn't imply "dumb" or "limited", instead it implies "efficien
 As such ``kawipiko`` basically supports only ``GET`` (and ``HEAD``) requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
 
 However, ``kawipiko`` does provide something unique, that no other HTTP server offers:  the static website content is served from a CDB_ database with almost zero latency.
-Moreover, the static website content can be compressed (with either ``gzip`` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwidth and latency.
+Moreover, the static website content can be compressed (with either ``gzip``, ``zopfli` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwidth and latency.
 
 CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
 This also makes them suitable for low-latency static website content serving over HTTP, which this project provides.
@@ -262,7 +262,7 @@ Flags
     --sources <path>
 
     --archive <path>
-    --compress <gzip | brotli | identity>
+    --compress <gzip | zopfli | brotli | identity>
 
     --exclude-index
     --exclude-strip
@@ -380,6 +380,15 @@ Examples
             --debug \
     #
 
+* create the CDB archive (with ``zopfli`` compression): ::
+
+    kawipiko-archiver \
+            --archive ./python-3.7.3-docs-html-zopfli.cdb \
+            --sources ./python-3.7.3-docs-html \
+            --compress zopfli \
+            --debug \
+    #
+
 * create the CDB archive (with ``brotli`` compression): ::
 
     kawipiko-archiver \
@@ -406,6 +415,7 @@ Examples
             \
             ./python-3.7.3-docs-html-nozip.cdb \
             ./python-3.7.3-docs-html-gzip.cdb \
+            ./python-3.7.3-docs-html-zopfli.cdb \
             ./python-3.7.3-docs-html-brotli.cdb \
             \
             ./python-3.7.3-docs-html \
@@ -414,6 +424,7 @@ Examples
 
     45M     ./python-3.7.3-docs-html-nozip.cdb
     9.7M    ./python-3.7.3-docs-html-gzip.cdb
+    ???     ./python-3.7.3-docs-html-zopfli.cdb
     7.9M    ./python-3.7.3-docs-html-brotli.cdb
 
     46M     ./python-3.7.3-docs-html

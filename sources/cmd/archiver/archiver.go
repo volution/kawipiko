@@ -665,7 +665,7 @@ func main_0 () (error) {
     --sources <path>
 
     --archive <path>
-    --compress <gzip | brotli | identity>
+    --compress <gzip | zopfli | brotli | identity>
 
     --exclude-index
     --exclude-strip

@@ -6,6 +6,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0 // indirect
 	github.com/colinmarc/cdb v0.0.0-00000000000000-000000000000
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2 // indirect
 	github.com/google/brotli v1.0.7
 	github.com/klauspost/compress v1.7.6 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect

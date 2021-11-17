@@ -8,12 +8,17 @@ import "compress/gzip"
 import "fmt"
 
 
+import "github.com/foobaz/go-zopfli/zopfli"
+
+
 
 
 func Compress (_data []byte, _algorithm string) ([]byte, string, error) {
 	switch _algorithm {
 		case "gz", "gzip" :
 			return CompressGzip (_data)
+		case "zopfli" :
+			return CompressZopfli (_data)
 		case "br", "brotli" :
 			return CompressBrotli (_data)
 		case "", "none", "identity" :
@@ -41,6 +46,28 @@ func CompressGzip (_data []byte) ([]byte, string, error) {
 		return nil, "", _error
 	}
 	if _error := _encoder.Close (); _error != nil {
+		return nil, "", _error
+	}
+	
+	_data = _buffer.Bytes ()
+	return _data, "gzip", nil
+}
+
+
+
+
+func CompressZopfli (_data []byte) ([]byte, string, error) {
+	
+	_buffer := & bytes.Buffer {}
+	
+	_options := zopfli.DefaultOptions ()
+	_options.NumIterations = 15
+	_options.BlockSplitting = true
+	_options.BlockSplittingLast = true
+	_options.BlockSplittingMax = 0
+	_options.BlockType = zopfli.DYNAMIC_BLOCK
+	
+	if _error := zopfli.GzipCompress (&_options, _data, _buffer); _error != nil {
 		return nil, "", _error
 	}
 	
