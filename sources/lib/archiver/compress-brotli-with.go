@@ -7,7 +7,7 @@ package archiver
 
 import "bytes"
 
-import "github.com/google/brotli/go/cbrotli"
+import brotli "github.com/itchio/go-brotli/enc"
 
 
 
@@ -16,7 +16,9 @@ func CompressBrotli (_data []byte) ([]byte, string, error) {
 	
 	_buffer := & bytes.Buffer {}
 	
-	_encoder := cbrotli.NewWriter (_buffer, cbrotli.WriterOptions { Quality : 11, LGWin : 24})
+	_options := brotli.BrotliWriterOptions { Quality : 11, LGWin : 24}
+	
+	_encoder := brotli.NewBrotliWriter (_buffer, &_options)
 	
 	if _, _error := _encoder.Write (_data); _error != nil {
 		return nil, "", _error

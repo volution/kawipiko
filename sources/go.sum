@@ -12,6 +12,8 @@ github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2 h1:VA6jElpcJ+wkwE
 github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2/go.mod h1:Yi95+RbwKz7uGndSuUhoq7LJKh8qH8DT9fnL4ewU30k=
 github.com/google/brotli v1.0.7 h1:fxwwohNEPaVS6qvtnjwgzRR62Upa70pkw0f9qarjrQs=
 github.com/google/brotli v1.0.7/go.mod h1:XpGqLY1HgMKTQI5TU8iAKE/okaKqS9h1e6KRlRztlOU=
+github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c h1:Jf20xV/yR/O6eSUqLTuXhka/+54YR59sGwN7b3MkxYk=
+github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c/go.mod h1:oRXh43p/JW9kWosasd+2kHfDpb1ec4m7YrZ5E39s1iI=
 github.com/klauspost/compress v1.4.0 h1:8nsMz3tWa9SWWPL60G1V6CUsf4lLjWLTNEtibhe8gh8=
 github.com/klauspost/compress v1.4.0/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/klauspost/compress v1.7.6 h1:GH2karLOcuZtA5a3+KuzSU33A2cvcHGbtEWM6K4t7oU=

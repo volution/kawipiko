@@ -8,6 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2 // indirect
 	github.com/google/brotli v1.0.7
+	github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c // indirect
 	github.com/klauspost/compress v1.7.6 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect

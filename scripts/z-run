@@ -134,7 +134,7 @@
 			build \
 			-v \
 			-mod readonly \
-			-tags 'netgo nobrotli' \
+			-tags 'netgo brotli' \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
 			-gcflags 'all=-l=4' \
 			-o "${_outputs}/binaries/release/kawipiko-archiver" \
@@ -186,7 +186,7 @@
 			build \
 			-v \
 			-mod readonly \
-			-tags 'netgo nobrotli' \
+			-tags 'netgo brotli' \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
 			-gcflags 'all=-l=4' \
 			-o "${_outputs}/binaries/release/kawipiko" \
