@@ -1,22 +1,23 @@
 module github.com/volution/kawipiko
 
-go 1.12
+go 1.17
+
+require (
+	github.com/andybalholm/brotli v1.0.4
+	github.com/colinmarc/cdb v0.0.0-20190223170904-60f317823f70
+	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2
+	github.com/valyala/fasthttp v1.31.0
+)
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0 // indirect
-	github.com/andybalholm/brotli v1.0.4
-	github.com/colinmarc/cdb v0.0.0-00000000000000-000000000000
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2
-	github.com/klauspost/compress v1.7.6 // indirect
-	github.com/klauspost/cpuid v1.2.1 // indirect
-	github.com/kr/pretty v0.1.0 // indirect
-	github.com/stretchr/testify v1.4.0 // indirect
-	github.com/valyala/fasthttp v0.0.0-00000000000000-000000000000
-	golang.org/x/text v0.3.2 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/tcplisten v1.0.0 // indirect
+	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 replace github.com/colinmarc/cdb => github.com/cipriancraciun/go-cdb-lib v0.0.0-20190809203657-d959ce9cc674
-
-replace github.com/valyala/fasthttp => github.com/cipriancraciun/go-fasthttp v0.0.0-20190817151805-34223126fc19
