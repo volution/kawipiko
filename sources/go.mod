@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0 // indirect
+	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/colinmarc/cdb v0.0.0-00000000000000-000000000000
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2 // indirect

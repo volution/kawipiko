@@ -1,5 +1,7 @@
 github.com/Pallinder/go-randomdata v1.2.0 h1:DZ41wBchNRb/0GfsePLiSwb0PHZmT67XY00lCDlaYPg=
 github.com/Pallinder/go-randomdata v1.2.0/go.mod h1:yHmJgulpD2Nfrm0cR9tI/+oAgRqCQQixsA8HyRZfV9Y=
+github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
+github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/cipriancraciun/go-cdb-lib v0.0.0-20190809203657-d959ce9cc674 h1:UyoEJxLS9OPdjyinKfCA2aKgIf1NhXyIxneRSMrqZls=
 github.com/cipriancraciun/go-cdb-lib v0.0.0-20190809203657-d959ce9cc674/go.mod h1:/M2lSbkwYzIP5OqU4u+aygk4LCVpB7wi60O0Myhs05g=
 github.com/cipriancraciun/go-fasthttp v0.0.0-20190817151805-34223126fc19 h1:a+yE808Mqxm5W+Fxono2AKDPBpfNyDo/wKt6Rnsqb9E=

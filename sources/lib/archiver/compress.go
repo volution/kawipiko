@@ -9,7 +9,7 @@ import "fmt"
 
 
 import "github.com/foobaz/go-zopfli/zopfli"
-import brotli "github.com/itchio/go-brotli/enc"
+import "github.com/andybalholm/brotli"
 
 
 
@@ -83,9 +83,9 @@ func CompressBrotli (_data []byte) ([]byte, string, error) {
 	
 	_buffer := & bytes.Buffer {}
 	
-	_options := brotli.BrotliWriterOptions { Quality : 11, LGWin : 24}
+	_options := brotli.WriterOptions { Quality : 11, LGWin : 24}
 	
-	_encoder := brotli.NewBrotliWriter (_buffer, &_options)
+	_encoder := brotli.NewWriterOptions (_buffer, _options)
 	
 	if _, _error := _encoder.Write (_data); _error != nil {
 		return nil, "", _error
