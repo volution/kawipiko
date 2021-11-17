@@ -249,9 +249,11 @@
 	test "${#}" -eq 0
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			get \
-			-m \
+			-v \
 			-d \
 			-u \
+			-- \
+			all \
 	#
 !!
 
