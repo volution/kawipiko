@@ -35,7 +35,6 @@
 	rm -f -- "${_outputs}/binaries/debug/kawipiko-server"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
-			-v \
 			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-server" \
 			-- ./cmd/server.go \
@@ -49,7 +48,6 @@
 	rm -f -- "${_outputs}/binaries/release/kawipiko-server"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
-			-v \
 			-mod readonly \
 			-tags netgo \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
@@ -66,7 +64,6 @@
 	rm -f -- "${_outputs}/binaries/debug/kawipiko-server"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
-			-v \
 			-mod readonly \
 			-gcflags '-m' \
 			-o "${_outputs}/binaries/debug/kawipiko-server" \
@@ -118,7 +115,6 @@
 	rm -f -- "${_outputs}/binaries/debug/kawipiko-archiver"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
-			-v \
 			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-archiver" \
 			-- ./cmd/archiver.go \
@@ -132,7 +128,6 @@
 	rm -f -- "${_outputs}/binaries/release/kawipiko-archiver"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
-			-v \
 			-mod readonly \
 			-tags 'netgo brotli' \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
@@ -184,7 +179,6 @@
 	rm -f -- "${_outputs}/binaries/release/kawipiko"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
-			-v \
 			-mod readonly \
 			-tags 'netgo brotli' \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
@@ -642,7 +636,6 @@
 	rm -f -- "${_outputs}/binaries/release/kawipiko-server-dummy"
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-v \
 			-mod readonly \
 			-tags netgo \
 			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
