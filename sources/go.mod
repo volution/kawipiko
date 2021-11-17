@@ -4,12 +4,10 @@ go 1.12
 
 require (
 	github.com/Pallinder/go-randomdata v1.2.0 // indirect
-	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/andybalholm/brotli v1.0.4
 	github.com/colinmarc/cdb v0.0.0-00000000000000-000000000000
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2 // indirect
-	github.com/google/brotli v1.0.7
-	github.com/itchio/go-brotli v0.0.0-20190702114328-3f28d645a45c // indirect
+	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2
 	github.com/klauspost/compress v1.7.6 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
