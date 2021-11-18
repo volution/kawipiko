@@ -17,6 +17,7 @@ import "os"
 import "sort"
 import "strings"
 import "syscall"
+import "time"
 
 import "github.com/colinmarc/cdb"
 
@@ -28,19 +29,30 @@ import . "github.com/volution/kawipiko/lib/archiver"
 
 type context struct {
 	cdbWriter *cdb.Writer
+	cdbWriteCount int
+	cdbWriteKeySize int
+	cdbWriteDataSize int
 	storedFilePaths []string
 	storedFolderPaths []string
 	storedDataMeta map[string]bool
 	storedDataContent map[string]bool
 	storedDataContentMeta map[string]map[string]string
 	storedFiles map[[2]uint64][2]string
+	archivedReferences uint
 	compress string
+	dataUncompressedCount int
+	dataUncompressedSize int
+	dataCompressedCount int
+	dataCompressedSize int
 	includeIndex bool
 	includeStripped bool
 	includeCache bool
 	includeEtag bool
 	includeFileListing bool
 	includeFolderListing bool
+	progress bool
+	progressStarted time.Time
+	progressLast time.Time
 	debug bool
 }
 
@@ -284,6 +296,9 @@ func archiveDataContent (_context *context, _fingerprintContent string, _dataCon
 		if _error := _context.cdbWriter.Put ([]byte (_key), _dataContent); _error != nil {
 			return _error
 		}
+		_context.cdbWriteCount += 1
+		_context.cdbWriteKeySize += len (_key)
+		_context.cdbWriteDataSize += len (_dataContent)
 	}
 	
 	_context.storedDataContent[_fingerprintContent] = true
@@ -306,6 +321,9 @@ func archiveDataMeta (_context *context, _fingerprintMeta string, _dataMeta []by
 		if _error := _context.cdbWriter.Put ([]byte (_key), _dataMeta); _error != nil {
 			return _error
 		}
+		_context.cdbWriteCount += 1
+		_context.cdbWriteKeySize += len (_key)
+		_context.cdbWriteDataSize += len (_dataMeta)
 	}
 	
 	_context.storedDataMeta[_fingerprintMeta] = true
@@ -326,15 +344,41 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 		default :
 			return fmt.Errorf ("[051a102a]")
 	}
+	_context.archivedReferences += 1
 	
-	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
 	if _context.debug {
 		log.Printf ("[  ] reference    ++ `%s` :: `%s` -> `%s` ~ `%s`\n", _namespace, _pathInArchive, _fingerprintContent[:16], _fingerprintMeta[:16])
 	}
 	
+	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
 	_fingerprints := fmt.Sprintf ("%s:%s", _fingerprintContent, _fingerprintMeta)
+	
 	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprints)); _error != nil {
 		return _error
+	}
+	_context.cdbWriteCount += 1
+	_context.cdbWriteKeySize += len (_key)
+	_context.cdbWriteDataSize += len (_fingerprints)
+	
+	if _context.progress {
+		if _context.archivedReferences <= 1 {
+			_context.progressLast = time.Now ()
+		}
+		if ((_context.archivedReferences % 1000) == 0) || (((_context.archivedReferences % 10) == 0) && (time.Since (_context.progressLast) .Seconds () >= 6)) {
+			log.Printf ("[  ] pogress      -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
+					time.Since (_context.progressStarted) .Minutes (),
+					len (_context.storedFilePaths),
+					len (_context.storedFolderPaths),
+					float32 (_context.dataUncompressedSize) / 1024 / 1024,
+					float64 (_context.dataUncompressedSize) / 1024 / 1024 / (time.Since (_context.progressStarted) .Seconds () + 0.001),
+					_context.dataCompressedCount,
+					float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / 1024 / 1024,
+					(float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / float32 (_context.dataUncompressedSize) * 100),
+					_context.cdbWriteCount,
+					float32 (_context.cdbWriteKeySize + _context.cdbWriteDataSize) / 1024 / 1024,
+				)
+			_context.progressLast = time.Now ()
+		}
 	}
 	
 	return nil
@@ -408,6 +452,13 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		if _context.debug && (_context.compress != "identity") {
 			log.Printf ("[  ] compress-NOK         %8d          `%s`\n", _dataUncompressedSize, _pathInArchive)
 		}
+	}
+	
+	_context.dataUncompressedSize += _dataUncompressedSize
+	_context.dataUncompressedCount += 1
+	_context.dataCompressedSize += _dataSize
+	if _dataSize != _dataUncompressedSize {
+		_context.dataCompressedCount += 1
 	}
 	
 	_dataMeta := make (map[string]string, 16)
@@ -527,8 +578,11 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		if _stream, _error := os.Open (_pathResolved); _error == nil {
 			defer _stream.Close ()
 			_loop : for {
-				switch _buffer, _error := _stream.Readdir (128); _error {
+				switch _buffer, _error := _stream.Readdir (1024); _error {
 					case nil :
+						if _context.debug && (len (_childsStat) > 0) {
+							log.Printf ("[  ] folder       ~~ `%s` ~~ %d\n", _pathInArchive, len (_childsStat))
+						}
 						for _, _childStat := range _buffer {
 							
 							_childName := _childStat.Name ()
@@ -641,6 +695,7 @@ func main_0 () (error) {
 	var _includeEtag bool
 	var _includeFileListing bool
 	var _includeFolderListing bool
+	var _progress bool
 	var _debug bool
 	
 	{
@@ -675,6 +730,7 @@ func main_0 () (error) {
     --exclude-file-listing
     --include-folder-listing
 
+    --progress
     --debug
 
   ** for details see:
@@ -692,6 +748,7 @@ func main_0 () (error) {
 		_includeEtag_0 := _flags.Bool ("include-etag", false, "")
 		_excludeFileListing_0 := _flags.Bool ("exclude-file-listing", false, "")
 		_includeFolderListing_0 := _flags.Bool ("include-folder-listing", false, "")
+		_progress_0 := _flags.Bool ("progress", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
 		FlagsParse (_flags, 0, 0)
@@ -705,6 +762,7 @@ func main_0 () (error) {
 		_includeEtag = *_includeEtag_0
 		_includeFileListing = ! *_excludeFileListing_0
 		_includeFolderListing = *_includeFolderListing_0
+		_progress = *_progress_0
 		_debug = *_debug_0
 		
 		if _sourcesFolder == "" {
@@ -723,10 +781,6 @@ func main_0 () (error) {
 		AbortError (_error, "[85234ba0]  failed creating archive (while opening)!")
 	}
 	
-	if _error := _cdbWriter.Put ([]byte (NamespaceSchemaVersion), []byte (CurrentSchemaVersion)); _error != nil {
-		AbortError (_error, "[43228812]  failed writing archive!")
-	}
-	
 	_context := & context {
 			cdbWriter : _cdbWriter,
 			storedFilePaths : make ([]string, 0, 16 * 1024),
@@ -742,8 +796,18 @@ func main_0 () (error) {
 			includeEtag : _includeEtag,
 			includeFileListing : _includeFileListing,
 			includeFolderListing : _includeFolderListing,
+			progress : _progress,
 			debug : _debug,
 		}
+	
+	_context.progressStarted = time.Now ()
+	
+	if _error := _context.cdbWriter.Put ([]byte (NamespaceSchemaVersion), []byte (CurrentSchemaVersion)); _error != nil {
+		AbortError (_error, "[43228812]  failed writing archive!")
+	}
+	_context.cdbWriteCount += 1
+	_context.cdbWriteKeySize += len (NamespaceSchemaVersion)
+	_context.cdbWriteDataSize += len (CurrentSchemaVersion)
 	
 	if _, _error := walkPath (_context, _sourcesFolder, "/", filepath.Base (_sourcesFolder), nil, true); _error != nil {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
@@ -755,9 +819,12 @@ func main_0 () (error) {
 			_buffer = append (_buffer, _path ...)
 			_buffer = append (_buffer, '\n')
 		}
-		if _error := _cdbWriter.Put ([]byte (NamespaceFilesIndex), _buffer); _error != nil {
+		if _error := _context.cdbWriter.Put ([]byte (NamespaceFilesIndex), _buffer); _error != nil {
 			AbortError (_error, "[1dbdde05]  failed writing archive!")
 		}
+		_context.cdbWriteCount += 1
+		_context.cdbWriteKeySize += len (NamespaceFilesIndex)
+		_context.cdbWriteDataSize += len (_buffer)
 	}
 	
 	if _includeFolderListing {
@@ -766,13 +833,32 @@ func main_0 () (error) {
 			_buffer = append (_buffer, _path ...)
 			_buffer = append (_buffer, '\n')
 		}
-		if _error := _cdbWriter.Put ([]byte (NamespaceFoldersIndex), _buffer); _error != nil {
+		if _error := _context.cdbWriter.Put ([]byte (NamespaceFoldersIndex), _buffer); _error != nil {
 			AbortError (_error, "[e2dd2de0]  failed writing archive!")
 		}
+		_context.cdbWriteCount += 1
+		_context.cdbWriteKeySize += len (NamespaceFilesIndex)
+		_context.cdbWriteDataSize += len (_buffer)
 	}
 	
-	if _error := _cdbWriter.Close (); _error != nil {
+	if _error := _context.cdbWriter.Close (); _error != nil {
 		AbortError (_error, "[bbfb8478]  failed creating archive (while closing)!")
+	}
+	_context.cdbWriter = nil
+	
+	if true {
+		log.Printf ("[  ] completed    -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
+				time.Since (_context.progressStarted) .Minutes (),
+				len (_context.storedFilePaths),
+				len (_context.storedFolderPaths),
+				float32 (_context.dataUncompressedSize) / 1024 / 1024,
+				float64 (_context.dataUncompressedSize) / 1024 / 1024 / (time.Since (_context.progressStarted) .Seconds () + 0.001),
+				_context.dataCompressedCount,
+				float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / 1024 / 1024,
+				(float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / float32 (_context.dataUncompressedSize) * 100),
+				_context.cdbWriteCount,
+				float32 (_context.cdbWriteKeySize + _context.cdbWriteDataSize) / 1024 / 1024,
+			)
 	}
 	
 	return nil
