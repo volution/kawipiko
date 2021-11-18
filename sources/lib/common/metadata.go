@@ -88,7 +88,7 @@ func MetadataDecodeIterate (_data []byte, _callback func ([]byte, []byte) ()) (e
 			return fmt.Errorf ("[41f3756c]  invalid metadata encoding")
 		}
 		_key := _data[: _separator]
-		_value := _data[_separator + 3 :]
+		_value := _data[_separator + 2 :]
 		if len (_key) == 0 {
 			return fmt.Errorf ("[c3f5e8f3]  invalid metadata encoding (empty key)")
 		}
