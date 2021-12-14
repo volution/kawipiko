@@ -594,6 +594,7 @@
 	"${ZRUN[@]}" ':: execute / archiver / debug' \
 			--sources ./examples/hello-world \
 			--archive ./examples/hello-world.cdb \
+			--progress \
 			--debug \
 			"${@}" \
 	#
@@ -610,6 +611,32 @@
 			--archive ./examples/hello-world.cdb \
 			--archive-inmem \
 			--index-all \
+			--processes 1 \
+			--threads 1 \
+			--debug \
+			"${@}" \
+	#
+!!
+
+
+
+
+<< examples / huge / archive
+	exec -- "${ZRUN[@]}" ':: execute / archiver / debug' \
+			--sources ./.outputs/examples/huge \
+			--archive ./.outputs/examples/huge.cdb \
+			--compress gzip \
+			--compress-cache ./.outputs/examples/huge-cache.db \
+			--progress \
+			"${@}" \
+	#
+!!
+
+<< examples / huge / serve
+	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
+			--bind 127.153.215.30:8080 \
+			--archive ./.outputs/examples/huge.cdb \
+			--archive-mmap \
 			--processes 1 \
 			--threads 1 \
 			--debug \

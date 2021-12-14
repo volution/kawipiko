@@ -20,6 +20,7 @@ import "syscall"
 import "time"
 
 import "github.com/colinmarc/cdb"
+import "go.etcd.io/bbolt"
 
 import . "github.com/volution/kawipiko/lib/common"
 import . "github.com/volution/kawipiko/lib/archiver"
@@ -40,6 +41,7 @@ type context struct {
 	storedFiles map[[2]uint64][2]string
 	archivedReferences uint
 	compress string
+	compressCache *bbolt.DB
 	dataUncompressedCount int
 	dataUncompressedSize int
 	dataCompressedCount int
@@ -414,40 +416,94 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 	_dataEncoding := "identity"
 	_dataUncompressedSize := len (_dataContent)
 	_dataSize := _dataUncompressedSize
-	if _dataSize > 512 {
-		if _dataContent_0, _dataEncoding_0, _error := Compress (_dataContent, _context.compress); _error == nil {
-			if _dataEncoding_0 != "identity" {
-				_dataCompressedSize := len (_dataContent_0)
-				_dataCompressedDelta := _dataUncompressedSize - _dataCompressedSize
-				_dataCompressedRatio := (_dataCompressedDelta * 100) / _dataUncompressedSize
-				_accepted := false
-				_accepted = _accepted || ((_dataUncompressedSize > (1024 * 1024)) && (_dataCompressedRatio >= 5))
-				_accepted = _accepted || ((_dataUncompressedSize > (64 * 1024)) && (_dataCompressedRatio >= 10))
-				_accepted = _accepted || ((_dataUncompressedSize > (32 * 1024)) && (_dataCompressedRatio >= 15))
-				_accepted = _accepted || ((_dataUncompressedSize > (16 * 1024)) && (_dataCompressedRatio >= 20))
-				_accepted = _accepted || ((_dataUncompressedSize > (8 * 1024)) && (_dataCompressedRatio >= 25))
-				_accepted = _accepted || ((_dataUncompressedSize > (4 * 1024)) && (_dataCompressedRatio >= 30))
-				_accepted = _accepted || ((_dataUncompressedSize > (2 * 1024)) && (_dataCompressedRatio >= 35))
-				_accepted = _accepted || ((_dataUncompressedSize > (1 * 1024)) && (_dataCompressedRatio >= 40))
-				_accepted = _accepted || (_dataCompressedRatio >= 90)
-				if _accepted {
-					_dataContent = _dataContent_0
-					_dataEncoding = _dataEncoding_0
-					_dataSize = _dataCompressedSize
-				}
-				if _dataSize < _dataUncompressedSize {
-					if _context.debug {
-						log.Printf ("[  ] compress          %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
-					}
+	
+	var _compressAlgorithm string
+	var _compressEncoding string
+	if _algorithm_0, _encoding_0, _error := CompressEncoding (_context.compress); _error == nil {
+		_compressAlgorithm = _algorithm_0
+		_compressEncoding = _encoding_0
+	} else {
+		return "", nil, nil, _error
+	}
+	
+	if (_dataSize > 512) && (_compressAlgorithm != "identity") {
+		
+		var _dataCompressed []byte
+		var _dataCompressedCached bool
+		
+		if _context.compressCache != nil {
+			_cacheTxn, _error := _context.compressCache.Begin (false)
+			if _error != nil {
+				AbortError (_error, "[91a5b78a]  unexpected compression cache error!")
+			}
+			_cacheBucket := _cacheTxn.Bucket ([]byte (_compressAlgorithm))
+			if _cacheBucket != nil {
+				_dataCompressed = _cacheBucket.Get (_fingerprintContentRaw[:])
+				_dataCompressedCached = _dataCompressed != nil
+			}
+			if _error := _cacheTxn.Rollback (); _error != nil {
+				AbortError (_error, "[a06cfe46]  unexpected compression cache error!")
+			}
+		}
+		
+		if _dataCompressed == nil {
+			if _data_0, _error := Compress (_dataContent, _compressAlgorithm); _error == nil {
+				_dataCompressed = _data_0
+			} else {
+				return "", nil, nil, _error
+			}
+		}
+		
+		_dataCompressedSize := len (_dataCompressed)
+		_dataCompressedDelta := _dataUncompressedSize - _dataCompressedSize
+		_dataCompressedRatio := (_dataCompressedDelta * 100) / _dataUncompressedSize
+		_accepted := false
+		_accepted = _accepted || ((_dataUncompressedSize > (1024 * 1024)) && (_dataCompressedRatio >= 5))
+		_accepted = _accepted || ((_dataUncompressedSize > (64 * 1024)) && (_dataCompressedRatio >= 10))
+		_accepted = _accepted || ((_dataUncompressedSize > (32 * 1024)) && (_dataCompressedRatio >= 15))
+		_accepted = _accepted || ((_dataUncompressedSize > (16 * 1024)) && (_dataCompressedRatio >= 20))
+		_accepted = _accepted || ((_dataUncompressedSize > (8 * 1024)) && (_dataCompressedRatio >= 25))
+		_accepted = _accepted || ((_dataUncompressedSize > (4 * 1024)) && (_dataCompressedRatio >= 30))
+		_accepted = _accepted || ((_dataUncompressedSize > (2 * 1024)) && (_dataCompressedRatio >= 35))
+		_accepted = _accepted || ((_dataUncompressedSize > (1 * 1024)) && (_dataCompressedRatio >= 40))
+		_accepted = _accepted || (_dataCompressedRatio >= 90)
+		if _accepted {
+			_dataContent = _dataCompressed
+			_dataEncoding = _compressEncoding
+			_dataSize = _dataCompressedSize
+		}
+		
+		if (_context.compressCache != nil) && !_dataCompressedCached && _accepted {
+			_cacheTxn, _error := _context.compressCache.Begin (true)
+			if _error != nil {
+				AbortError (_error, "[ddbe6a70]  unexpected compression cache error!")
+			}
+			_cacheBucket := _cacheTxn.Bucket ([]byte (_compressAlgorithm))
+			if _cacheBucket == nil {
+				if _bucket_0, _error := _cacheTxn.CreateBucket ([]byte (_compressAlgorithm)); _error == nil {
+					_cacheBucket = _bucket_0
 				} else {
-					if _context.debug {
-						log.Printf ("[  ] compress-NOK      %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
-					}
+					AbortError (_error, "[b7766792]  unexpected compression cache error!")
 				}
 			}
-		} else {
-			return "", nil, nil, _error
+			if _error := _cacheBucket.Put (_fingerprintContentRaw[:], _dataCompressed); _error != nil {
+				AbortError (_error, "[51d57220]  unexpected compression cache error!")
+			}
+			if _error := _cacheTxn.Commit (); _error != nil {
+				AbortError (_error, "[a47c7c10]  unexpected compression cache error!")
+			}
 		}
+		
+		if _dataSize < _dataUncompressedSize {
+			if _context.debug {
+				log.Printf ("[  ] compress          %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
+			}
+		} else {
+			if _context.debug {
+				log.Printf ("[  ] compress-NOK      %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
+			}
+		}
+		
 	} else {
 		if _context.debug && (_context.compress != "identity") {
 			log.Printf ("[  ] compress-NOK         %8d          `%s`\n", _dataUncompressedSize, _pathInArchive)
@@ -689,6 +745,7 @@ func main_0 () (error) {
 	var _sourcesFolder string
 	var _archiveFile string
 	var _compress string
+	var _compressCache string
 	var _includeIndex bool
 	var _includeStripped bool
 	var _includeCache bool
@@ -720,7 +777,9 @@ func main_0 () (error) {
     --sources <path>
 
     --archive <path>
+
     --compress <gzip | zopfli | brotli | identity>
+    --compress-cache <path>
 
     --exclude-index
     --exclude-strip
@@ -742,6 +801,7 @@ func main_0 () (error) {
 		_sourcesFolder_0 := _flags.String ("sources", "", "")
 		_archiveFile_0 := _flags.String ("archive", "", "")
 		_compress_0 := _flags.String ("compress", "", "")
+		_compressCache_0 := _flags.String ("compress-cache", "", "")
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
 		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
 		_excludeCache_0 := _flags.Bool ("exclude-cache", false, "")
@@ -756,6 +816,7 @@ func main_0 () (error) {
 		_sourcesFolder = *_sourcesFolder_0
 		_archiveFile = *_archiveFile_0
 		_compress = *_compress_0
+		_compressCache = *_compressCache_0
 		_includeIndex = ! *_excludeIndex_0
 		_includeStripped = ! *_excludeStripped_0
 		_includeCache = ! *_excludeCache_0
@@ -775,10 +836,25 @@ func main_0 () (error) {
 	
 	
 	var _cdbWriter *cdb.Writer
-	if _cdbWriter_0, _error := cdb.Create (_archiveFile); _error == nil {
-		_cdbWriter = _cdbWriter_0
+	if _db_0, _error := cdb.Create (_archiveFile); _error == nil {
+		_cdbWriter = _db_0
 	} else {
 		AbortError (_error, "[85234ba0]  failed creating archive (while opening)!")
+	}
+	
+	var _compressCacheDb *bbolt.DB
+	if _compressCache != "" {
+		_options := bbolt.Options {
+				PageSize : 16 * 1024,
+				InitialMmapSize : 1 * 1024 * 1024,
+				NoFreelistSync : true,
+				NoSync : true,
+			}
+		if _db_0, _error := bbolt.Open (_compressCache, 0600, &_options); _error == nil {
+			_compressCacheDb = _db_0
+		} else {
+			AbortError (_error, "[eaff07f6]  failed opening compression cache!")
+		}
 	}
 	
 	_context := & context {
@@ -790,6 +866,7 @@ func main_0 () (error) {
 			storedDataContentMeta : make (map[string]map[string]string, 16 * 1024),
 			storedFiles : make (map[[2]uint64][2]string, 16 * 1024),
 			compress : _compress,
+			compressCache : _compressCacheDb,
 			includeIndex : _includeIndex,
 			includeStripped : _includeStripped,
 			includeCache : _includeCache,
@@ -845,6 +922,12 @@ func main_0 () (error) {
 		AbortError (_error, "[bbfb8478]  failed creating archive (while closing)!")
 	}
 	_context.cdbWriter = nil
+	
+	if _context.compressCache != nil {
+		if _error := _context.compressCache.Close (); _error != nil {
+			AbortError (_error, "[53cbe28d]  failed closing compression cache!")
+		}
+	}
 	
 	if true {
 		log.Printf ("[  ] completed    -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",

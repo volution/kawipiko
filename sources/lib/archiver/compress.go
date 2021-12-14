@@ -14,7 +14,7 @@ import "github.com/andybalholm/brotli"
 
 
 
-func Compress (_data []byte, _algorithm string) ([]byte, string, error) {
+func Compress (_data []byte, _algorithm string) ([]byte, error) {
 	switch _algorithm {
 		case "gz", "gzip" :
 			return CompressGzip (_data)
@@ -23,16 +23,32 @@ func Compress (_data []byte, _algorithm string) ([]byte, string, error) {
 		case "br", "brotli" :
 			return CompressBrotli (_data)
 		case "", "none", "identity" :
-			return _data, "identity", nil
+			return _data, nil
 		default :
-			return nil, "", fmt.Errorf ("[ea23f966]  invalid compression algorithm `%s`", _algorithm)
+			return nil, fmt.Errorf ("[ea23f966]  invalid compression algorithm `%s`", _algorithm)
+	}
+}
+
+
+func CompressEncoding (_algorithm string) (string, string, error) {
+	switch _algorithm {
+		case "gz", "gzip" :
+			return "gzip", "gzip", nil
+		case "zopfli" :
+			return "zopfli", "gzip", nil
+		case "br", "brotli" :
+			return "brotli", "br", nil
+		case "", "none", "identity" :
+			return "identity", "identity", nil
+		default :
+			return "", "", fmt.Errorf ("[6026a403]  invalid compression algorithm `%s`", _algorithm)
 	}
 }
 
 
 
 
-func CompressGzip (_data []byte) ([]byte, string, error) {
+func CompressGzip (_data []byte) ([]byte, error) {
 	
 	_buffer := & bytes.Buffer {}
 	
@@ -40,24 +56,24 @@ func CompressGzip (_data []byte) ([]byte, string, error) {
 	if _encoder_0, _error := gzip.NewWriterLevel (_buffer, gzip.BestCompression); _error == nil {
 		_encoder = _encoder_0
 	} else {
-		return nil, "", _error
+		return nil, _error
 	}
 	
 	if _, _error := _encoder.Write (_data); _error != nil {
-		return nil, "", _error
+		return nil, _error
 	}
 	if _error := _encoder.Close (); _error != nil {
-		return nil, "", _error
+		return nil, _error
 	}
 	
 	_data = _buffer.Bytes ()
-	return _data, "gzip", nil
+	return _data, nil
 }
 
 
 
 
-func CompressZopfli (_data []byte) ([]byte, string, error) {
+func CompressZopfli (_data []byte) ([]byte, error) {
 	
 	_buffer := & bytes.Buffer {}
 	
@@ -69,17 +85,17 @@ func CompressZopfli (_data []byte) ([]byte, string, error) {
 	_options.BlockType = zopfli.DYNAMIC_BLOCK
 	
 	if _error := zopfli.GzipCompress (&_options, _data, _buffer); _error != nil {
-		return nil, "", _error
+		return nil, _error
 	}
 	
 	_data = _buffer.Bytes ()
-	return _data, "gzip", nil
+	return _data, nil
 }
 
 
 
 
-func CompressBrotli (_data []byte) ([]byte, string, error) {
+func CompressBrotli (_data []byte) ([]byte, error) {
 	
 	_buffer := & bytes.Buffer {}
 	
@@ -88,13 +104,13 @@ func CompressBrotli (_data []byte) ([]byte, string, error) {
 	_encoder := brotli.NewWriterOptions (_buffer, _options)
 	
 	if _, _error := _encoder.Write (_data); _error != nil {
-		return nil, "", _error
+		return nil, _error
 	}
 	if _error := _encoder.Close (); _error != nil {
-		return nil, "", _error
+		return nil, _error
 	}
 	
 	_data = _buffer.Bytes ()
-	return _data, "br", nil
+	return _data, nil
 }
 
