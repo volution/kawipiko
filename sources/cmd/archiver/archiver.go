@@ -3,7 +3,6 @@
 package archiver
 
 
-import "crypto/sha256"
 import "encoding/hex"
 import "encoding/json"
 import "flag"
@@ -20,6 +19,7 @@ import "syscall"
 import "time"
 
 import "github.com/colinmarc/cdb"
+import "github.com/zeebo/blake3"
 import "go.etcd.io/bbolt"
 
 import . "github.com/volution/kawipiko/lib/common"
@@ -93,7 +93,7 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 	}
 	
 	_fileIdText := fmt.Sprintf ("%d.%d-%d-%d.%d", _fileDev, _fileInode, _fileSize, _fileTimestamp[0], _fileTimestamp[1])
-	_fileIdRaw := sha256.Sum256 ([]byte (_fileIdText))
+	_fileIdRaw := blake3.Sum256 ([]byte (_fileIdText))
 	_fileId := hex.EncodeToString (_fileIdRaw[:])
 	
 	var _wasStored bool
@@ -492,7 +492,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		} else {
 			return "", nil, nil, _error
 		}
-		_fingerprintContentRaw := sha256.Sum256 (_dataContent)
+		_fingerprintContentRaw := blake3.Sum256 (_dataContent)
 		_fingerprintContent = hex.EncodeToString (_fingerprintContentRaw[:])
 		_dataSize = len (_dataContent)
 	}
@@ -697,7 +697,7 @@ func prepareDataMeta (_context *context, _dataMeta map[string]string) (string, [
 		return "", nil, _error
 	}
 	
-	_fingerprintMetaRaw := sha256.Sum256 (_dataMetaRaw)
+	_fingerprintMetaRaw := blake3.Sum256 (_dataMetaRaw)
 	_fingerprintMeta := hex.EncodeToString (_fingerprintMetaRaw[:])
 	
 	if _wasStored, _ := _context.storedDataMeta[_fingerprintMeta]; _wasStored {
