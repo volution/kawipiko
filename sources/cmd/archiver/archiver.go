@@ -65,20 +65,11 @@ type context struct {
 
 func archiveFile (_context *context, _pathResolved string, _pathInArchive string, _name string) (error) {
 	
-	var _file *os.File
-	if _file_0, _error := os.Open (_pathResolved); _error == nil {
-		_file = _file_0
-	} else {
-		return _error
-	}
-	
-	defer _file.Close ()
-	
 	var _fileDev uint64
 	var _fileInode uint64
 	var _fileSize uint64
 	var _fileTimestamp [2]uint64
-	if _stat, _error := _file.Stat (); _error == nil {
+	if _stat, _error := os.Stat (_pathResolved); _error == nil {
 		_stat := _stat.Sys()
 		if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
 			_fileDev = uint64 (_stat.Dev)
@@ -114,6 +105,30 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 		_dataContentRead := func () ([]byte, error) {
 				if _context.debug {
 					log.Printf ("[dd] [30ef6c2f]  file         <= `%s`\n", _pathInArchive)
+				}
+				var _file *os.File
+				if _file_0, _error := os.Open (_pathResolved); _error == nil {
+					_file = _file_0
+				} else {
+					return nil, _error
+				}
+				defer _file.Close ()
+				if _stat, _error := _file.Stat (); _error == nil {
+					_stat := _stat.Sys()
+					if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
+						if (
+								(_fileDev != uint64 (_stat.Dev)) ||
+								(_fileInode != uint64 (_stat.Ino)) ||
+								(_fileSize != uint64 (_stat.Size)) ||
+								(_fileTimestamp[0] != uint64 (_stat.Mtim.Sec)) ||
+								(_fileTimestamp[1] != uint64 (_stat.Mtim.Nsec))) {
+							return nil, fmt.Errorf ("[3a07643b]  file changed while reading:  `%s`!", _pathResolved)
+						}
+					} else {
+						return nil, fmt.Errorf ("[4daf593a]  failed `stat`-ing:  `%s`!", _pathResolved)
+					}
+				} else {
+					return nil, _error
 				}
 				var _data []byte
 				if _data_0, _error := ioutil.ReadAll (_file); _error == nil {
