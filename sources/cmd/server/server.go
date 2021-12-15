@@ -218,13 +218,14 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		return
 	}
 	
-	if len (_fingerprints) != 129 {
+	_fingerprintsSplit := bytes.IndexByte (_fingerprints, ':')
+	if _fingerprintsSplit < 0 {
 		log.Printf ("[ee] [7ee6c981]  invalid data fingerprints for `%s`!\n", _requestHeaders.RequestURI ())
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
-	_fingerprintContent := _fingerprints[0:64]
-	_fingerprintMeta := _fingerprints[65:129]
+	_fingerprintMeta := _fingerprints[:_fingerprintsSplit]
+	_fingerprintContent := _fingerprints[_fingerprintsSplit + 1:]
 	
 	var _data []byte
 	if _server.cachedDataContent != nil {
@@ -990,8 +991,12 @@ func main_0 () (error) {
 						if _fingerprints_0, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
 							if _fingerprints_0 != nil {
 								_fingerprints = _fingerprints_0
-								_fingerprintContent = _fingerprints[0:64]
-								_fingerprintMeta = _fingerprints[65:129]
+								_fingerprintsSplit := bytes.IndexByte (_fingerprints, ':')
+								if _fingerprintsSplit < 0 {
+									AbortError (nil, "[aa6e678f]  failed indexing archive!")
+								}
+								_fingerprintMeta = _fingerprints[:_fingerprintsSplit]
+								_fingerprintContent = _fingerprints[_fingerprintsSplit + 1:]
 							} else {
 								AbortError (_error, "[460b3cf1]  failed indexing archive!")
 							}

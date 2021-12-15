@@ -39,6 +39,7 @@ type context struct {
 	storedDataContent map[string]bool
 	storedDataContentMeta map[string]map[string]string
 	storedFiles map[[2]uint64][2]string
+	storedKeys map[string]string
 	archivedReferences uint
 	compress string
 	compressCache *bbolt.DB
@@ -291,7 +292,12 @@ func archiveDataContent (_context *context, _fingerprintContent string, _dataCon
 	}
 	
 	{
-		_key := fmt.Sprintf ("%s:%s", NamespaceDataContent, _fingerprintContent)
+		var _key string
+		if _key_0, _error := prepareKey (_context, NamespaceDataContent, _fingerprintContent); _error == nil {
+			_key = fmt.Sprintf ("%s:%s", NamespaceDataContent, _key_0)
+		} else {
+			return _error
+		}
 		if _context.debug {
 			log.Printf ("[  ] data-content ++ `%s`\n", _key)
 		}
@@ -316,7 +322,12 @@ func archiveDataMeta (_context *context, _fingerprintMeta string, _dataMeta []by
 	}
 	
 	{
-		_key := fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _fingerprintMeta)
+		var _key string
+		if _key_0, _error := prepareKey (_context, NamespaceDataMetadata, _fingerprintMeta); _error == nil {
+			_key = fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _key_0)
+		} else {
+			return _error
+		}
 		if _context.debug {
 			log.Printf ("[  ] data-meta    ++ `%s`\n", _key)
 		}
@@ -348,19 +359,31 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 	}
 	_context.archivedReferences += 1
 	
+	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
+	
+	var _keyMeta, _keyContent string
+	if _key_0, _error := prepareKey (_context, NamespaceDataMetadata, _fingerprintMeta); _error == nil {
+		_keyMeta = _key_0
+	} else {
+		return _error
+	}
+	if _key_0, _error := prepareKey (_context, NamespaceDataContent, _fingerprintContent); _error == nil {
+		_keyContent = _key_0
+	} else {
+		return _error
+	}
+	_references := fmt.Sprintf ("%s:%s", _keyMeta, _keyContent)
+	
 	if _context.debug {
-		log.Printf ("[  ] reference    ++ `%s` :: `%s` -> `%s` ~ `%s`\n", _namespace, _pathInArchive, _fingerprintContent[:16], _fingerprintMeta[:16])
+		log.Printf ("[  ] reference    ++ `%s` :: `%s` -> `%s` ~ `%s`\n", _namespace, _pathInArchive, _keyMeta, _keyContent)
 	}
 	
-	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
-	_fingerprints := fmt.Sprintf ("%s:%s", _fingerprintContent, _fingerprintMeta)
-	
-	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_fingerprints)); _error != nil {
+	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_references)); _error != nil {
 		return _error
 	}
 	_context.cdbWriteCount += 1
 	_context.cdbWriteKeySize += len (_key)
-	_context.cdbWriteDataSize += len (_fingerprints)
+	_context.cdbWriteDataSize += len (_references)
 	
 	if _context.progress {
 		if _context.archivedReferences <= 1 {
@@ -553,6 +576,23 @@ func prepareDataMeta (_context *context, _dataMeta map[string]string) (string, [
 	}
 	
 	return _fingerprintMeta, _dataMetaRaw, nil
+}
+
+
+
+
+func prepareKey (_context *context, _namespace string, _fingerprint string) (string, error) {
+	_qualified := fmt.Sprintf ("%s:%s", _namespace, _fingerprint)
+	if _key, _found := _context.storedKeys[_qualified]; _found {
+		return _key, nil
+	}
+	_keyIndex := len (_context.storedKeys) + 1
+	if _keyIndex >= (1 << 32) {
+		return "", fmt.Errorf ("[aba09b4d]  maximum stored keys reached!")
+	}
+	_key := fmt.Sprintf ("%x", _keyIndex)
+	_context.storedKeys[_qualified] = _key
+	return _key, nil
 }
 
 
@@ -865,6 +905,7 @@ func main_0 () (error) {
 			storedDataContent : make (map[string]bool, 16 * 1024),
 			storedDataContentMeta : make (map[string]map[string]string, 16 * 1024),
 			storedFiles : make (map[[2]uint64][2]string, 16 * 1024),
+			storedKeys : make (map[string]string, 16 * 1024),
 			compress : _compress,
 			compressCache : _compressCacheDb,
 			includeIndex : _includeIndex,
