@@ -449,7 +449,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		return "", nil, nil, _error
 	}
 	
-	if (_dataSize > 512) && (_compressAlgorithm != "identity") {
+	if _compressAlgorithm != "identity" {
 		
 		var _dataCompressed []byte
 		var _dataCompressedCached bool
