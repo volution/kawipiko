@@ -42,6 +42,7 @@ type context struct {
 	storedKeys map[string]string
 	archivedReferences uint
 	compress string
+	compressLevel int
 	compressCache *bbolt.DB
 	sourcesCache *bbolt.DB
 	dataUncompressedCount int
@@ -584,12 +585,14 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		var _dataCompressed []byte
 		var _dataCompressedCached bool
 		
+		_cacheBucketName := fmt.Sprintf ("%s:%d", _compressAlgorithm, _context.compressLevel)
+		
 		if _context.compressCache != nil {
 			_cacheTxn, _error := _context.compressCache.Begin (false)
 			if _error != nil {
 				AbortError (_error, "[91a5b78a]  unexpected compression cache error!")
 			}
-			_cacheBucket := _cacheTxn.Bucket ([]byte (_compressAlgorithm))
+			_cacheBucket := _cacheTxn.Bucket ([]byte (_cacheBucketName))
 			if _cacheBucket != nil {
 				_dataCompressed = _cacheBucket.Get ([]byte (_fingerprintContent))
 				_dataCompressedCached = _dataCompressed != nil
@@ -607,7 +610,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 					return "", nil, nil, _error
 				}
 			}
-			if _data_0, _error := Compress (_dataContent, _compressAlgorithm); _error == nil {
+			if _data_0, _error := Compress (_dataContent, _compressAlgorithm, _context.compressLevel); _error == nil {
 				_dataCompressed = _data_0
 			} else {
 				return "", nil, nil, _error
@@ -638,9 +641,9 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 			if _error != nil {
 				AbortError (_error, "[ddbe6a70]  unexpected compression cache error!")
 			}
-			_cacheBucket := _cacheTxn.Bucket ([]byte (_compressAlgorithm))
+			_cacheBucket := _cacheTxn.Bucket ([]byte (_cacheBucketName))
 			if _cacheBucket == nil {
-				if _bucket_0, _error := _cacheTxn.CreateBucket ([]byte (_compressAlgorithm)); _error == nil {
+				if _bucket_0, _error := _cacheTxn.CreateBucket ([]byte (_cacheBucketName)); _error == nil {
 					_cacheBucket = _bucket_0
 				} else {
 					AbortError (_error, "[b7766792]  unexpected compression cache error!")
@@ -932,6 +935,7 @@ func main_0 () (error) {
 	var _sourcesCache string
 	var _archiveFile string
 	var _compress string
+	var _compressLevel int
 	var _compressCache string
 	var _includeIndex bool
 	var _includeStripped bool
@@ -966,6 +970,7 @@ func main_0 () (error) {
     --archive <path>
 
     --compress <gzip | zopfli | brotli | identity>
+    --compress-level <number>
     --compress-cache <path>
 
     --exclude-index
@@ -989,6 +994,7 @@ func main_0 () (error) {
 		_sourcesCache_0 := _flags.String ("sources-cache", "", "")
 		_archiveFile_0 := _flags.String ("archive", "", "")
 		_compress_0 := _flags.String ("compress", "", "")
+		_compressLevel_0 := _flags.Int ("compress-level", -1, "")
 		_compressCache_0 := _flags.String ("compress-cache", "", "")
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
 		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
@@ -1005,6 +1011,7 @@ func main_0 () (error) {
 		_sourcesCache = *_sourcesCache_0
 		_archiveFile = *_archiveFile_0
 		_compress = *_compress_0
+		_compressLevel = *_compressLevel_0
 		_compressCache = *_compressCache_0
 		_includeIndex = ! *_excludeIndex_0
 		_includeStripped = ! *_excludeStripped_0
@@ -1071,6 +1078,7 @@ func main_0 () (error) {
 			storedFiles : make (map[string][2]string, 16 * 1024),
 			storedKeys : make (map[string]string, 16 * 1024),
 			compress : _compress,
+			compressLevel : _compressLevel,
 			compressCache : _compressCacheDb,
 			sourcesCache : _sourcesCacheDb,
 			includeIndex : _includeIndex,
