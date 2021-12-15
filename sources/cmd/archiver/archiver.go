@@ -299,7 +299,7 @@ func archiveDataContent (_context *context, _fingerprintContent string, _dataCon
 			return _error
 		}
 		if _context.debug {
-			log.Printf ("[  ] data-content ++ `%s`\n", _key)
+			log.Printf ("[dd] [085d83ec]  data-content ++ `%s` %d\n", _key, len (_dataContent))
 		}
 		if _error := _context.cdbWriter.Put ([]byte (_key), _dataContent); _error != nil {
 			return _error
@@ -329,7 +329,7 @@ func archiveDataMeta (_context *context, _fingerprintMeta string, _dataMeta []by
 			return _error
 		}
 		if _context.debug {
-			log.Printf ("[  ] data-meta    ++ `%s`\n", _key)
+			log.Printf ("[dd] [07737b98]  data-meta    ++ `%s` %d\n", _key, len (_dataMeta))
 		}
 		if _error := _context.cdbWriter.Put ([]byte (_key), _dataMeta); _error != nil {
 			return _error
@@ -375,7 +375,7 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 	_references := fmt.Sprintf ("%s:%s", _keyMeta, _keyContent)
 	
 	if _context.debug {
-		log.Printf ("[  ] reference    ++ `%s` :: `%s` -> `%s` ~ `%s`\n", _namespace, _pathInArchive, _keyMeta, _keyContent)
+		log.Printf ("[dd] [2b9c053a]  reference    ++ `%s` :: `%s` -> `%s` ~ `%s`\n", _namespace, _pathInArchive, _keyMeta, _keyContent)
 	}
 	
 	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_references)); _error != nil {
@@ -390,7 +390,7 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 			_context.progressLast = time.Now ()
 		}
 		if ((_context.archivedReferences % 1000) == 0) || (((_context.archivedReferences % 10) == 0) && (time.Since (_context.progressLast) .Seconds () >= 6)) {
-			log.Printf ("[  ] pogress      -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
+			log.Printf ("[ii] [5193276e]  pogress      -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
 					time.Since (_context.progressStarted) .Minutes (),
 					len (_context.storedFilePaths),
 					len (_context.storedFolderPaths),
@@ -479,7 +479,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		
 		_dataCompressedSize := len (_dataCompressed)
 		_dataCompressedDelta := _dataUncompressedSize - _dataCompressedSize
-		_dataCompressedRatio := (_dataCompressedDelta * 100) / _dataUncompressedSize
+		_dataCompressedRatio := float32 (_dataCompressedDelta) * 100 / float32 (_dataUncompressedSize)
 		_accepted := false
 		_accepted = _accepted || ((_dataUncompressedSize > (1024 * 1024)) && (_dataCompressedRatio >= 5))
 		_accepted = _accepted || ((_dataUncompressedSize > (64 * 1024)) && (_dataCompressedRatio >= 10))
@@ -519,17 +519,17 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		
 		if _dataSize < _dataUncompressedSize {
 			if _context.debug {
-				log.Printf ("[  ] compress          %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
+				log.Printf ("[dd] [271e48d6]  compress     -- %.1f%% %d (%d) `%s`\n", _dataCompressedRatio, _dataCompressedSize, _dataCompressedDelta, _pathInArchive)
 			}
 		} else {
-			if _context.debug {
-				log.Printf ("[  ] compress-NOK      %02d %8d %8d `%s`\n", _dataCompressedRatio, _dataUncompressedSize, _dataCompressedDelta, _pathInArchive)
+			if _context.debug || _context.progress {
+				log.Printf ("[dd] [2174c2d6]  compress-NOK -- %.1f%% %d (%d) `%s`\n", _dataCompressedRatio, _dataCompressedSize, _dataCompressedDelta, _pathInArchive)
 			}
 		}
 		
 	} else {
 		if _context.debug && (_context.compress != "identity") {
-			log.Printf ("[  ] compress-NOK         %8d          `%s`\n", _dataUncompressedSize, _pathInArchive)
+			log.Printf ("[dd] [a9d7a281]  compress-NOK -- %d `%s`\n", _dataUncompressedSize, _pathInArchive)
 		}
 	}
 	
@@ -638,14 +638,14 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 	}
 	
 	if _isSymlink && _context.debug {
-		log.Printf ("[  ] symlink      :: `%s` -> `%s`\n", _pathInArchive, _pathResolved)
+		log.Printf ("[dd] [7eed523e]  symlink      -- `%s` -> `%s`\n", _pathInArchive, _pathResolved)
 	}
 	
 	
 	if _statMode.IsRegular () {
 		
 		if _context.debug {
-			log.Printf ("[  ] file         :: `%s`\n", _pathInArchive)
+			log.Printf ("[dd] [da429eaa]  file         -- `%s`\n", _pathInArchive)
 		}
 		if _error := archiveFile (_context, _pathResolved, _pathInArchive, _name); _error != nil {
 			return nil, _error
@@ -669,15 +669,15 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		var _wildcardName string
 		
 		if _context.debug {
-			log.Printf ("[  ] folder       >> `%s`\n", _pathInArchive)
+			log.Printf ("[dd] [2d22d910]  folder       |> `%s`\n", _pathInArchive)
 		}
 		if _stream, _error := os.Open (_pathResolved); _error == nil {
 			defer _stream.Close ()
 			_loop : for {
 				switch _buffer, _error := _stream.Readdir (1024); _error {
 					case nil :
-						if _context.debug && (len (_childsStat) > 0) {
-							log.Printf ("[  ] folder       ~~ `%s` ~~ %d\n", _pathInArchive, len (_childsStat))
+						if _context.debug && (len (_buffer) > 0) {
+							log.Printf ("[dd] [d4c30c66]  folder       |~ `%s` %d\n", _pathInArchive, len (_buffer))
 						}
 						for _, _childStat := range _buffer {
 							
@@ -701,7 +701,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 							}
 							if ShouldSkipName (_childName) {
 								if _context.debug {
-									log.Printf ("[  ] skip         !! `%s`\n", _childPathInArchive)
+									log.Printf ("[dd] [f11b5ba1]  skip         !! `%s`\n", _childPathInArchive)
 								}
 								continue
 							}
@@ -716,13 +716,13 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 			}
 		}
 		if _context.debug {
-			log.Printf ("[  ] folder       << `%s`\n", _pathInArchive)
+			log.Printf ("[dd] [2d61b965]  folder       |< `%s`\n", _pathInArchive)
 		}
 		
 		sort.Strings (_childsName)
 		
 		if _context.debug {
-			log.Printf ("[  ] folder       :: `%s`\n", _pathInArchive)
+			log.Printf ("[dd] [a4475a48]  folder       -- `%s`\n", _pathInArchive)
 		}
 		if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _childsName, _childsStat); _error != nil {
 			return nil, _error
@@ -736,7 +736,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		}
 		
 		if _context.debug {
-			log.Printf ("[  ] folder       >> `%s`\n", _pathInArchive)
+			log.Printf ("[dd] [ce1fe181]  folder       |> `%s`\n", _pathInArchive)
 		}
 		for _, _childName := range _childsName {
 			if _childsStat[_childName] .Mode () .IsRegular () {
@@ -760,7 +760,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 			}
 		}
 		if _context.debug {
-			log.Printf ("[  ] folder       << `%s`\n", _pathInArchive)
+			log.Printf ("[dd] [6b7de03b]  folder       |< `%s`\n", _pathInArchive)
 		}
 		
 		_recursed[_pathResolved] = _wasRecursed
@@ -971,7 +971,7 @@ func main_0 () (error) {
 	}
 	
 	if true {
-		log.Printf ("[  ] completed    -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
+		log.Printf ("[ii] [56f63575]  completed    -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
 				time.Since (_context.progressStarted) .Minutes (),
 				len (_context.storedFilePaths),
 				len (_context.storedFolderPaths),
