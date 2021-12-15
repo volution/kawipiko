@@ -444,15 +444,16 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 		if _context.archivedReferences <= 1 {
 			_context.progressLast = time.Now ()
 		}
-		if ((_context.archivedReferences % 1000) == 0) || (((_context.archivedReferences % 10) == 0) && (time.Since (_context.progressLast) .Seconds () >= 6)) {
-			log.Printf ("[ii] [5193276e]  pogress      -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
+		if (
+				(((_context.archivedReferences % 1000) == 0) && (time.Since (_context.progressLast) .Seconds () >= 2)) ||
+				(((_context.archivedReferences % 10) == 0) && (time.Since (_context.progressLast) .Seconds () >= 6))) {
+			log.Printf ("[ii] [5193276e]  pogress      -- %0.2f min -- %d fil, %d fol, %0.2f M (%0.2f M/s) -- %d comp, %0.2f%% -- %d rec, %0.2f M\n",
 					time.Since (_context.progressStarted) .Minutes (),
 					len (_context.storedFilePaths),
 					len (_context.storedFolderPaths),
 					float32 (_context.dataUncompressedSize) / 1024 / 1024,
 					float64 (_context.dataUncompressedSize) / 1024 / 1024 / (time.Since (_context.progressStarted) .Seconds () + 0.001),
 					_context.dataCompressedCount,
-					float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / 1024 / 1024,
 					(float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / float32 (_context.dataUncompressedSize) * 100),
 					_context.cdbWriteCount,
 					float32 (_context.cdbWriteKeySize + _context.cdbWriteDataSize) / 1024 / 1024,
@@ -1150,14 +1151,13 @@ func main_0 () (error) {
 	}
 	
 	if true {
-		log.Printf ("[ii] [56f63575]  completed    -- %0.2f minutes -- %d files, %d folders, %0.2f MiB (%0.2f MiB/s) -- %d compressed (%0.2f MiB, %0.2f%%) -- %d records (%0.2f MiB)\n",
+		log.Printf ("[ii] [56f63575]  completed    -- %0.2f min -- %d fil, %d fol, %0.2f M (%0.2f M/s) -- %d comp, %0.2f%% -- %d rec, %0.2f M\n",
 				time.Since (_context.progressStarted) .Minutes (),
 				len (_context.storedFilePaths),
 				len (_context.storedFolderPaths),
 				float32 (_context.dataUncompressedSize) / 1024 / 1024,
 				float64 (_context.dataUncompressedSize) / 1024 / 1024 / (time.Since (_context.progressStarted) .Seconds () + 0.001),
 				_context.dataCompressedCount,
-				float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / 1024 / 1024,
 				(float32 (_context.dataUncompressedSize - _context.dataCompressedSize) / float32 (_context.dataUncompressedSize) * 100),
 				_context.cdbWriteCount,
 				float32 (_context.cdbWriteKeySize + _context.cdbWriteDataSize) / 1024 / 1024,

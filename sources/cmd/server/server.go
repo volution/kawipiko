@@ -440,6 +440,9 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 
 
 func Main () () {
+	
+	log.SetPrefix (fmt.Sprintf ("[%8d] ", os.Getpid ()))
+	
 	Main_0 (main_0)
 }
 
