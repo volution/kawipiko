@@ -1,38 +1,38 @@
 
-+14,46
-schema:version
-2018-11-20-a--27c59009ca1e08a247b0de12293c9275
++1,5
+s
+2021a
 
-+15,129
-files:content:/
-0ba904eae8773b70c75333db4de2f3ac45a8ad4ddba1b242f0b3cfc199391dd8:9490314035f939400f89bd151efbd9ebc867e62eddfb85bee41849dc218717d5
++3,3
+f:/
+1:2
 
-+78,117
-data:metadata:9490314035f939400f89bd151efbd9ebc867e62eddfb85bee41849dc218717d5
++3,117
+m:1
 Cache-Control: public, immutable, max-age=3600
 Content-Encoding: identity
 Content-Type: text/plain; charset=utf-8
 
 
-+77,13
-data:content:0ba904eae8773b70c75333db4de2f3ac45a8ad4ddba1b242f0b3cfc199391dd8
++3,13
+c:2
 Hello world!
 
 
-+16,129
-files:content:/*
-0ba904eae8773b70c75333db4de2f3ac45a8ad4ddba1b242f0b3cfc199391dd8:9490314035f939400f89bd151efbd9ebc867e62eddfb85bee41849dc218717d5
++4,3
+f:/*
+1:2
 
-+20,129
-files:content:/index
-0ba904eae8773b70c75333db4de2f3ac45a8ad4ddba1b242f0b3cfc199391dd8:9490314035f939400f89bd151efbd9ebc867e62eddfb85bee41849dc218717d5
++8,3
+f:/index
+1:2
 
-+24,129
-files:content:/index.txt
-0ba904eae8773b70c75333db4de2f3ac45a8ad4ddba1b242f0b3cfc199391dd8:9490314035f939400f89bd151efbd9ebc867e62eddfb85bee41849dc218717d5
++12,3
+f:/index.txt
+1:2
 
-+11,23
-files:index
++2,23
+fi
 /
 /*
 /index
