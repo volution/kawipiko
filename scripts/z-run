@@ -626,7 +626,8 @@
 			--sources ./.outputs/examples/huge \
 			--archive ./.outputs/examples/huge.cdb \
 			--compress gzip \
-			--compress-cache ./.outputs/examples/huge-cache.db \
+			--compress-cache ./.outputs/examples/huge-compress.cache \
+			--sources-cache ./.outputs/examples/huge-sources.cache \
 			--exclude-strip \
 			--exclude-file-listing \
 			--progress \
