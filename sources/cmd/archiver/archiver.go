@@ -537,6 +537,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 				AbortError (_error, "[c21b0972]  unexpected sources cache error!")
 			}
 		}
+		_cacheBucket.FillPercent = 0.9
 		var _dataPreparedRaw []byte
 		if _data_0, _error := json.Marshal (_dataPrepared); _error == nil {
 			_dataPreparedRaw = _data_0
@@ -630,6 +631,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 					AbortError (_error, "[b7766792]  unexpected compression cache error!")
 				}
 			}
+			_cacheBucket.FillPercent = 0.9
 			if _error := _cacheBucket.Put ([]byte (_fingerprintContent), _dataCompressed); _error != nil {
 				AbortError (_error, "[51d57220]  unexpected compression cache error!")
 			}
@@ -1017,8 +1019,8 @@ func main_0 () (error) {
 	var _compressCacheDb *bbolt.DB
 	if _compressCache != "" {
 		_options := bbolt.Options {
-				PageSize : 16 * 1024,
-				InitialMmapSize : 1 * 1024 * 1024,
+				PageSize : 128 * 1024,
+				InitialMmapSize : 128 * 1024 * 1024,
 				NoFreelistSync : true,
 				NoSync : true,
 			}
@@ -1032,8 +1034,8 @@ func main_0 () (error) {
 	var _sourcesCacheDb *bbolt.DB
 	if _sourcesCache != "" {
 		_options := bbolt.Options {
-				PageSize : 16 * 1024,
-				InitialMmapSize : 1 * 1024 * 1024,
+				PageSize : 4 * 1024,
+				InitialMmapSize : 4 * 1024 * 1024,
 				NoFreelistSync : true,
 				NoSync : true,
 			}
