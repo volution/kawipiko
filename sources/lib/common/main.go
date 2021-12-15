@@ -14,7 +14,13 @@ import "os"
 func Main_0 (_main func () (error)) () {
 	
 	log.SetFlags (0)
-	log.SetPrefix (fmt.Sprintf ("[%8d] ", os.Getpid ()))
+	
+	defer func () () {
+			if _panic := recover (); _panic != nil {
+				log.Printf ("[ee] [279a6e2e]  %s\n", _panic)
+				AbortError (nil, "[5bcae27c]  unexpected panic!")
+			}
+		} ()
 	
 	if _error := _main (); _error == nil {
 		os.Exit (0)
