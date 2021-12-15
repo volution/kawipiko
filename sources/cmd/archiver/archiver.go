@@ -11,8 +11,10 @@ import "io"
 import "io/ioutil"
 import "log"
 import "net/http"
-import "path/filepath"
 import "os"
+import "path/filepath"
+import "runtime"
+import "runtime/debug"
 import "sort"
 import "strings"
 import "syscall"
@@ -925,6 +927,11 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 
 
 func Main () () {
+	
+	runtime.GOMAXPROCS (2)
+	debug.SetGCPercent (75)
+	debug.SetMaxThreads (8)
+	
 	Main_0 (main_0)
 }
 
