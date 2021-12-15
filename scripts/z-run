@@ -627,6 +627,8 @@
 			--archive ./.outputs/examples/huge.cdb \
 			--compress gzip \
 			--compress-cache ./.outputs/examples/huge-cache.db \
+			--exclude-strip \
+			--exclude-file-listing \
 			--progress \
 			"${@}" \
 	#
