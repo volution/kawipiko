@@ -7,6 +7,8 @@ require (
 	github.com/colinmarc/cdb v0.0.0-20190223170904-60f317823f70
 	github.com/foobaz/go-zopfli v0.0.0-20140122214029-7432051485e2
 	github.com/valyala/fasthttp v1.31.0
+	github.com/zeebo/blake3 v0.2.1
+	go.etcd.io/bbolt v1.3.6
 )
 
 require (
@@ -16,9 +18,7 @@ require (
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	github.com/zeebo/blake3 v0.2.1 // indirect
-	go.etcd.io/bbolt v1.3.6 // indirect
-	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
