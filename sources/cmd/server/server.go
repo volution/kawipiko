@@ -74,15 +74,17 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_response.Header)))
 	
+	_requestMethod := _requestHeaders.Method ()
 	_requestUri := _requestHeaders.RequestURI ()
 	_requestUriString_0 := BytesToString (_requestUri)
 	_requestUriString := NoEscapeString (&_requestUriString_0)
 	
 	
-	_keyBuffer := [1024]byte {}
-	_pathBuffer := [1024]byte {}
 	
-	_method := _requestHeaders.Method ()
+	
+	_pathBuffer := [512]byte {}
+	_keyBufferLarge := [512]byte {}
+	_keyBufferSmall := [128]byte {}
 	
 	_path := _pathBuffer[:0]
 	_path = append (_path, _requestUri ...)
@@ -94,7 +96,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	
 	_pathLen := len (_path)
 	
-	if ! bytes.Equal (StringToBytes (http.MethodGet), _method) {
+	if ! bytes.Equal (StringToBytes (http.MethodGet), _requestMethod) {
 		if !_server.quiet {
 			log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", BytesToString (_requestHeaders.Method ()), *_requestUriString)
 		}
@@ -121,7 +123,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			return
 		} else if bytes.HasPrefix (_path, StringToBytes ("/__/banners/errors/")) {
 			_code := _path[len ("/__/banners/errors/") :]
-			if _code, _error := strconv.Atoi (BytesToString (_code)); _error == nil {
+			if _code, _error := strconv.Atoi (BytesToString (*NoEscapeBytes (&_code))); _error == nil {
 				_banner, _bannerFound := ErrorBannersData[uint (_code)]
 				if (_code > 0) && _bannerFound {
 					_server.ServeStatic (_context, http.StatusOK, _banner, ErrorBannerContentType, ErrorBannerContentEncoding, true)
@@ -163,12 +165,12 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			_pathSuffixHasSlash := (len (_pathSuffix) != 0) && (_pathSuffix[0] == '/')
 			
 			if _server.cachedFileFingerprints != nil {
-				_key := _keyBuffer[:0]
+				_key := _keyBufferLarge[:0]
 				_key = append (_key, _path ...)
 				_key = append (_key, _pathSuffix ...)
-				_fingerprints, _ = _server.cachedFileFingerprints[BytesToString (_key)]
+				_fingerprints, _ = _server.cachedFileFingerprints[BytesToString (*NoEscapeBytes (&_key))]
 			} else {
-				_key := _keyBuffer[:0]
+				_key := _keyBufferLarge[:0]
 				_key = append (_key, _namespace ...)
 				_key = append (_key, ':')
 				_key = append (_key, _path ...)
@@ -206,12 +208,12 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 				_pathLimit = bytes.LastIndexByte (_path[: _pathLimit], '/') {
 			
 			if _server.cachedFileFingerprints != nil {
-				_key := _keyBuffer[:0]
+				_key := _keyBufferLarge[:0]
 				_key = append (_key, _path[: _pathLimit] ...)
 				_key = append (_key, "/*" ...)
-				_fingerprints, _ = _server.cachedFileFingerprints[BytesToString (_key)]
+				_fingerprints, _ = _server.cachedFileFingerprints[BytesToString (*NoEscapeBytes (&_key))]
 			} else {
-				_key := _keyBuffer[:0]
+				_key := _keyBufferLarge[:0]
 				_key = append (_key, NamespaceFilesContent ...)
 				_key = append (_key, ':')
 				_key = append (_key, _path[: _pathLimit] ...)
@@ -253,7 +255,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	if _server.cachedDataContent != nil {
 		_data, _ = _server.cachedDataContent[BytesToString (_fingerprintContent)]
 	} else {
-		_key := _keyBuffer[:0]
+		_key := _keyBufferSmall[:0]
 		_key = append (_key, NamespaceDataContent ...)
 		_key = append (_key, ':')
 		_key = append (_key, _fingerprintContent ...)
@@ -276,7 +278,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	if _server.cachedDataMeta != nil {
 		_dataMetaRaw, _ = _server.cachedDataMeta[BytesToString (_fingerprintMeta)]
 	} else {
-		_key := _keyBuffer[:0]
+		_key := _keyBufferSmall[:0]
 		_key = append (_key, NamespaceDataMetadata ...)
 		_key = append (_key, ':')
 		_key = append (_key, _fingerprintMeta ...)
