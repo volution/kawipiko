@@ -39,3 +39,16 @@
 	exec -- env -i -- ./.outputs/binaries/release/kawipiko-wrapper "${@}"
 !!
 
+
+
+
+<< execute / server-dummy / debug
+	"${ZRUN[@]}" ':: go / build / server-dummy / debug'
+	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-server-dummy "${@}"
+!!
+
+<< execute / server-dummy / release
+	"${ZRUN[@]}" ':: go / build / server-dummy / release'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server-dummy "${@}"
+!!
+

@@ -140,6 +140,52 @@
 
 
 
+<< go / build / server-dummy / debug
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/debug"
+	if test -e "${_outputs}/binaries/debug/kawipiko-server-dummy" ; then
+		rm -- "${_outputs}/binaries/debug/kawipiko-server-dummy"
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-o "${_outputs}/binaries/debug/kawipiko-server-dummy" \
+			-- ./cmd/server-dummy.go \
+	#
+!!
+
+
+<< go / build / server-dummy / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	if test -e "${_outputs}/binaries/release/kawipiko-server-dummy" ; then
+		rm -- "${_outputs}/binaries/release/kawipiko-server-dummy"
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 -- \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-tags netgo \
+			-a \
+			-gcflags 'all=-l=4' \
+			-ldflags 'all=-s' \
+			-buildmode exe \
+			-trimpath \
+			-o "${_outputs}/binaries/release/kawipiko-server-dummy" \
+			-- ./cmd/server-dummy.go \
+	#
+!!
+
+
+
+
 << go / build / all / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"

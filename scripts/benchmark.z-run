@@ -136,7 +136,7 @@
 	./.bin/wrk \
 			--threads 1 \
 			--connections 1 \
-			--conn-reqs 1024 \
+			--conn-reqs 65536 \
 			--timeout 1s \
 			--duration 30s \
 			--progress \
@@ -163,7 +163,7 @@
 	./.bin/wrk \
 			--threads 1 \
 			--connections 1 \
-			--conn-reqs 1024 \
+			--conn-reqs 65536 \
 			--timeout 1s \
 			--duration 30s \
 			--progress \
@@ -206,20 +206,9 @@
 
 
 
-<< benchmark / dummy
+<< benchmark / server-dummy
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/release"
-	rm -f -- "${_outputs}/binaries/release/kawipiko-server-dummy"
-	"${ZRUN[@]}" ':: go / tool' \
-			build \
-			-mod readonly \
-			-tags netgo \
-			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
-			-gcflags 'all=-l=4' \
-			-o "${_outputs}/binaries/release/kawipiko-server-dummy" \
-			-- ./cmd/server-dummy.go \
-	#
 	exec -- \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
@@ -230,7 +219,8 @@
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	./.outputs/binaries/release/kawipiko-server-dummy \
-		"${@}" \
+			"${@}" \
+			"127.9.185.194:8080" \
 	#
 !!
 
