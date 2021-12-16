@@ -314,12 +314,12 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 								}
 								_responseStatus = http.StatusInternalServerError
 								}
-							} else {
-								if !_server.quiet {
-									log.Printf ("[ee] [beedae55]  invalid data metadata for `%s`!\n", *_requestUriString)
-								}
-								_responseStatus = http.StatusInternalServerError
+						} else {
+							if !_server.quiet {
+								log.Printf ("[ee] [beedae55]  invalid data metadata for `%s`!\n", *_requestUriString)
 							}
+							_responseStatus = http.StatusInternalServerError
+						}
 					default :
 						if !_server.quiet {
 							log.Printf ("[ee] [7acc7d90]  invalid data metadata for `%s`!\n", *_requestUriString)
