@@ -423,7 +423,6 @@
 	if test -z "${_archive}" ; then
 		_archive=./examples/hello-world.cdb
 	fi
-	"${ZRUN[@]}" ':: go / build / server / release'
 	exec -- \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
