@@ -397,6 +397,8 @@ func (_server *server) ServeDummy (_context *fasthttp.RequestCtx) () {
 
 func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.Request) () {
 	
+	// FIXME:  Reimplemnet this to eliminate the HTTP-encode-followed-by-HTTP-decode!
+	
 	_context := fasthttp.RequestCtx {}
 	_context.Request.Reset ()
 	_context.Response.Reset ()
@@ -419,7 +421,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	_context.Response.Header.VisitAll (
 			func (_key_0 []byte, _value_0 []byte) () {
 				switch string (_key_0) {
-					case "Connection" :
+					case "Connection", "Content-Length" :
 						// NOP
 					default :
 						_key := string (_key_0)
