@@ -10,6 +10,7 @@ import "crypto/tls"
 import "flag"
 import "fmt"
 import "io"
+import "io/ioutil"
 import "log"
 import "net"
 import "net/http"
@@ -500,6 +501,15 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 
 
 
+func (_server *server) Printf (_format string, _arguments ... interface{}) () {
+	if !_server.quiet {
+		log.Printf ("[ee] [47765179]  [fasthttp]  " + _format, _arguments ...)
+	}
+}
+
+
+
+
 func Main () () {
 	
 	log.SetPrefix (fmt.Sprintf ("[%8d] ", os.Getpid ()))
@@ -834,11 +844,11 @@ func main_0 () (error) {
 		if _limitMemory != 0 {
 			_processArguments = append (_processArguments, "--limit-memory", fmt.Sprintf ("%d", _limitMemory))
 		}
-		if _debug {
-			_processArguments = append (_processArguments, "--debug")
-		}
 		if _quiet {
 			_processArguments = append (_processArguments, "--quiet")
+		}
+		if _debug {
+			_processArguments = append (_processArguments, "--debug")
 		}
 		if _dummy {
 			_processArguments = append (_processArguments, "--dummy")
@@ -1230,8 +1240,8 @@ func main_0 () (error) {
 			securityHeadersEnabled : _securityHeadersEnabled,
 			http1Disabled : _http1Disabled,
 			http2Disabled : _http2Disabled,
-			debug : _debug,
 			quiet : _quiet,
+			debug : _debug,
 			dummy : _dummy,
 			delay : _delay,
 		}
@@ -1322,6 +1332,8 @@ func main_0 () (error) {
 			CloseOnShutdown : true,
 			DisableKeepalive : false,
 			
+			Logger : _server,
+			
 		}
 	
 	
@@ -1356,6 +1368,11 @@ func main_0 () (error) {
 		panic ("[1b618ffe]")
 	}
 	
+	if !_quiet {
+		_https2Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [f734edc4]  [gohttp]  ", 0)
+	} else {
+		_https2Server.ErrorLog = log.New (ioutil.Discard, "", 0)
+	}
 	
 	
 	
