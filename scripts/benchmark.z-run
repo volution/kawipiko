@@ -77,14 +77,26 @@
 	#
 !!
 
+
 << benchmark / server / profile / cpu / analyze
 	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
 	exec -- go tool pprof "${@}" -- ./.outputs/server-cpu.txt
 !!
 
+<< benchmark / server / profile / cpu / analyze / web
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	exec -- go tool pprof -http 127.108.221.132:8080 -no_browser -functions "${@}" -- ./.outputs/server-cpu.txt
+!!
+
+
 << benchmark / server / profile / mem / analyze
 	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
-	exec -- go tool pprof "${@}" ./.outputs/server-mem.txt
+	exec -- go tool pprof "${@}" -- ./.outputs/server-mem.txt
+!!
+
+<< benchmark / server / profile / mem / analyze / web
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	exec -- go tool pprof "${@}" -http 127.108.221.132:8080 -no_browser -functions -- ./.outputs/server-mem.txt
 !!
 
 

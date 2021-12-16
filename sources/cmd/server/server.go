@@ -297,8 +297,6 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	
 	_responseStatus := http.StatusOK
 	
-//!	_responseHeaders.AddRawLines (_dataMetaRaw)
-	
 	_handleHeader := func (_name []byte, _value []byte) {
 			if _name[0] != '!' {
 				_responseHeaders.AddBytesKV (_name, _value)
