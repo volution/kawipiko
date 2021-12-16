@@ -33,6 +33,8 @@ import "github.com/valyala/fasthttp/reuseport"
 import . "github.com/volution/kawipiko/lib/common"
 import . "github.com/volution/kawipiko/lib/server"
 
+import _ "embed"
+
 
 
 
@@ -484,57 +486,7 @@ func main_0 () (error) {
 		_flags := flag.NewFlagSet ("kawipiko-server", flag.ContinueOnError)
 		
 		_flags.Usage = func () () {
-			fmt.Fprintf (os.Stderr, "%s",
-`
-  ====  kawipiko -- blazingly fast static HTTP server  ====
-
-  |  Documentation, issues and sources:
-  |      * https://github.com/volution/kawipiko
-  |  Authors:
-  |      * Ciprian Dorin Craciun
-  |          ciprian@volution.ro
-  |          ciprian.craciun@gmail.com
-  |          https://volution.ro/ciprian
-  -----------------------------------------------------------
-
-  kawipiko-server
-
-    --archive <path>
-    --archive-inmem           (memory-loaded archive file)
-    --archive-mmap            (memory-mapped archive file)
-    --archive-preload         (preload archive in OS cache)
-
-    --bind <ip>:<port>        (HTTP, only HTTP/1.1)
-    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1)
-    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2)
-
-    --tls-bundle <path>       (TLS certificate bundle)
-    --tls-public <path>       (TLS certificate public)
-    --tls-private <path>      (TLS certificate private)
-
-    --processes <count>       (of slave processes)
-    --threads <count>         (of threads per process)
-
-    --index-all
-    --index-paths
-    --index-data-meta
-    --index-data-content
-
-    --security-headers-tls
-    --security-headers-disable
-    --timeout-disable
-
-    --profile-cpu <path>
-    --profile-mem <path>
-
-    --debug
-    --dummy
-    --delay <duration>
-
-  ** for details see:
-     https://github.com/volution/kawipiko#kawipiko-server
-
-`)
+			fmt.Fprintf (os.Stderr, "%s", usageText)
 		}
 		
 		_bind_0 := _flags.String ("bind", "", "")
@@ -1492,4 +1444,10 @@ func (_listener *splitListener) Addr () (net.Addr) {
 		return nil
 	}
 }
+
+
+
+
+//go:embed usage.txt
+var usageText string
 

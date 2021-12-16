@@ -27,6 +27,8 @@ import "go.etcd.io/bbolt"
 import . "github.com/volution/kawipiko/lib/common"
 import . "github.com/volution/kawipiko/lib/archiver"
 
+import _ "embed"
+
 
 
 
@@ -958,44 +960,7 @@ func main_0 () (error) {
 		_flags := flag.NewFlagSet ("kawipiko-archiver", flag.ContinueOnError)
 		
 		_flags.Usage = func () () {
-			fmt.Fprintf (os.Stderr, "%s",
-`
-  ====  kawipiko -- blazingly fast static HTTP server  ====
-
-  |  Documentation, issues and sources:
-  |      * https://github.com/volution/kawipiko
-  |  Authors:
-  |      * Ciprian Dorin Craciun
-  |          ciprian@volution.ro
-  |          ciprian.craciun@gmail.com
-  |          https://volution.ro/ciprian
-  -----------------------------------------------------------
-
-  kawipiko-archiver
-
-    --sources <path>
-
-    --archive <path>
-
-    --compress <gzip | zopfli | brotli | identity>
-    --compress-level <number>
-    --compress-cache <path>
-
-    --exclude-index
-    --exclude-strip
-    --exclude-cache
-    --include-etag
-
-    --exclude-file-listing
-    --include-folder-listing
-
-    --progress
-    --debug
-
-  ** for details see:
-     https://github.com/volution/kawipiko#kawipiko-archiver
-
-`)
+			fmt.Fprintf (os.Stderr, "%s", usageText)
 		}
 		
 		_sourcesFolder_0 := _flags.String ("sources", "", "")
@@ -1173,4 +1138,10 @@ func main_0 () (error) {
 	
 	return nil
 }
+
+
+
+
+//go:embed usage.txt
+var usageText string
 

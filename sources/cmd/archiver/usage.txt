@@ -1,0 +1,34 @@
+  ====  kawipiko -- blazingly fast static HTTP server  ====
+
+  |  Documentation, issues and sources:
+  |      * https://github.com/volution/kawipiko
+  |  Authors:
+  |      * Ciprian Dorin Craciun
+  |          ciprian@volution.ro
+  |          ciprian.craciun@gmail.com
+  |          https://volution.ro/ciprian
+  -----------------------------------------------------------
+
+  kawipiko-archiver
+
+    --sources <path>
+
+    --archive <path>
+
+    --compress <gzip | zopfli | brotli | identity>
+    --compress-level <number>
+    --compress-cache <path>
+
+    --exclude-index
+    --exclude-strip
+    --exclude-cache
+    --include-etag
+
+    --exclude-file-listing
+    --include-folder-listing
+
+    --progress
+    --debug
+
+  ** for details see:
+     https://github.com/volution/kawipiko#kawipiko-archiver
