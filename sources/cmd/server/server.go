@@ -61,15 +61,18 @@ type server struct {
 
 func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	
+	
 	if _server.dummy {
 		_server.ServeDummy (_context)
 		return
 	}
 	
-	// _request := (*fasthttp.Request) (NoEscape (unsafe.Pointer (&_context.Request)))
-	_requestHeaders := (*fasthttp.RequestHeader) (NoEscape (unsafe.Pointer (&_context.Request.Header)))
+	
+	_request := (*fasthttp.Request) (NoEscape (unsafe.Pointer (&_context.Request)))
+	_requestHeaders := (*fasthttp.RequestHeader) (NoEscape (unsafe.Pointer (&_request.Header)))
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
-	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_response.Header)))
+	
 	
 	_keyBuffer := [1024]byte {}
 	_pathBuffer := [1024]byte {}
@@ -335,7 +338,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint, _data []byte, _contentType string, _contentEncoding string, _cache bool) () {
 	
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
-	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_response.Header)))
 	
 	_responseHeaders.AddBytesKV (StringToBytes ("Content-Type"), StringToBytes (_contentType))
 	_responseHeaders.AddBytesKV (StringToBytes ("Content-Encoding"), StringToBytes (_contentEncoding))
@@ -354,7 +357,7 @@ func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint,
 func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uint, _path []byte, _cache bool) () {
 	
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
-	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_response.Header)))
 	
 	_responseHeaders.SetCanonical (StringToBytes ("Location"), _path)
 	
@@ -371,7 +374,7 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, _error error, _cache bool) () {
 	
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
-	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_context.Response.Header)))
+	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_response.Header)))
 	
 	_responseHeaders.AddBytesKV (StringToBytes ("Content-Type"), StringToBytes (ErrorBannerContentType))
 	_responseHeaders.AddBytesKV (StringToBytes ("Content-Encoding"), StringToBytes (ErrorBannerContentEncoding))
