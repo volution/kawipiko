@@ -88,11 +88,10 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	if _pathLimit := bytes.IndexByte (_path, '?'); _pathLimit > 0 {
 		_path = _path[: _pathLimit]
 	}
+	
 	// FIXME:  Decode path according to `decodeArgAppendNoPlus`!
 	
 	_pathLen := len (_path)
-	_pathIsRoot := _pathLen == 1
-	_pathHasSlash := !_pathIsRoot && (_path[_pathLen - 1] == '/')
 	
 	if ! bytes.Equal (StringToBytes (http.MethodGet), _method) {
 		log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", BytesToString (_requestHeaders.Method ()), *_requestUriString)
@@ -105,26 +104,29 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		return
 	}
 	
+	_pathIsRoot := _pathLen == 1
+	_pathHasSlash := !_pathIsRoot && (_path[_pathLen - 1] == '/')
+	
 	if bytes.HasPrefix (_path, StringToBytes ("/__/")) {
 		if bytes.Equal (_path, StringToBytes ("/__/heartbeat")) || bytes.HasPrefix (_path, StringToBytes ("/__/heartbeat/")) {
 			_server.ServeStatic (_context, http.StatusOK, HeartbeatDataOk, HeartbeatContentType, HeartbeatContentEncoding, false)
 			return
-		} else if bytes.Equal (_path, StringToBytes ("/__/about")) {
+		} else if bytes.Equal (_path, StringToBytes ("/__/about")) || bytes.Equal (_path, StringToBytes ("/__/about/")) {
 			_server.ServeStatic (_context, http.StatusOK, AboutBannerData, AboutBannerContentType, AboutBannerContentEncoding, true)
 			return
-		} else if bytes.HasPrefix (_path, StringToBytes ("/__/errors/banners/")) {
-			_code := _path[len ("/__/errors/banners/") :]
-			if _code, _error := strconv.Atoi (BytesToString (*NoEscapeBytes (&_code))); _error == nil {
+		} else if bytes.HasPrefix (_path, StringToBytes ("/__/banners/errors/")) {
+			_code := _path[len ("/__/banners/errors/") :]
+			if _code, _error := strconv.Atoi (BytesToString (_code)); _error == nil {
 				_banner, _bannerFound := ErrorBannersData[uint (_code)]
 				if (_code > 0) && _bannerFound {
 					_server.ServeStatic (_context, http.StatusOK, _banner, ErrorBannerContentType, ErrorBannerContentEncoding, true)
 					return
 				}
 			}
-			_server.ServeError (_context, http.StatusNotFound, nil, true)
+			_server.ServeError (_context, http.StatusBadRequest, nil, true)
 			return
 		} else {
-			_server.ServeError (_context, http.StatusNotFound, nil, true)
+			_server.ServeError (_context, http.StatusBadRequest, nil, true)
 			return
 		}
 	}
@@ -145,11 +147,11 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 			
 			switch {
 				case !_pathIsRoot && !_pathHasSlash :
-					break
+					// NOP
 				case _pathSuffix == "/" :
 					continue _loop_1
 				case _pathSuffix == "" :
-					break
+					// NOP
 				case _pathSuffix[0] == '/' :
 					_pathSuffix = _pathSuffix[1:]
 			}
