@@ -715,7 +715,7 @@ func main_0 () (error) {
 				// NOP
 			} else if _host, _port, _error := net.SplitHostPort (_http3AltSvc); _error == nil {
 				_endpoint := net.JoinHostPort (_host, _port)
-				_http3AltSvc = fmt.Sprintf ("h3=\"%s\"", _endpoint)
+				_http3AltSvc = fmt.Sprintf ("h3=\"%s\", h3-29=\"%s\"", _endpoint, _endpoint)
 			} else {
 				AbortError (nil, "[1a5476b1]  HTTP/3 Alt-Svc is invalid!")
 			}
@@ -1455,6 +1455,7 @@ func main_0 () (error) {
 			
 			Versions : []quic.VersionNumber {
 					quic.Version1,
+					quic.VersionDraft29,
 				},
 			
 			HandshakeIdleTimeout : 6 * time.Second,
