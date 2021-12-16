@@ -41,7 +41,7 @@ func main () () {
 		panic (fmt.Sprintf ("[8c30a625]  failed to listen:  %s", _error))
 	}
 	
-	fmt.Fprintf (os.Stderr, "[ii]  listening on `http://%s/`...\n", _endpoint)
+	fmt.Fprintf (os.Stderr, "[ii] [04fa2421]  listening on `http://%s/`...\n", _endpoint)
 	
 	_server := & fasthttp.Server {
 			
