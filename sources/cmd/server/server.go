@@ -1181,6 +1181,9 @@ func main_0 () (error) {
 			
 			ReduceMemoryUsage : _httpServerReduceMemory,
 			
+			CloseOnShutdown : true,
+			DisableKeepalive : false,
+			
 		}
 	
 	_httpsServer := & fasthttp.Server {}
