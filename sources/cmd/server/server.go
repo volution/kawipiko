@@ -476,11 +476,13 @@ func main_0 () (error) {
 	var _quiet bool
 	var _dummy bool
 	var _delay time.Duration
+	var _profileCpu string
+	var _profileMem string
+	var _limitMemory uint
+	
 	var _isFirst bool
 	var _isMaster bool
 	
-	var _profileCpu string
-	var _profileMem string
 	
 	{
 		_flags := flag.NewFlagSet ("kawipiko-server", flag.ContinueOnError)
@@ -509,12 +511,13 @@ func main_0 () (error) {
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
 		_slave_0 := _flags.Uint ("slave", 0, "")
-		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
-		_profileMem_0 := _flags.String ("profile-mem", "", "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		_quiet_0 := _flags.Bool ("quiet", false, "")
 		_dummy_0 := _flags.Bool ("dummy", false, "")
 		_delay_0 := _flags.Duration ("delay", 0, "")
+		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
+		_profileMem_0 := _flags.String ("profile-mem", "", "")
+		_limitMemory_0 := _flags.Uint ("limit-memory", 0, "")
 		
 		FlagsParse (_flags, 0, 0)
 		
@@ -539,9 +542,9 @@ func main_0 () (error) {
 		_quiet = *_quiet_0 && !_debug
 		_dummy = *_dummy_0
 		_delay = *_delay_0
-		
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
+		_limitMemory = *_limitMemory_0
 		
 		if _slave == 0 {
 			_isMaster = true
@@ -620,6 +623,10 @@ func main_0 () (error) {
 		if (_processes * _threads) > 1024 {
 			AbortError (nil, "[b0177488]  maximum number of allowed threads in total is 1024!")
 		}
+		
+		if (_limitMemory > (16 * 1024)) || (_limitMemory < 128) {
+			AbortError (nil, "[2781f54c]  maximum memory limit is between 128 and 16384 MiB!")
+		}
 	}
 	
 	
@@ -632,9 +639,26 @@ func main_0 () (error) {
 	
 	_httpServerReduceMemory := false
 	
-	if false {
-		if _error := syscall.Setrlimit (syscall.RLIMIT_DATA, & syscall.Rlimit { Max : 4 * 1024 * 1024 * 1024 }); _error != nil {
-			AbortError (_error, "[f661b4fe]  failed to configure limits!")
+	if _limitMemory > 0 {
+		{
+			_limitMb := (2 * _limitMemory) + (1 * 1024)
+			_limit := syscall.Rlimit {
+					Cur : uint64 (_limitMb) * 1024 * 1024,
+					Max : uint64 (_limitMb) * 1024 * 1024,
+				}
+			if _error := syscall.Setrlimit (syscall.RLIMIT_AS, &_limit); _error != nil {
+				AbortError (_error, "[4da96378]  failed to configure memory limit!")
+			}
+		}
+		{
+			_limitMb := _limitMemory
+			_limit := syscall.Rlimit {
+					Cur : uint64 (_limitMb) * 1024 * 1024,
+					Max : uint64 (_limitMb) * 1024 * 1024,
+				}
+			if _error := syscall.Setrlimit (syscall.RLIMIT_DATA, &_limit); _error != nil {
+				AbortError (_error, "[f661b4fe]  failed to configure memory limit!")
+			}
 		}
 	}
 	

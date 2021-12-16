@@ -39,6 +39,8 @@
     --profile-cpu <path>
     --profile-mem <path>
 
+    --limit-memory <MiB>
+
     --debug
     --dummy
     --delay <duration>
