@@ -20,7 +20,7 @@ var DummyContentEncoding = "identity"
 var DummyData = []byte ("hello world!\n")
 
 
-var FaviconContentType = "image/vnd.microsoft.icon"
+var FaviconContentType = MimeTypeIco
 var FaviconContentEncoding = "identity"
 
 //go:embed files/favicon.ico
