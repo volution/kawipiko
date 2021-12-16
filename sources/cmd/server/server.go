@@ -412,7 +412,18 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	}
 	if _requestProtoUnsupported {
 		_request.Close = true
-		_response.WriteHeader (505)
+		_response.WriteHeader (http.StatusHTTPVersionNotSupported)
+		return
+	}
+	
+	if _server.dummy {
+		_responseHeaders := _response.Header ()
+		_responseHeaders["Content-Type"] = []string { DummyContentType }
+		_responseHeaders["Content-Encoding"] = []string { DummyContentEncoding }
+		_responseHeaders["Cache-Control"] = []string { "private, no-cache, no-store" }
+		_responseHeaders["Date"] = nil
+		_response.WriteHeader (http.StatusOK)
+		_response.Write (DummyData)
 		return
 	}
 	
@@ -1434,7 +1445,7 @@ func main_0 () (error) {
 									log.Printf ("[dd] [df9f3e7e]  dispatching HTTP/2 TLS connection!\n")
 								}
 								_https2Listener_0.queue <- _connection
-							} else if (_protocol == "http/1.1") || (_protocol == "http/1.0") {
+							} else if (_protocol == "http/1.1") || (_protocol == "http/1.0") || (_protocol == "") {
 								if _debug {
 									log.Printf ("[dd] [d534c361]  dispatching HTTP/1.x TLS connection!\n")
 								}
