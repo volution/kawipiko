@@ -13,31 +13,51 @@ func NoEscape (p unsafe.Pointer) (unsafe.Pointer) {
 	return unsafe.Pointer (x ^ 0)
 }
 
-func NoEscapeBytes (p *[]byte) (*[]byte) {
-	return (*[]byte) (NoEscape (unsafe.Pointer (p)))
+
+
+
+func NoEscapeBytes (_input *[]byte) (*[]byte) {
+	return (*[]byte) (NoEscape (unsafe.Pointer (_input)))
 }
 
-func NoEscapeString (p *string) (*string) {
-	return (*string) (NoEscape (unsafe.Pointer (p)))
+
+func NoEscapeString (_input *string) (*string) {
+	return (*string) (NoEscape (unsafe.Pointer (_input)))
 }
 
 
-func BytesToString (b []byte) (string) {
-	return *(*string) (unsafe.Pointer (&b))
+
+
+func BytesToString (_input []byte) (string) {
+	
+	// NOTE:  The following is not enough?!
+	return *(*string) (unsafe.Pointer (&_input))
+	
+	_output := ""
+	_inputHeader := (*reflect.SliceHeader) (unsafe.Pointer (&_input))
+	_outputHeader := (*reflect.StringHeader) (unsafe.Pointer (&_output))
+	
+	_outputHeader.Data = _inputHeader.Data
+	_outputHeader.Len = _inputHeader.Len
+	
+	return _output
 }
 
-func StringToBytes (_string string) ([]byte) {
+
+func StringToBytes (_input string) ([]byte) {
 	
 	// NOTE:  The following is broken!
-	// return *(*[]byte) (unsafe.Pointer (&_string))
+	// return *(*[]byte) (unsafe.Pointer (&_input))
 	
 	// NOTE:  Based on `https://github.com/valyala/fasthttp/blob/2a6f7db5bbc4d7c11f1ccc0cb827e145b9b7d7ea/bytesconv.go#L342`
-	_bytes := []byte (nil)
-	_bytesHeader := (*reflect.SliceHeader) (unsafe.Pointer (&_bytes))
-	_stringHeader := (*reflect.StringHeader) (unsafe.Pointer (&_string))
-	_bytesHeader.Data = _stringHeader.Data
-	_bytesHeader.Len = _stringHeader.Len
-	_bytesHeader.Cap = _stringHeader.Len
-	return _bytes
+	_output := []byte (nil)
+	_outputHeader := (*reflect.SliceHeader) (unsafe.Pointer (&_output))
+	_inputHeader := (*reflect.StringHeader) (unsafe.Pointer (&_input))
+	
+	_outputHeader.Data = _inputHeader.Data
+	_outputHeader.Len = _inputHeader.Len
+	_outputHeader.Cap = _inputHeader.Len
+	
+	return _output
 }
 
