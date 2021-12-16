@@ -15,7 +15,6 @@
 		nice -n 19 \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-server" \
 			-- ./cmd/server.go \
 	#
@@ -34,7 +33,6 @@
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-tags netgo \
 			-a \
 			-gcflags 'all=-l=4' \
@@ -61,7 +59,6 @@
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-archiver" \
 			-- ./cmd/archiver.go \
 	#
@@ -79,7 +76,6 @@
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-tags netgo \
 			-a \
 			-gcflags 'all=-l=4' \
@@ -106,7 +102,6 @@
 		nice -n 19 \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-wrapper" \
 			-- ./cmd/wrapper.go \
 	#
@@ -125,7 +120,6 @@
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-tags netgo \
 			-a \
 			-gcflags 'all=-l=4' \
@@ -152,7 +146,6 @@
 		nice -n 19 \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-o "${_outputs}/binaries/debug/kawipiko-server-dummy" \
 			-- ./cmd/server-dummy.go \
 	#
@@ -171,7 +164,6 @@
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-tags netgo \
 			-a \
 			-gcflags 'all=-l=4' \
@@ -205,7 +197,6 @@
 				nice -n 19 -- \
 			"${ZRUN[@]}" ':: go / tool' \
 					build \
-					-mod readonly \
 					-tags netgo \
 					-a \
 					-gcflags 'all=-l=4' \
@@ -249,7 +240,6 @@
 	mkdir -p -- "${_outputs}/binaries/debug"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
-			-mod readonly \
 			-gcflags '-m' \
 			-o "${_outputs}/binaries/debug/kawipiko-server-analyze" \
 			-- ./cmd/server.go \
