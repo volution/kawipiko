@@ -332,17 +332,15 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		return
 	}
 	
+	if _server.securityHeadersTls {
+		_responseHeaders.AddBytesKV (StringToBytes ("Strict-Transport-Security"), StringToBytes ("max-age=31536000"))
+		_responseHeaders.AddBytesKV (StringToBytes ("Content-Security-Policy"), StringToBytes ("upgrade-insecure-requests"))
+	}
 	if _server.securityHeadersEnabled {
-		if _server.securityHeadersTls {
-			_responseHeaders.AddBytesKV (StringToBytes ("Strict-Transport-Security"), StringToBytes ("max-age=31536000"))
-			_responseHeaders.AddBytesKV (StringToBytes ("Content-Security-Policy"), StringToBytes ("upgrade-insecure-requests"))
-		}
-		{
-			_responseHeaders.AddBytesKV (StringToBytes ("Referrer-Policy"), StringToBytes ("strict-origin-when-cross-origin"))
-			_responseHeaders.AddBytesKV (StringToBytes ("X-Content-Type-Options"), StringToBytes ("nosniff"))
-			_responseHeaders.AddBytesKV (StringToBytes ("X-XSS-Protection"), StringToBytes ("1; mode=block"))
-			_responseHeaders.AddBytesKV (StringToBytes ("X-Frame-Options"), StringToBytes ("sameorigin"))
-		}
+		_responseHeaders.AddBytesKV (StringToBytes ("Referrer-Policy"), StringToBytes ("strict-origin-when-cross-origin"))
+		_responseHeaders.AddBytesKV (StringToBytes ("X-Content-Type-Options"), StringToBytes ("nosniff"))
+		_responseHeaders.AddBytesKV (StringToBytes ("X-XSS-Protection"), StringToBytes ("1; mode=block"))
+		_responseHeaders.AddBytesKV (StringToBytes ("X-Frame-Options"), StringToBytes ("sameorigin"))
 	}
 	
 	if _server.debug {
