@@ -48,6 +48,8 @@ type server struct {
 	cachedDataContent map[string][]byte
 	securityHeadersEnabled bool
 	securityHeadersTls bool
+	http1Disabled bool
+	http2Disabled bool
 	debug bool
 	quiet bool
 	dummy bool
@@ -399,6 +401,21 @@ func (_server *server) ServeDummy (_context *fasthttp.RequestCtx) () {
 
 func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.Request) () {
 	
+	_requestProtoUnsupported := false
+	switch _request.ProtoMajor {
+		case 1 :
+			_requestProtoUnsupported = _server.http1Disabled || (_request.ProtoMinor < 0) || (_request.ProtoMinor > 1)
+		case 2 :
+			_requestProtoUnsupported = _server.http2Disabled || (_request.ProtoMinor != 0)
+		default :
+			_requestProtoUnsupported = true
+	}
+	if _requestProtoUnsupported {
+		_request.Close = true
+		_response.WriteHeader (505)
+		return
+	}
+	
 	// FIXME:  Reimplemnet this to eliminate the HTTP-encode-followed-by-HTTP-decode!
 	
 	_context := fasthttp.RequestCtx {}
@@ -471,6 +488,8 @@ func main_0 () (error) {
 	var _bind string
 	var _bindTls string
 	var _bindTls2 string
+	var _http1Disabled bool
+	var _http2Disabled bool
 	var _tlsPrivate string
 	var _tlsPublic string
 	var _archivePath string
@@ -508,6 +527,8 @@ func main_0 () (error) {
 		_bind_0 := _flags.String ("bind", "", "")
 		_bindTls_0 := _flags.String ("bind-tls", "", "")
 		_bindTls2_0 := _flags.String ("bind-tls-2", "", "")
+		_http1Disabled_0 := _flags.Bool ("http1-disable", false, "")
+		_http2Disabled_0 := _flags.Bool ("http2-disable", false, "")
 		_archivePath_0 := _flags.String ("archive", "", "")
 		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "")
 		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "")
@@ -538,6 +559,8 @@ func main_0 () (error) {
 		_bind = *_bind_0
 		_bindTls = *_bindTls_0
 		_bindTls2 = *_bindTls2_0
+		_http1Disabled = *_http1Disabled_0
+		_http2Disabled = *_http2Disabled_0
 		_archivePath = *_archivePath_0
 		_archiveInmem = *_archiveInmem_0
 		_archiveMmap = *_archiveMmap_0
@@ -585,6 +608,16 @@ func main_0 () (error) {
 		}
 		if ((_tlsPrivate != "") || (_tlsPublic != "")) && ((_bindTls == "") && (_bindTls2 == "")) {
 			AbortError (nil, "[4e31f251]  TLS certificate specified, but TLS not enabled!")
+		}
+		
+		if _http1Disabled && (_bind != "") {
+			AbortError (nil, "[f498816a]  HTTP/1 is mandatory with `--bind`!")
+		}
+		if _http1Disabled && (_bindTls != "") {
+			AbortError (nil, "[f498816a]  HTTP/1 is mandatory with `--bind-tls`!")
+		}
+		if _http2Disabled && (_bindTls == "") && (_bindTls2 == "") {
+			log.Printf ("[ww] [1ed4864c]  HTTP/2 is only available with TLS!")
 		}
 		
 		if !_dummy {
@@ -638,7 +671,7 @@ func main_0 () (error) {
 			AbortError (nil, "[b0177488]  maximum number of allowed threads in total is 1024!")
 		}
 		
-		if (_limitMemory > (16 * 1024)) || (_limitMemory < 128) {
+		if (_limitMemory != 0) && ((_limitMemory > (16 * 1024)) || (_limitMemory < 128)) {
 			AbortError (nil, "[2781f54c]  maximum memory limit is between 128 and 16384 MiB!")
 		}
 	}
@@ -715,6 +748,12 @@ func main_0 () (error) {
 		}
 		if _bindTls2 != "" {
 			_processArguments = append (_processArguments, "--bind-tls-2", _bindTls2)
+		}
+		if _http1Disabled {
+			_processArguments = append (_processArguments, "--http1-disabled")
+		}
+		if _http2Disabled {
+			_processArguments = append (_processArguments, "--http2-disabled")
 		}
 		if _archivePath != "" {
 			_processArguments = append (_processArguments, "--archive", _archivePath)
@@ -1149,6 +1188,8 @@ func main_0 () (error) {
 			cachedDataContent : _cachedDataContent,
 			securityHeadersTls : _securityHeadersTls,
 			securityHeadersEnabled : _securityHeadersEnabled,
+			http1Disabled : _http1Disabled,
+			http2Disabled : _http2Disabled,
 			debug : _debug,
 			quiet : _quiet,
 			dummy : _dummy,
@@ -1264,8 +1305,16 @@ func main_0 () (error) {
 			
 		}
 	
-	_https2Server.TLSConfig = _tlsConfig.Clone ()
-	_https2Server.TLSConfig.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
+	_tls2Config := _tlsConfig.Clone ()
+	if !_http1Disabled && !_http2Disabled {
+		_tls2Config.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
+	} else if !_http1Disabled {
+		_tls2Config.NextProtos = []string { "http/1.1", "http/1.0" }
+	} else if !_http2Disabled {
+		_tls2Config.NextProtos = []string { "h2" }
+	} else {
+		panic ("[1b618ffe]")
+	}
 	
 	
 	
@@ -1301,10 +1350,24 @@ func main_0 () (error) {
 			log.Printf ("[ii] [f11e4e37]  listening on `http://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bind)
 		}
 		if _bindTls != "" {
-			log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bindTls)
+			if !_http1Disabled && (!_http2Disabled && _bindTls2 == "") {
+				log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0, and HTTP/2 split);\n", _bindTls)
+			} else if !_http1Disabled {
+				log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0);\n", _bindTls)
+			} else {
+				panic ("[fc754170]")
+			}
 		}
 		if _bindTls2 != "" {
-			log.Printf ("[ii] [e7f03c99]  listening on `https://%s/` (using Go HTTP supporting HTTP/2, HTTP/1.1, HTTP/1.0);\n", _bindTls2)
+			if !_http1Disabled && !_http2Disabled {
+				log.Printf ("[ii] [e7f03c99]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/2, HTTP/1.1, HTTP/1.0);\n", _bindTls2)
+			} else if !_http1Disabled {
+				log.Printf ("[ii] [477583ad]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/1.1, HTTP/1.0 only);\n", _bindTls2)
+			} else if !_http2Disabled {
+				log.Printf ("[ii] [7d2c7ddb]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/2 only);\n", _bindTls2)
+			} else {
+				panic ("[d784a82c]")
+			}
 		}
 	}
 	
@@ -1338,8 +1401,8 @@ func main_0 () (error) {
 	
 	
 	var _splitListenerClose func () ()
-	if (_httpsListener != nil) && (_https2Listener == nil) {
-		log.Printf ("[ii] [1098a405]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2);\n", _bindTls)
+	if (_httpsListener != nil) && (_https2Listener == nil) && !_http2Disabled {
+		log.Printf ("[ii] [1098a405]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2 split);\n", _bindTls)
 		_tlsConfig.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
 		_tlsListener := tls.NewListener (_httpsListener, _tlsConfig)
 		_httpsListener_0 := & splitListener {
@@ -1398,7 +1461,7 @@ func main_0 () (error) {
 			_httpsListener = tls.NewListener (_httpsListener, _tlsConfig)
 		}
 		if _https2Listener != nil {
-			_https2Listener = tls.NewListener (_https2Listener, _tlsConfig)
+			_https2Listener = tls.NewListener (_https2Listener, _tls2Config)
 		}
 	}
 	

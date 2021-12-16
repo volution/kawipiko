@@ -20,6 +20,9 @@
     --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1)
     --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2)
 
+    --http1-disable
+    --http2-disable
+
     --tls-bundle <path>       (TLS certificate bundle)
     --tls-public <path>       (TLS certificate public)
     --tls-private <path>      (TLS certificate private)
