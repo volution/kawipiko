@@ -700,7 +700,7 @@ func main_0 () (error) {
 	
 	debug.SetGCPercent (50)
 	debug.SetMaxThreads (int (128 * (_threads / 64 + 1)))
-//	debug.SetMaxStack (16 * 1024)
+	debug.SetMaxStack (16 * 1024)
 	
 	
 	_httpServerReduceMemory := false
