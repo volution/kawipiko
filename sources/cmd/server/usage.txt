@@ -44,7 +44,9 @@
 
     --limit-memory <MiB>
 
+    --quiet
     --debug
+
     --dummy
     --delay <duration>
 

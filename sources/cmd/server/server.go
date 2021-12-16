@@ -94,12 +94,16 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_pathLen := len (_path)
 	
 	if ! bytes.Equal (StringToBytes (http.MethodGet), _method) {
-		log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", BytesToString (_requestHeaders.Method ()), *_requestUriString)
+		if !_server.quiet {
+			log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", BytesToString (_requestHeaders.Method ()), *_requestUriString)
+		}
 		_server.ServeError (_context, http.StatusMethodNotAllowed, nil, true)
 		return
 	}
 	if (_pathLen == 0) || (_path[0] != '/') {
-		log.Printf ("[ww] [fa6b1923]  invalid path `%s`!\n", *_requestUriString)
+		if !_server.quiet {
+			log.Printf ("[ww] [fa6b1923]  invalid path `%s`!\n", *_requestUriString)
+		}
 		_server.ServeError (_context, http.StatusBadRequest, nil, true)
 		return
 	}
@@ -226,14 +230,18 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if _fingerprints == nil {
-		log.Printf ("[ww] [7416f61d]  not found `%s`!\n", *_requestUriString)
+		if !_server.quiet {
+			log.Printf ("[ww] [7416f61d]  not found `%s`!\n", *_requestUriString)
+		}
 		_server.ServeError (_context, http.StatusNotFound, nil, true)
 		return
 	}
 	
 	_fingerprintsSplit := bytes.IndexByte (_fingerprints, ':')
 	if _fingerprintsSplit < 0 {
-		log.Printf ("[ee] [7ee6c981]  invalid data fingerprints for `%s`!\n", *_requestUriString)
+		if !_server.quiet {
+			log.Printf ("[ee] [7ee6c981]  invalid data fingerprints for `%s`!\n", *_requestUriString)
+		}
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
@@ -256,7 +264,9 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	if _data == nil {
-		log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", *_requestUriString)
+		if !_server.quiet {
+			log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", *_requestUriString)
+		}
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
@@ -277,7 +287,9 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	if _dataMetaRaw == nil {
-		log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", *_requestUriString)
+		if !_server.quiet {
+			log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", *_requestUriString)
+		}
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
@@ -296,15 +308,21 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 							if (_value >= 200) && (_value <= 599) {
 								_responseStatus = _value
 							} else {
-								log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", *_requestUriString)
+								if !_server.quiet {
+									log.Printf ("[ee] [c2f7ec36]  invalid data metadata for `%s`!\n", *_requestUriString)
+								}
 								_responseStatus = http.StatusInternalServerError
 								}
 							} else {
-								log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", *_requestUriString)
+								if !_server.quiet {
+									log.Printf ("[ee] [beedae55]  invalid data metadata for `%s`!\n", *_requestUriString)
+								}
 								_responseStatus = http.StatusInternalServerError
 							}
 					default :
-						log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", *_requestUriString)
+						if !_server.quiet {
+							log.Printf ("[ee] [7acc7d90]  invalid data metadata for `%s`!\n", *_requestUriString)
+						}
 				}
 			}
 		}
@@ -397,7 +415,9 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	
 	_response.SetStatusCode (int (_status))
 	
-	LogError (_error, "")
+	if (_error != nil) && !_server.quiet {
+		LogError (_error, "[23d6cb35]  failed handling request!")
+	}
 }
 
 
