@@ -451,7 +451,21 @@ func Main () () {
 }
 
 
+
+
+
+
+
+
 func main_0 () (error) {
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
 	
 	
 	var _bind string
@@ -630,6 +644,14 @@ func main_0 () (error) {
 	}
 	
 	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
+	
+	
 	runtime.GOMAXPROCS (int (_threads))
 	
 	debug.SetGCPercent (50)
@@ -639,7 +661,11 @@ func main_0 () (error) {
 	
 	_httpServerReduceMemory := false
 	
+	
 	if _limitMemory > 0 {
+		if !_quiet && _isMaster {
+			log.Printf ("[ii] [2c130d70]  limiting memory to %d MiB;", _limitMemory)
+		}
 		{
 			_limitMb := (2 * _limitMemory) + (1 * 1024)
 			_limit := syscall.Rlimit {
@@ -661,6 +687,14 @@ func main_0 () (error) {
 			}
 		}
 	}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
 	
 	
 	if _processes > 1 {
@@ -710,13 +744,16 @@ func main_0 () (error) {
 			_processArguments = append (_processArguments, "--security-headers-disable")
 		}
 		if _tlsPrivate != "" {
-			_processArguments = append (_processArguments, "--tls-private")
+			_processArguments = append (_processArguments, "--tls-private", _tlsPrivate)
 		}
 		if _tlsPublic != "" {
-			_processArguments = append (_processArguments, "--tls-public")
+			_processArguments = append (_processArguments, "--tls-public", _tlsPublic)
 		}
 		if _timeoutDisabled {
 			_processArguments = append (_processArguments, "--timeout-disable")
+		}
+		if _limitMemory != 0 {
+			_processArguments = append (_processArguments, "--limit-memory", fmt.Sprintf ("%d", _limitMemory))
 		}
 		if _debug {
 			_processArguments = append (_processArguments, "--debug")
@@ -800,6 +837,14 @@ func main_0 () (error) {
 	if _isMaster {
 		log.Printf ("[ii] [6602a54a]  starting (with `%d` threads)...\n", _threads)
 	}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
 	
 	
 	var _cdbReader *cdb.CDB
@@ -892,7 +937,7 @@ func main_0 () (error) {
 				}
 				
 			} else {
-				panic ("e4fffcd8")
+				panic ("[e4fffcd8]")
 			}
 			
 			if _error := _cdbFile.Close (); _error != nil {
@@ -929,6 +974,14 @@ func main_0 () (error) {
 			AbortError (_error, "[87cae197]  failed opening archive!")
 		}
 	}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
 	
 	
 	var _cachedFileFingerprints map[string][]byte
@@ -1040,19 +1093,12 @@ func main_0 () (error) {
 	}
 	
 	
-	_server := & server {
-			httpServer : nil,
-			cdbReader : _cdbReader,
-			cachedFileFingerprints : _cachedFileFingerprints,
-			cachedDataMeta : _cachedDataMeta,
-			cachedDataContent : _cachedDataContent,
-			securityHeadersTls : _securityHeadersTls,
-			securityHeadersEnabled : _securityHeadersEnabled,
-			debug : _debug,
-			quiet : _quiet,
-			dummy : _dummy,
-			delay : _delay,
-		}
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
 	
 	
 	if _profileCpu != "" {
@@ -1086,6 +1132,36 @@ func main_0 () (error) {
 			_stream.Close ()
 		} ()
 	}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
+	
+	
+	_server := & server {
+			cdbReader : _cdbReader,
+			cachedFileFingerprints : _cachedFileFingerprints,
+			cachedDataMeta : _cachedDataMeta,
+			cachedDataContent : _cachedDataContent,
+			securityHeadersTls : _securityHeadersTls,
+			securityHeadersEnabled : _securityHeadersEnabled,
+			debug : _debug,
+			quiet : _quiet,
+			dummy : _dummy,
+			delay : _delay,
+		}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
 	
 	
 	_tlsConfig := & tls.Config {
@@ -1132,6 +1208,9 @@ func main_0 () (error) {
 		}
 	}
 	
+	
+	
+	
 	_httpServer := & fasthttp.Server {
 			
 			Name : "kawipiko",
@@ -1164,8 +1243,12 @@ func main_0 () (error) {
 			
 		}
 	
+	
 	_httpsServer := & fasthttp.Server {}
 	*_httpsServer = *_httpServer
+	
+	
+	
 	
 	_https2Server := & http.Server {
 			
@@ -1183,6 +1266,9 @@ func main_0 () (error) {
 	
 	_https2Server.TLSConfig = _tlsConfig.Clone ()
 	_https2Server.TLSConfig.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
+	
+	
+	
 	
 	if _timeoutDisabled {
 		
@@ -1202,15 +1288,23 @@ func main_0 () (error) {
 	}
 	
 	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
+	
+	
 	if !_quiet && (_debug || _isFirst) {
 		if _bind != "" {
-			log.Printf ("[ii] [f11e4e37]  listening on `http://%s/` (HTTP/1.1, HTTP/1.0);\n", _bind)
+			log.Printf ("[ii] [f11e4e37]  listening on `http://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bind)
 		}
 		if _bindTls != "" {
-			log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (HTTP/1.1, HTTP/1.0);\n", _bindTls)
+			log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bindTls)
 		}
 		if _bindTls2 != "" {
-			log.Printf ("[ii] [e7f03c99]  listening on `https://%s/` (HTTP/2, HTTP/1.1, HTTP/1.0);\n", _bindTls2)
+			log.Printf ("[ii] [e7f03c99]  listening on `https://%s/` (using Go HTTP supporting HTTP/2, HTTP/1.1, HTTP/1.0);\n", _bindTls2)
 		}
 	}
 	
@@ -1245,7 +1339,7 @@ func main_0 () (error) {
 	
 	var _splitListenerClose func () ()
 	if (_httpsListener != nil) && (_https2Listener == nil) {
-		log.Printf ("[ii] [1098a405]  listening on `https://%s/` (HTTP/2 split);\n", _bindTls)
+		log.Printf ("[ii] [1098a405]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2);\n", _bindTls)
 		_tlsConfig.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
 		_tlsListener := tls.NewListener (_httpsListener, _tlsConfig)
 		_httpsListener_0 := & splitListener {
@@ -1324,6 +1418,14 @@ func main_0 () (error) {
 	_https2Server = nil
 	
 	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
+	
+	
 	var _waiter sync.WaitGroup
 	
 	if _server.httpServer != nil {
@@ -1331,7 +1433,7 @@ func main_0 () (error) {
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
-				log.Printf ("[ii] [f2061f1b]  starting HTTP server...\n")
+				log.Printf ("[ii] [f2061f1b]  starting FastHTTP server...\n")
 			}
 			if _error := _server.httpServer.Serve (_httpListener); _error != nil {
 				AbortError (_error, "[44f45c67]  failed executing server!")
@@ -1344,7 +1446,7 @@ func main_0 () (error) {
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
-				log.Printf ("[ii] [83cb1f6f]  starting HTTPS server...\n")
+				log.Printf ("[ii] [83cb1f6f]  starting FastHTTP server (with TLS)...\n")
 			}
 			if _error := _server.httpsServer.Serve (_httpsListener); _error != nil {
 				AbortError (_error, "[b2d50852]  failed executing server!")
@@ -1357,7 +1459,7 @@ func main_0 () (error) {
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
-				log.Printf ("[ii] [46ec2e41]  starting HTTPS+2 server...\n")
+				log.Printf ("[ii] [46ec2e41]  starting Go HTTP server...\n")
 			}
 			if _error := _server.https2Server.Serve (_https2Listener); (_error != nil) && (_error != http.ErrServerClosed) {
 				AbortError (_error, "[9f6d28f4]  failed executing server!")
@@ -1373,18 +1475,18 @@ func main_0 () (error) {
 			defer _waiter.Done ()
 			<- _signals
 			if !_quiet {
-				log.Printf ("[ii] [691cb695]  shutingdown (1)...\n")
+				log.Printf ("[ii] [691cb695]  terminating...\n")
 			}
 			if _server.httpServer != nil {
 				_waiter.Add (1)
 				go func () () {
 					defer _waiter.Done ()
 					if !_quiet {
-						log.Printf ("[ii] [8eea3f63]  stopping HTTP server...\n")
+						log.Printf ("[ii] [8eea3f63]  stopping FastHTTP server...\n")
 					}
 					_server.httpServer.Shutdown ()
 					if !_quiet {
-						log.Printf ("[ii] [aca4a14f]  stopped HTTP server;\n")
+						log.Printf ("[ii] [aca4a14f]  stopped FastHTTP server;\n")
 					}
 				} ()
 			}
@@ -1400,11 +1502,11 @@ func main_0 () (error) {
 				go func () () {
 					defer _waiter.Done ()
 					if !_quiet {
-						log.Printf ("[ii] [ff651007]  stopping HTTPS server...\n")
+						log.Printf ("[ii] [ff651007]  stopping FastHTTP server (for TLS)...\n")
 					}
 					_server.httpsServer.Shutdown ()
 					if !_quiet {
-						log.Printf ("[ii] [ee4180b7]  stopped HTTPS server;\n")
+						log.Printf ("[ii] [ee4180b7]  stopped FastHTTP server (for TLS);\n")
 					}
 				} ()
 			}
@@ -1413,19 +1515,18 @@ func main_0 () (error) {
 				go func () () {
 					defer _waiter.Done ()
 					if !_quiet {
-						log.Printf ("[ii] [9ae5a25b]  stopping HTTPS+2 server...\n")
+						log.Printf ("[ii] [9ae5a25b]  stopping Go HTTP server...\n")
 					}
 					_server.https2Server.Shutdown (context.TODO ())
 					if !_quiet {
-						log.Printf ("[ii] [9a487770]  stopped HTTPS+2 server;\n")
+						log.Printf ("[ii] [9a487770]  stopped Go HTTP server;\n")
 					}
 				} ()
 			}
 			if true {
 				go func () () {
 					time.Sleep (6 * time.Second)
-					log.Printf ("[ww] [827c672c]  forced exit!\n")
-					os.Exit (2)
+					AbortError (nil, "[827c672c]  forced terminated!")
 				} ()
 			}
 		} ()
@@ -1434,8 +1535,33 @@ func main_0 () (error) {
 	_waiter.Wait ()
 	
 	if !_quiet {
-		defer log.Printf ("[ii] [a49175db]  done!\n")
+		defer log.Printf ("[ii] [a49175db]  terminated!\n")
 	}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
+	
+	
+	if _cdbReader != nil {
+		_server.cdbReader = nil
+		if _error := _cdbReader.Close (); _error != nil {
+			AbortError (_error, "[a1031c39]  failed closing archive!")
+		}
+	}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
+	
 	
 	return nil
 }
