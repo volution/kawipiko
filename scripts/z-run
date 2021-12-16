@@ -489,12 +489,12 @@
 :: benchmark / client / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 4096
 :: benchmark / client / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 2048
 :: benchmark / client / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 1024
-:: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 512
-:: benchmark / client / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 256
-++:: benchmark / client / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 128
-:: benchmark / client / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 64
-:: benchmark / client / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 32
-:: benchmark / client / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 16
+:: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 512
+:: benchmark / client / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 256
+++:: benchmark / client / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 128
+:: benchmark / client / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 64
+:: benchmark / client / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 32
+:: benchmark / client / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 16
 :: benchmark / client / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 8
 :: benchmark / client / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 4
 :: benchmark / client / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 2
@@ -523,10 +523,12 @@
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	./.bin/wrk \
-			--threads 2 \
+			--threads 1 \
 			--connections 1 \
+			--conn-reqs 1024 \
 			--timeout 1s \
 			--duration 30s \
+			--progress \
 			--latency \
 			"${@}" \
 			-- "http://127.9.185.194:8080/${_path}" \
@@ -548,10 +550,12 @@
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	./.bin/wrk \
-			--threads 2 \
+			--threads 1 \
 			--connections 1 \
+			--conn-reqs 1024 \
 			--timeout 1s \
 			--duration 30s \
+			--progress \
 			--latency \
 			--script ../kawipiko-examples/sources/wrk-paths-from-file.lua \
 			"${@}" \
