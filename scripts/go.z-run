@@ -240,9 +240,10 @@
 	mkdir -p -- "${_outputs}/binaries/debug"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
+			-a \
 			-gcflags '-m' \
 			-o "${_outputs}/binaries/debug/kawipiko-server-analyze" \
-			-- ./cmd/server.go \
+			-- ./cmd/server/server.go \
 	#
 !!
 
