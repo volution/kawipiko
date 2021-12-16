@@ -31,6 +31,9 @@ import "github.com/colinmarc/cdb"
 import "github.com/valyala/fasthttp"
 import "github.com/valyala/fasthttp/reuseport"
 
+import "github.com/lucas-clemente/quic-go"
+import "github.com/lucas-clemente/quic-go/http3"
+
 import . "github.com/volution/kawipiko/lib/common"
 import . "github.com/volution/kawipiko/lib/server"
 
@@ -43,6 +46,7 @@ type server struct {
 	httpServer *fasthttp.Server
 	httpsServer *fasthttp.Server
 	https2Server *http.Server
+	quicServer *http3.Server
 	cdbReader *cdb.CDB
 	cachedFileFingerprints map[string][]byte
 	cachedDataMeta map[string][]byte
@@ -51,6 +55,7 @@ type server struct {
 	securityHeadersTls bool
 	http1Disabled bool
 	http2Disabled bool
+	http3AltSvc string
 	debug bool
 	quiet bool
 	dummy bool
@@ -343,6 +348,10 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		_responseHeaders.AddBytesKV (StringToBytes ("X-Frame-Options"), StringToBytes ("sameorigin"))
 	}
 	
+	if _server.http3AltSvc != "" {
+		_responseHeaders.AddBytesKV (StringToBytes ("Alt-Svc"), StringToBytes (_server.http3AltSvc))
+	}
+	
 	if _server.debug {
 		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", *_requestUriString)
 	}
@@ -372,6 +381,10 @@ func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint,
 		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("private, no-cache, no-store"))
 	}
 	
+	if _server.http3AltSvc != "" {
+		_responseHeaders.AddBytesKV (StringToBytes ("Alt-Svc"), StringToBytes (_server.http3AltSvc))
+	}
+	
 	_response.SetStatusCode (int (_status))
 	_response.SetBodyRaw (_data)
 }
@@ -388,6 +401,10 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	} else {
 		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("private, no-cache, no-store"))
+	}
+	
+	if _server.http3AltSvc != "" {
+		_responseHeaders.AddBytesKV (StringToBytes ("Alt-Svc"), StringToBytes (_server.http3AltSvc))
 	}
 	
 	_response.SetStatusCode (int (_status))
@@ -433,14 +450,28 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	switch _request.ProtoMajor {
 		case 1 :
 			_requestProtoUnsupported = _server.http1Disabled || (_request.ProtoMinor < 0) || (_request.ProtoMinor > 1)
+			if _server.debug && !_requestProtoUnsupported {
+				log.Printf ("[dd] [670e36d4]  using Go HTTP/1 for `%s`...", _request.URL.Path)
+			}
 		case 2 :
 			_requestProtoUnsupported = _server.http2Disabled || (_request.ProtoMinor != 0)
+			if _server.debug && !_requestProtoUnsupported {
+				log.Printf ("[dd] [524cd64b]  using Go HTTP/2 for `%s`...", _request.URL.Path)
+			}
+		case 3 :
+			_requestProtoUnsupported = (_server.quicServer == nil) || (_request.ProtoMinor != 0)
+			if _server.debug && !_requestProtoUnsupported {
+				log.Printf ("[dd] [be95da51]  using QUIC HTTP/3 for `%s`...", _request.URL.Path)
+			}
 		default :
 			_requestProtoUnsupported = true
 	}
 	if _requestProtoUnsupported {
 		_request.Close = true
 		_response.WriteHeader (http.StatusHTTPVersionNotSupported)
+		if !_server.quiet {
+			log.Printf ("[ww] [4c44e3c0]  protocol HTTP/%d not supported for `%s`!", _request.ProtoMajor, _request.URL.Path)
+		}
 		return
 	}
 	
@@ -536,8 +567,10 @@ func main_0 () (error) {
 	var _bind string
 	var _bindTls string
 	var _bindTls2 string
+	var _bindQuic string
 	var _http1Disabled bool
 	var _http2Disabled bool
+	var _http3AltSvc string
 	var _tlsPrivate string
 	var _tlsPublic string
 	var _archivePath string
@@ -575,8 +608,10 @@ func main_0 () (error) {
 		_bind_0 := _flags.String ("bind", "", "")
 		_bindTls_0 := _flags.String ("bind-tls", "", "")
 		_bindTls2_0 := _flags.String ("bind-tls-2", "", "")
+		_bindQuic_0 := _flags.String ("bind-quic", "", "")
 		_http1Disabled_0 := _flags.Bool ("http1-disable", false, "")
 		_http2Disabled_0 := _flags.Bool ("http2-disable", false, "")
+		_http3AltSvc_0 := _flags.String ("http3-alt-svc", "", "")
 		_archivePath_0 := _flags.String ("archive", "", "")
 		_archiveInmem_0 := _flags.Bool ("archive-inmem", false, "")
 		_archiveMmap_0 := _flags.Bool ("archive-mmap", false, "")
@@ -607,8 +642,10 @@ func main_0 () (error) {
 		_bind = *_bind_0
 		_bindTls = *_bindTls_0
 		_bindTls2 = *_bindTls2_0
+		_bindQuic = *_bindQuic_0
 		_http1Disabled = *_http1Disabled_0
 		_http2Disabled = *_http2Disabled_0
+		_http3AltSvc = *_http3AltSvc_0
 		_archivePath = *_archivePath_0
 		_archiveInmem = *_archiveInmem_0
 		_archiveMmap = *_archiveMmap_0
@@ -638,7 +675,7 @@ func main_0 () (error) {
 			_isFirst = true
 		}
 		
-		if (_bind == "") && (_bindTls == "") && (_bindTls2 == "") {
+		if (_bind == "") && (_bindTls == "") && (_bindTls2 == "") && (_bindQuic == "") {
 			AbortError (nil, "[6edd9512]  expected bind address argument!")
 		}
 		if (*_tlsBundle_0 != "") && ((*_tlsPrivate_0 != "") || (*_tlsPublic_0 != "")) {
@@ -654,7 +691,7 @@ func main_0 () (error) {
 		if ((_tlsPrivate != "") && (_tlsPublic == "")) || ((_tlsPublic != "") && (_tlsPrivate == "")) {
 			AbortError (nil, "[6e5b42e4]  TLS private/public must be specified together!")
 		}
-		if ((_tlsPrivate != "") || (_tlsPublic != "")) && ((_bindTls == "") && (_bindTls2 == "")) {
+		if ((_tlsPrivate != "") || (_tlsPublic != "")) && ((_bindTls == "") && (_bindTls2 == "") && (_bindQuic == "")) {
 			AbortError (nil, "[4e31f251]  TLS certificate specified, but TLS not enabled!")
 		}
 		
@@ -666,6 +703,22 @@ func main_0 () (error) {
 		}
 		if _http2Disabled && (_bindTls == "") && (_bindTls2 == "") {
 			log.Printf ("[ww] [1ed4864c]  HTTP/2 is only available with TLS!\n")
+		}
+		if (_http3AltSvc != "") && (_bindQuic == "") {
+			log.Printf ("[ww] [93510d2a]  HTTP/3 Alt-Svc is only available with QUIC!\n")
+		}
+		if (_http3AltSvc == "") && (_bindQuic != "") {
+			log.Printf ("[ww] [225bda04]  HTTP/3 Alt-Svc is mandatory with `--bind-quic`!\n")
+		}
+		if (_http3AltSvc != "") {
+			if strings.HasPrefix (_http3AltSvc, "h3=") {
+				// NOP
+			} else if _host, _port, _error := net.SplitHostPort (_http3AltSvc); _error == nil {
+				_endpoint := net.JoinHostPort (_host, _port)
+				_http3AltSvc = fmt.Sprintf ("h3=\"%s\"", _endpoint)
+			} else {
+				AbortError (nil, "[1a5476b1]  HTTP/3 Alt-Svc is invalid!")
+			}
 		}
 		
 		if !_dummy {
@@ -698,10 +751,6 @@ func main_0 () (error) {
 			}
 		}
 		
-		if (_processes > 1) && ((_profileCpu != "") || (_profileMem != "")) {
-			AbortError (nil, "[cd18d250]  multi-process and profiling are mutually exclusive!")
-		}
-		
 		if _processes < 1 {
 			_processes = 1
 		}
@@ -721,6 +770,13 @@ func main_0 () (error) {
 		
 		if (_limitMemory != 0) && ((_limitMemory > (16 * 1024)) || (_limitMemory < 128)) {
 			AbortError (nil, "[2781f54c]  maximum memory limit is between 128 and 16384 MiB!")
+		}
+		
+		if (_processes > 1) && ((_profileCpu != "") || (_profileMem != "")) {
+			AbortError (nil, "[cd18d250]  multi-process and profiling are mutually exclusive!")
+		}
+		if (_processes > 1) && (_bindQuic != "") {
+			AbortError (nil, "[d6db77ba]  QUIC is only available with a single process!")
 		}
 	}
 	
@@ -802,6 +858,9 @@ func main_0 () (error) {
 		}
 		if _http2Disabled {
 			_processArguments = append (_processArguments, "--http2-disabled")
+		}
+		if _http3AltSvc != "" {
+			_processArguments = append (_processArguments, "--http3-alt-svc", _http3AltSvc)
 		}
 		if _archivePath != "" {
 			_processArguments = append (_processArguments, "--archive", _archivePath)
@@ -1238,6 +1297,7 @@ func main_0 () (error) {
 			securityHeadersEnabled : _securityHeadersEnabled,
 			http1Disabled : _http1Disabled,
 			http2Disabled : _http2Disabled,
+			http3AltSvc : _http3AltSvc,
 			quiet : _quiet,
 			debug : _debug,
 			dummy : _dummy,
@@ -1374,6 +1434,50 @@ func main_0 () (error) {
 	
 	
 	
+	
+	_quicServer := & http3.Server {}
+	_quicServer.Server = & http.Server {
+			
+			Addr : _bindQuic,
+			
+			Handler : _server,
+			TLSConfig : nil,
+			
+			MaxHeaderBytes : _httpsServer.ReadBufferSize,
+			
+			ReadTimeout : _httpsServer.ReadTimeout,
+			ReadHeaderTimeout : _httpsServer.ReadTimeout,
+			WriteTimeout : _httpsServer.WriteTimeout,
+			IdleTimeout : _httpsServer.IdleTimeout,
+			
+		}
+	_quicServer.QuicConfig = & quic.Config {
+			
+			Versions : []quic.VersionNumber {
+					quic.Version1,
+				},
+			
+			HandshakeIdleTimeout : 6 * time.Second,
+			MaxIdleTimeout : _httpsServer.IdleTimeout,
+			
+			MaxIncomingStreams : 1024,
+			MaxIncomingUniStreams : 1024,
+			
+			InitialConnectionReceiveWindow : 1 * 1024 * 1024,
+			MaxConnectionReceiveWindow : 4 * 1024 * 1024,
+			
+			InitialStreamReceiveWindow : 512 * 1024,
+			MaxStreamReceiveWindow : 2 * 1024 * 1024,
+			KeepAlive : true,
+			
+		}
+	
+	_quicTlsConfig := _tlsConfig.Clone ()
+	_quicServer.Server.TLSConfig = _quicTlsConfig
+	
+	
+	
+	
 	if _timeoutDisabled {
 		
 		_httpServer.ReadTimeout = 0
@@ -1388,6 +1492,12 @@ func main_0 () (error) {
 		_https2Server.ReadHeaderTimeout = 0
 		_https2Server.WriteTimeout = 0
 		_https2Server.IdleTimeout = 0
+		
+		// NOTE:  Are these actually used by QUIC?
+		_quicServer.ReadTimeout = 0
+		_quicServer.ReadHeaderTimeout = 0
+		_quicServer.WriteTimeout = 0
+		_quicServer.IdleTimeout = 0
 		
 	}
 	
@@ -1423,6 +1533,9 @@ func main_0 () (error) {
 			} else {
 				panic ("[d784a82c]")
 			}
+		}
+		if _bindQuic != "" {
+			log.Printf ("[ii] [b958617a]  listening on `https://%s/` (using QUIC supporting TLS with HTTP/3 only);", _bindQuic)
 		}
 	}
 	
@@ -1530,10 +1643,14 @@ func main_0 () (error) {
 	if _https2Listener != nil {
 		_server.https2Server = _https2Server
 	}
+	if _bindQuic != "" {
+		_server.quicServer = _quicServer
+	}
 	
 	_httpServer = nil
 	_httpsServer = nil
 	_https2Server = nil
+	_quicServer = nil
 	
 	
 	
@@ -1556,6 +1673,9 @@ func main_0 () (error) {
 			if _error := _server.httpServer.Serve (_httpListener); _error != nil {
 				AbortError (_error, "[44f45c67]  failed executing server!")
 			}
+			if !_quiet {
+				log.Printf ("[ii] [aca4a14f]  stopped FastHTTP server;\n")
+			}
 		} ()
 	}
 	
@@ -1564,10 +1684,13 @@ func main_0 () (error) {
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
-				log.Printf ("[ii] [83cb1f6f]  starting FastHTTP server (with TLS)...\n")
+				log.Printf ("[ii] [83cb1f6f]  starting FastHTTP server (for TLS)...\n")
 			}
 			if _error := _server.httpsServer.Serve (_httpsListener); _error != nil {
 				AbortError (_error, "[b2d50852]  failed executing server!")
+			}
+			if !_quiet {
+				log.Printf ("[ii] [ee4180b7]  stopped FastHTTP server (for TLS);\n")
 			}
 		} ()
 	}
@@ -1581,6 +1704,25 @@ func main_0 () (error) {
 			}
 			if _error := _server.https2Server.Serve (_https2Listener); (_error != nil) && (_error != http.ErrServerClosed) {
 				AbortError (_error, "[9f6d28f4]  failed executing server!")
+			}
+			if !_quiet {
+				log.Printf ("[ii] [9a487770]  stopped Go HTTP server;\n")
+			}
+		} ()
+	}
+	
+	if _server.quicServer != nil {
+		_waiter.Add (1)
+		go func () () {
+			defer _waiter.Done ()
+			if !_quiet {
+				log.Printf ("[ii] [4cf834b0]  starting QUIC server...\n")
+			}
+			if _error := _server.quicServer.Serve (nil); (_error != nil) && (_error.Error () != "server closed") {
+				AbortError (_error, "[73e700c5]  failed executing server!")
+			}
+			if !_quiet {
+				log.Printf ("[ii] [0a9d72e9]  stopped QUIC server;\n")
 			}
 		} ()
 	}
@@ -1603,9 +1745,6 @@ func main_0 () (error) {
 						log.Printf ("[ii] [8eea3f63]  stopping FastHTTP server...\n")
 					}
 					_server.httpServer.Shutdown ()
-					if !_quiet {
-						log.Printf ("[ii] [aca4a14f]  stopped FastHTTP server;\n")
-					}
 				} ()
 			}
 			if _splitListenerClose != nil {
@@ -1623,9 +1762,6 @@ func main_0 () (error) {
 						log.Printf ("[ii] [ff651007]  stopping FastHTTP server (for TLS)...\n")
 					}
 					_server.httpsServer.Shutdown ()
-					if !_quiet {
-						log.Printf ("[ii] [ee4180b7]  stopped FastHTTP server (for TLS);\n")
-					}
 				} ()
 			}
 			if _server.https2Server != nil {
@@ -1636,9 +1772,18 @@ func main_0 () (error) {
 						log.Printf ("[ii] [9ae5a25b]  stopping Go HTTP server...\n")
 					}
 					_server.https2Server.Shutdown (context.TODO ())
+				} ()
+			}
+			if _server.quicServer != nil {
+				_waiter.Add (1)
+				go func () () {
+					defer _waiter.Done ()
 					if !_quiet {
-						log.Printf ("[ii] [9a487770]  stopped Go HTTP server;\n")
+						log.Printf ("[ii] [41dab8c2]  stopping QUIC server...\n")
 					}
+					_server.quicServer.CloseGracefully (1 * time.Second)
+					time.Sleep (1 * time.Second)
+					_server.quicServer.Close ()
 				} ()
 			}
 			if true {
