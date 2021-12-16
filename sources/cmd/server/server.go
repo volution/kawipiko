@@ -73,6 +73,10 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_response.Header)))
 	
+	_requestUri := _requestHeaders.RequestURI ()
+	_requestUriString_0 := BytesToString (_requestUri)
+	_requestUriString := NoEscapeString (&_requestUriString_0)
+	
 	
 	_keyBuffer := [1024]byte {}
 	_pathBuffer := [1024]byte {}
@@ -80,7 +84,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_method := _requestHeaders.Method ()
 	
 	_path := _pathBuffer[:0]
-	_path = append (_path, _requestHeaders.RequestURI () ...)
+	_path = append (_path, _requestUri ...)
 	if _pathLimit := bytes.IndexByte (_path, '?'); _pathLimit > 0 {
 		_path = _path[: _pathLimit]
 	}
@@ -91,12 +95,12 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	_pathHasSlash := !_pathIsRoot && (_path[_pathLen - 1] == '/')
 	
 	if ! bytes.Equal (StringToBytes (http.MethodGet), _method) {
-		log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", _requestHeaders.Method (), _requestHeaders.RequestURI ())
+		log.Printf ("[ww] [bce7a75b]  invalid method `%s` for `%s`!\n", BytesToString (_requestHeaders.Method ()), *_requestUriString)
 		_server.ServeError (_context, http.StatusMethodNotAllowed, nil, true)
 		return
 	}
 	if (_pathLen == 0) || (_path[0] != '/') {
-		log.Printf ("[ww] [fa6b1923]  invalid path `%s`!\n", _requestHeaders.RequestURI ())
+		log.Printf ("[ww] [fa6b1923]  invalid path `%s`!\n", *_requestUriString)
 		_server.ServeError (_context, http.StatusBadRequest, nil, true)
 		return
 	}
@@ -220,14 +224,14 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if _fingerprints == nil {
-		log.Printf ("[ww] [7416f61d]  not found `%s`!\n", _requestHeaders.RequestURI ())
+		log.Printf ("[ww] [7416f61d]  not found `%s`!\n", *_requestUriString)
 		_server.ServeError (_context, http.StatusNotFound, nil, true)
 		return
 	}
 	
 	_fingerprintsSplit := bytes.IndexByte (_fingerprints, ':')
 	if _fingerprintsSplit < 0 {
-		log.Printf ("[ee] [7ee6c981]  invalid data fingerprints for `%s`!\n", _requestHeaders.RequestURI ())
+		log.Printf ("[ee] [7ee6c981]  invalid data fingerprints for `%s`!\n", *_requestUriString)
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
@@ -250,7 +254,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	if _data == nil {
-		log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", _requestHeaders.RequestURI ())
+		log.Printf ("[ee] [0165c193]  missing data content for `%s`!\n", *_requestUriString)
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
@@ -271,7 +275,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		}
 	}
 	if _dataMetaRaw == nil {
-		log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+		log.Printf ("[ee] [e8702411]  missing data metadata for `%s`!\n", *_requestUriString)
 		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
@@ -290,15 +294,15 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 							if (_value >= 200) && (_value <= 599) {
 								_responseStatus = _value
 							} else {
-								log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+								log.Printf ("[c2f7ec36]  invalid data metadata for `%s`!\n", *_requestUriString)
 								_responseStatus = http.StatusInternalServerError
 								}
 							} else {
-								log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+								log.Printf ("[beedae55]  invalid data metadata for `%s`!\n", *_requestUriString)
 								_responseStatus = http.StatusInternalServerError
 							}
 					default :
-						log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", _requestHeaders.RequestURI ())
+						log.Printf ("[7acc7d90]  invalid data metadata for `%s`!\n", *_requestUriString)
 				}
 			}
 		}
@@ -321,7 +325,7 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if _server.debug {
-		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", _requestHeaders.RequestURI ())
+		log.Printf ("[dd] [b15f3cad]  serving for `%s`...\n", *_requestUriString)
 	}
 	
 	if _server.delay != 0 {
@@ -631,7 +635,7 @@ func main_0 () (error) {
 			AbortError (nil, "[f498816a]  HTTP/1 is mandatory with `--bind-tls`!")
 		}
 		if _http2Disabled && (_bindTls == "") && (_bindTls2 == "") {
-			log.Printf ("[ww] [1ed4864c]  HTTP/2 is only available with TLS!")
+			log.Printf ("[ww] [1ed4864c]  HTTP/2 is only available with TLS!\n")
 		}
 		
 		if !_dummy {
@@ -711,7 +715,7 @@ func main_0 () (error) {
 	
 	if _limitMemory > 0 {
 		if !_quiet && _isMaster {
-			log.Printf ("[ii] [2c130d70]  limiting memory to %d MiB;", _limitMemory)
+			log.Printf ("[ii] [2c130d70]  limiting memory to %d MiB;\n", _limitMemory)
 		}
 		{
 			_limitMb := (2 * _limitMemory) + (1 * 1024)
@@ -943,7 +947,7 @@ func main_0 () (error) {
 					case nil :
 						continue _loop
 					default :
-						AbortError (_error, "[a1c3b922]  failed preloading archive file...\n")
+						AbortError (_error, "[a1c3b922]  failed preloading archive file...")
 				}
 			}
 		}
@@ -1253,7 +1257,7 @@ func main_0 () (error) {
 		}
 		if len (_tlsConfig.Certificates) == 0 {
 			if !_quiet {
-				log.Printf ("[ii] [344ba198]  no TLS certificate specified;  using self-signed!")
+				log.Printf ("[ii] [344ba198]  no TLS certificate specified;  using self-signed!\n")
 			}
 			if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
 				_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
@@ -1439,7 +1443,7 @@ func main_0 () (error) {
 							_connection := _connection_0.(*tls.Conn)
 							if _error := _connection.Handshake (); _error != nil {
 								if !_quiet {
-									LogError (_error, "[d1c3dba3]  failed negotiating TLS connection!\n")
+									LogError (_error, "[d1c3dba3]  failed negotiating TLS connection!")
 								}
 							}
 							_protocol := _connection.ConnectionState () .NegotiatedProtocol
@@ -1463,7 +1467,7 @@ func main_0 () (error) {
 					} else if strings.Contains (_error.Error (), "use of closed network connection") {
 						break
 					} else {
-						LogError (_error, "[04b6637f]  failed accepting TLS connection!\n")
+						LogError (_error, "[04b6637f]  failed accepting TLS connection!")
 						break
 					}
 				}
