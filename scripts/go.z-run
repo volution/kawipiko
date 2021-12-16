@@ -1,0 +1,291 @@
+#!/dev/null
+
+
+
+
+<< go / build / server / debug
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/debug"
+	if test -e "${_outputs}/binaries/debug/kawipiko-server" ; then
+		rm -- "${_outputs}/binaries/debug/kawipiko-server"
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-o "${_outputs}/binaries/debug/kawipiko-server" \
+			-- ./cmd/server.go \
+	#
+!!
+
+
+<< go / build / server / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	if test -e "${_outputs}/binaries/release/kawipiko-server" ; then
+		rm -- "${_outputs}/binaries/release/kawipiko-server"
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 -- \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-tags netgo \
+			-a \
+			-gcflags 'all=-l=4' \
+			-ldflags 'all=-s' \
+			-buildmode exe \
+			-trimpath \
+			-o "${_outputs}/binaries/release/kawipiko-server" \
+			-- ./cmd/server.go \
+	#
+!!
+
+
+
+
+<< go / build / archiver / debug
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/debug"
+	if test -e "${_outputs}/binaries/debug/kawipiko-archiver" ; then
+		rm -- ${_outputs}/binaries/debug/kawipiko-archiver
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 -- \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-o "${_outputs}/binaries/debug/kawipiko-archiver" \
+			-- ./cmd/archiver.go \
+	#
+!!
+
+<< go / build / archiver / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	if test -e "${_outputs}/binaries/release/kawipiko-archiver" ; then
+		rm -- "${_outputs}/binaries/release/kawipiko-archiver"
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 -- \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-tags netgo \
+			-a \
+			-gcflags 'all=-l=4' \
+			-ldflags 'all=-s' \
+			-buildmode exe \
+			-trimpath \
+			-o "${_outputs}/binaries/release/kawipiko-archiver" \
+			-- ./cmd/archiver.go \
+	#
+!!
+
+
+
+
+<< go / build / wrapper / debug
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/debug"
+	if test -e "${_outputs}/binaries/debug/kawipiko-wrapper" ; then
+		rm -- "${_outputs}/binaries/debug/kawipiko-wrapper"
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-o "${_outputs}/binaries/debug/kawipiko-wrapper" \
+			-- ./cmd/wrapper.go \
+	#
+!!
+
+
+<< go / build / wrapper / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	if test -e "${_outputs}/binaries/release/kawipiko-wrapper" ; then
+		rm -- "${_outputs}/binaries/release/kawipiko-wrapper"
+	fi
+	exec -- \
+		nodaemon \
+		nice -n 19 -- \
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-tags netgo \
+			-a \
+			-gcflags 'all=-l=4' \
+			-ldflags 'all=-s' \
+			-buildmode exe \
+			-trimpath \
+			-o "${_outputs}/binaries/release/kawipiko-wrapper" \
+			-- ./cmd/wrapper.go \
+	#
+!!
+
+
+
+
+<< go / build / all / release
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	for _platform in linux darwin openbsd freebsd ; do
+		for _component in archiver server wrapper ; do
+			if test -e "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}" ; then
+				rm -f -- "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}"
+			fi
+		done
+	done
+	for _platform in linux darwin openbsd freebsd ; do
+		for _component in archiver server wrapper ; do
+			printf -- '[ii]  building `%s` for `%s`...\n' "${_component}" "${_platform}" >&2
+			env GOOS="${_platform}" \
+				nodaemon \
+				nice -n 19 -- \
+			"${ZRUN[@]}" ':: go / tool' \
+					build \
+					-mod readonly \
+					-tags netgo \
+					-a \
+					-gcflags 'all=-l=4' \
+					-ldflags 'all=-s' \
+					-buildmode exe \
+					-trimpath \
+					-o "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}" \
+					-- "./cmd/${_component}.go" \
+			#
+		done
+	done
+!!
+
+
+
+
+<< go / build / all / publish
+	test "${#}" -eq 0
+	if test ! -e ./.outputs/publish ; then
+		mkdir -- ./.outputs/publish
+	fi
+	if test ! -e ./.outputs/publish/binaries ; then
+		mkdir -- ./.outputs/publish/binaries
+	fi
+	for _platform in linux darwin openbsd freebsd ; do
+		for _component in archiver server wrapper ; do
+			cp -T -- \
+					"./.outputs/binaries/release/kawipiko-${_component}--${_platform}" \
+					"./.outputs/publish/binaries/kawipiko-${_component}--${_platform}" \
+			#
+		done
+	done
+!!
+
+
+
+
+<< go / build / server / analyze
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/debug"
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-gcflags '-m' \
+			-o "${_outputs}/binaries/debug/kawipiko-server-analyze" \
+			-- ./cmd/server.go \
+	#
+!!
+
+
+<< go / build / server / analyze / escapes
+	"${ZRUN[@]}" ':: go / build / server / analyze' "${@}" \
+		2>&1 \
+	| grep -F -e ' escapes ' \
+	| LC_ALL=C sort -n -k 2,2 -t ':'
+!!
+
+
+
+
+<< go / dependencies / update
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			get \
+			-v \
+			-d \
+			-u \
+			-- \
+			all \
+	#
+!!
+
+
+<< go / dependencies / list
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			list \
+			-m \
+			-- \
+			all \
+	#
+!!
+
+
+<< go / dependencies / tidy
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			mod tidy \
+	#
+!!
+
+
+<< go / dependencies / verify
+	test "${#}" -eq 0
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			mod verify \
+	#
+!!
+
+
+<< go / dependencies / upgrade
+	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: go / dependencies / update'
+	"${ZRUN[@]}" ':: go / dependencies / tidy'
+	"${ZRUN[@]}" ':: go / dependencies / verify'
+	"${ZRUN[@]}" ':: go / dependencies / list'
+!!
+
+
+
+
+<< go / tool
+	test "${#}" -ge 1
+	
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	_sources="$( exec -- readlink -e -- ./sources )"
+	
+	export -- GOPATH="${_outputs}/go"
+	export -- GOBIN="${_outputs}/go/bin"
+	export -- GOTMPDIR="${_outputs}/go/tmp"
+	export -- GOCACHE="${_outputs}/go/cache"
+	export -- GO111MODULE=on
+	
+	cd -- "${_sources}"
+	
+	exec -- go "${@}"
+!!
+

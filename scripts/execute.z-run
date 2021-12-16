@@ -1,0 +1,41 @@
+#!/dev/null
+
+
+
+
+++<< execute / server / debug
+	"${ZRUN[@]}" ':: go / build / server / debug'
+	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-server "${@}"
+!!
+
+<< execute / server / release
+	"${ZRUN[@]}" ':: go / build / server / release'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server "${@}"
+!!
+
+
+
+
+++<< execute / archiver / debug
+	"${ZRUN[@]}" ':: go / build / archiver / debug'
+	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-archiver "${@}"
+!!
+
+<< execute / archiver / release
+	"${ZRUN[@]}" ':: go / build / archiver / release'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-archiver "${@}"
+!!
+
+
+
+
+<< execute / wrapper / debug
+	"${ZRUN[@]}" ':: go / build / wrapper / debug'
+	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-wrapper "${@}"
+!!
+
+<< execute / wrapper / release
+	"${ZRUN[@]}" ':: go / build / wrapper / release'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-wrapper "${@}"
+!!
+

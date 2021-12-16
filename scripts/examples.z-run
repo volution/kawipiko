@@ -1,0 +1,64 @@
+#!/dev/null
+
+
+
+
+<< examples / hello-world / archive
+	"${ZRUN[@]}" ':: execute / archiver / debug' \
+			--sources ./examples/hello-world \
+			--archive ./examples/hello-world.cdb \
+			--progress \
+			--debug \
+			"${@}" \
+	#
+	cdb -d -- ./examples/hello-world.cdb \
+	| tr -d '\r' \
+	| sed -r -e 's#^(\+[0-9]+,[0-9]+):(.+?)->#\n\1\n\2\n#' \
+		>| ./examples/hello-world.cdb-dump \
+	#
+!!
+
+
+<< examples / hello-world / serve
+	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
+			--bind 127.153.215.30:8080 \
+			--archive ./examples/hello-world.cdb \
+			--archive-inmem \
+			--index-all \
+			--processes 1 \
+			--threads 1 \
+			--debug \
+			"${@}" \
+	#
+!!
+
+
+
+
+<< examples / huge / archive
+	exec -- "${ZRUN[@]}" ':: execute / archiver / debug' \
+			--sources ./.outputs/examples/huge \
+			--archive ./.outputs/examples/huge.cdb \
+			--compress gzip \
+			--compress-cache ./.outputs/examples/huge-compress.cache \
+			--sources-cache ./.outputs/examples/huge-sources.cache \
+			--exclude-strip \
+			--exclude-file-listing \
+			--progress \
+			"${@}" \
+	#
+!!
+
+
+<< examples / huge / serve
+	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
+			--bind 127.153.215.30:8080 \
+			--archive ./.outputs/examples/huge.cdb \
+			--archive-mmap \
+			--processes 1 \
+			--threads 1 \
+			--debug \
+			"${@}" \
+	#
+!!
+

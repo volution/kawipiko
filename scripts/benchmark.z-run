@@ -1,0 +1,236 @@
+#!/dev/null
+
+
+
+
+:: benchmark / server / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 1 --threads 1
+:: benchmark / server / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 2 --threads 1
+:: benchmark / server / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 1 --threads 2
+:: benchmark / server / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' "${@}" --processes 2 --threads 2
+
+
+
+
+<< benchmark / server
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_archive="${1}"
+			shift -- 1
+		else
+			_archive=''
+		fi
+	else
+		_archive=''
+	fi
+	if test -z "${_archive}" ; then
+		_archive=./examples/hello-world.cdb
+	fi
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 0,1 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.outputs/binaries/release/kawipiko-server \
+			--bind 127.9.185.194:8080 \
+			--archive "${_archive}" \
+			--security-headers-disable \
+			--timeout-disable \
+			"${@}" \
+	#
+!!
+
+
+<< benchmark / server / mmap
+	exec -- "${ZRUN[@]}" ':: benchmark / server' \
+			"${@}" \
+			--archive-mmap \
+			--archive-preload \
+	#
+!!
+
+<< benchmark / server / inmem
+	exec -- "${ZRUN[@]}" ':: benchmark / server' \
+			"${@}" \
+			--archive-inmem \
+			--index-all \
+	#
+!!
+
+
+
+
+<< benchmark / server / profile / cpu
+	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
+			"${@}" \
+			--profile-cpu ./.outputs/server-cpu.txt \
+	#
+!!
+
+<< benchmark / server / profile / mem
+	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
+			"${@}" \
+			--profile-mem ./.outputs/server-mem.txt \
+	#
+!!
+
+<< benchmark / server / profile / cpu / analyze
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	exec -- go tool pprof "${@}" -- ./.outputs/server-cpu.txt
+!!
+
+<< benchmark / server / profile / mem / analyze
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	exec -- go tool pprof "${@}" ./.outputs/server-mem.txt
+!!
+
+
+
+
+
+
+
+
+:: benchmark / client / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 16384 --timeout 6s
+:: benchmark / client / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 4096
+:: benchmark / client / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 2048
+:: benchmark / client / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 2 --connections 1024
+:: benchmark / client / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 512
+:: benchmark / client / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 256
+:: benchmark / client / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 128
+:: benchmark / client / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 64
+:: benchmark / client / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 32
+:: benchmark / client / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 16
+:: benchmark / client / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 8
+:: benchmark / client / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 4
+:: benchmark / client / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 2
+:: benchmark / client / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / client' "${@}" --threads 1 --connections 1
+
+
+
+
+<< benchmark / client
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
+	else
+		_path=''
+	fi
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 2,3 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.bin/wrk \
+			--threads 1 \
+			--connections 1 \
+			--conn-reqs 1024 \
+			--timeout 1s \
+			--duration 30s \
+			--progress \
+			--latency \
+			"${@}" \
+			-- "http://127.9.185.194:8080/${_path}" \
+	#
+!!
+
+
+<< benchmark / client / paths
+	test "${#}" -ge 1
+	_paths="${1}"
+	shift -- 1
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 2,3 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.bin/wrk \
+			--threads 1 \
+			--connections 1 \
+			--conn-reqs 1024 \
+			--timeout 1s \
+			--duration 30s \
+			--progress \
+			--latency \
+			--script ../kawipiko-examples/sources/wrk-paths-from-file.lua \
+			"${@}" \
+			-- "http://127.9.185.194:8080/" \
+			"${_paths}" \
+	#
+!!
+
+
+
+
+<< benchmark / curl
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
+	else
+		_path=''
+	fi
+	exec -- \
+		env -i -- \
+	"$( type -P -- curl )" \
+			--silent \
+			--compressed \
+			--output /dev/stdout \
+			--dump-header /dev/stdout \
+			"${@}" \
+			-- \
+			"http://127.9.185.194:8080/${_path}" \
+	#
+!!
+
+
+
+
+<< benchmark / dummy
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	mkdir -p -- "${_outputs}/binaries/release"
+	rm -f -- "${_outputs}/binaries/release/kawipiko-server-dummy"
+	"${ZRUN[@]}" ':: go / tool' \
+			build \
+			-mod readonly \
+			-tags netgo \
+			-ldflags 'all=-s -extld=gcc -extldflags=-static' \
+			-gcflags 'all=-l=4' \
+			-o "${_outputs}/binaries/release/kawipiko-server-dummy" \
+			-- ./cmd/server-dummy.go \
+	#
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 0,1 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.outputs/binaries/release/kawipiko-server-dummy \
+		"${@}" \
+	#
+!!
+

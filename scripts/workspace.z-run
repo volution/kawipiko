@@ -1,0 +1,130 @@
+#!/dev/null
+
+
+
+
+<< workspace / publish
+	test "${#}" -eq 0
+	printf -- '[ii]  publishing to `https://data.volution.ro/ciprian/ad5264afc6e27e46b5d71837552cb3fd`...\n' >&2
+	exec -- rsync -a -v -- ./.outputs/publish/ ./.publish/
+!!
+
+
+
+
+<< workspace / initialize
+	"${ZRUN[@]}" ':: workspace / initialize / outputs'
+	"${ZRUN[@]}" ':: workspace / initialize / go'
+!!
+
+
+
+
+<< workspace / initialize / outputs
+	test "${#}" -eq 0
+	if test ! -d ./.outputs ; then
+		_outputs_store="${TMPDIR:-/tmp}/go--${UID}--${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+		mkdir -- "${_outputs_store}"
+		_outputs_store="$( exec -- readlink -e -- "${_outputs_store}" )"
+		ln -s -f -T -- "${_outputs_store}" ./.outputs
+	fi
+!!
+
+
+
+
+<< workspace / initialize / go
+	test "${#}" -eq 0
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	_sources="$( exec -- readlink -e -- ./sources )"
+	
+	GOPATH="${_outputs}/go"
+	GOBIN="${_outputs}/go/bin"
+	GOTMPDIR="${_outputs}/go/tmp"
+	GOCACHE="${_outputs}/go/cache"
+	_gosrc="${_outputs}/go/src"
+	_gopkg="${_outputs}/go/pkg"
+	
+	for _folder in "${GOPATH}" "${GOBIN}" "${GOTMPDIR}" "${GOTMPDIR}" "${GOCACHE}" "${_gosrc}" "${_gopkg}" ; do
+		if test ! -e "${_folder}" ; then
+			mkdir -- "${_folder}"
+		fi
+	done
+!!
+
+
+
+
+<< workspace / initialize / python
+	test "${#}" -eq 0
+	if test -d ./.python ; then
+		exit -- 0
+	fi
+	
+	test -d ./.outputs
+	mkdir -- ./.outputs/python
+	
+	virtualenv-2.7 \
+			--python python2.7 \
+			--clear \
+			--no-site-packages \
+			--no-setuptools \
+			--no-wheel \
+			--no-download \
+			--unzip-setuptools \
+			-- \
+			./.outputs/python \
+	#
+	
+	./.outputs/python/bin/pip install --upgrade --compile -- pip
+	./.outputs/python/bin/pip install --upgrade --compile -- wheel
+	./.outputs/python/bin/pip install --upgrade --compile -- setuptools
+	
+	./.outputs/python/bin/pip install --compile -- docutils
+	./.outputs/python/bin/pip install --compile -- restview
+	
+	ln -s -f -T -- ./.outputs/python ./.python
+!!
+
+
+
+
+<< workspace / sources / codes / duplicates
+	test "${#}" -eq 0
+	exec -- xargs \
+			-r -d '\n' -I {} \
+			-a <(
+				grep \
+						-o \
+						-P \
+						-e '(?<=\[)[0-9a-f]{8}(?=\])|(?<=0x)[0-9a-f]{8}(?=[^0-9a-zA-Z]|$)' \
+						-h \
+						-r ./sources \
+						--include '*.go' \
+				| sort \
+				| uniq -d
+			) \
+			-- \
+		grep \
+			-P \
+			-e '(?<=\[){}(?=\])|(?<=0x){}(?=[^0-9a-zA-Z]|$)' \
+			-r ./sources \
+			-n \
+			--include '*.go' \
+			--color \
+	#
+!!
+
+
+
+
+<< documentation / readme / open
+	test "${#}" -eq 0
+	exec -- x-www open http://127.33.237.174:8080/
+!!
+
+<< documentation / readme / server
+	test "${#}" -eq 0
+	exec -- env -i -- ./.python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
+!!
+
