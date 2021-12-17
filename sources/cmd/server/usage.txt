@@ -16,9 +16,10 @@
     --archive-mmap            (memory-mapped archive file)
     --archive-preload         (preload archive in OS cache)
 
-    --bind <ip>:<port>        (HTTP, only HTTP/1.1)
-    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1)
-    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2)
+    --bind <ip>:<port>        (HTTP, only HTTP/1.1, FastHTTP)
+    --bind-2 <ip>:<port>      (HTTP, only HTTP/1.1, Go net/http)
+    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1, FastHTTP)
+    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2, Go net/http)
     --bind-quic <ip>:<port>   (HTTPS, with HTTP/3)
 
     --http1-disable
@@ -39,18 +40,13 @@
 
     --security-headers-tls
     --security-headers-disable
-    --timeout-disable
-
-    --profile-cpu <path>
-    --profile-mem <path>
 
     --limit-memory <MiB>
+    --timeout-disable
+    --profile-cpu <path> ; --profile-mem <path>
 
-    --quiet
-    --debug
-
-    --dummy
-    --delay <duration>
+    --quiet ; --debug
+    --dummy ; --dummy-empty ; --dummy-delay <duration>
 
   ** for details see:
      https://github.com/volution/kawipiko#kawipiko-server

@@ -59,7 +59,8 @@ type server struct {
 	debug bool
 	quiet bool
 	dummy bool
-	delay time.Duration
+	dummyEmpty bool
+	dummyDelay time.Duration
 }
 
 
@@ -69,7 +70,12 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 	
 	
 	if _server.dummy {
-		_server.ServeDummy (_context)
+		if !_server.dummyEmpty {
+			_server.ServeDummy (_context)
+		}
+		if _server.dummyDelay != 0 {
+			time.Sleep (_server.dummyDelay)
+		}
 		return
 	}
 	
@@ -356,8 +362,8 @@ func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
 		log.Printf ("[dd] [b15f3cad]  [http-x..]  serving for `%s`...\n", *_requestUriString)
 	}
 	
-	if _server.delay != 0 {
-		time.Sleep (_server.delay)
+	if _server.dummyDelay != 0 {
+		time.Sleep (_server.dummyDelay)
 	}
 	
 	_response.SetStatusCode (_responseStatus)
@@ -476,13 +482,18 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	}
 	
 	if _server.dummy {
-		_responseHeaders := _response.Header ()
-		_responseHeaders["Content-Type"] = []string { DummyContentType }
-		_responseHeaders["Content-Encoding"] = []string { DummyContentEncoding }
-		_responseHeaders["Cache-Control"] = []string { "no-store, max-age=0" }
-		_responseHeaders["Date"] = nil
-		_response.WriteHeader (http.StatusOK)
-		_response.Write (DummyData)
+		if !_server.dummyEmpty {
+			_responseHeaders := _response.Header ()
+			_responseHeaders["Content-Type"] = []string { DummyContentType }
+			_responseHeaders["Content-Encoding"] = []string { DummyContentEncoding }
+			_responseHeaders["Cache-Control"] = []string { "no-store, max-age=0" }
+			_responseHeaders["Date"] = nil
+			_response.WriteHeader (http.StatusOK)
+			_response.Write (DummyData)
+		}
+		if _server.dummyDelay != 0 {
+			time.Sleep (_server.dummyDelay)
+		}
 		return
 	}
 	
@@ -587,7 +598,8 @@ func main_0 () (error) {
 	var _debug bool
 	var _quiet bool
 	var _dummy bool
-	var _delay time.Duration
+	var _dummyEmpty bool
+	var _dummyDelay time.Duration
 	var _profileCpu string
 	var _profileMem string
 	var _limitMemory uint
@@ -631,7 +643,8 @@ func main_0 () (error) {
 		_debug_0 := _flags.Bool ("debug", false, "")
 		_quiet_0 := _flags.Bool ("quiet", false, "")
 		_dummy_0 := _flags.Bool ("dummy", false, "")
-		_delay_0 := _flags.Duration ("delay", 0, "")
+		_dummyEmpty_0 := _flags.Bool ("dummy-empty", false, "")
+		_dummyDelay_0 := _flags.Duration ("dummy-delay", 0, "")
 		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
 		_profileMem_0 := _flags.String ("profile-mem", "", "")
 		_limitMemory_0 := _flags.Uint ("limit-memory", 0, "")
@@ -663,7 +676,8 @@ func main_0 () (error) {
 		_debug = *_debug_0
 		_quiet = *_quiet_0 && !_debug
 		_dummy = *_dummy_0
-		_delay = *_delay_0
+		_dummyEmpty = *_dummyEmpty_0
+		_dummyDelay = *_dummyDelay_0
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
 		_limitMemory = *_limitMemory_0
@@ -725,6 +739,7 @@ func main_0 () (error) {
 			CanonicalHeaderValueRegister (_http3AltSvc)
 		}
 		
+		_dummy = _dummy || _dummyEmpty
 		if !_dummy {
 			if _archivePath == "" {
 				AbortError (nil, "[eefe1a38]  expected archive file argument!")
@@ -749,9 +764,9 @@ func main_0 () (error) {
 			_indexDataMeta = false
 			_indexDataContent = false
 		}
-		if !_dummy && (_delay != 0) {
+		if !_dummy && (_dummyDelay != 0) {
 			if _isMaster {
-				log.Printf ("[ww] [e9296c03]  running with a response delay of `%s`!\n", _delay)
+				log.Printf ("[ww] [e9296c03]  running with a response delay of `%s`!\n", _dummyDelay)
 			}
 		}
 		
@@ -916,6 +931,12 @@ func main_0 () (error) {
 		}
 		if _dummy {
 			_processArguments = append (_processArguments, "--dummy")
+		}
+		if _dummyEmpty {
+			_processArguments = append (_processArguments, "--dummy-empty")
+		}
+		if _dummyDelay != 0 {
+			_processArguments = append (_processArguments, "--dummy-delay", fmt.Sprintf ("%s", _dummyDelay))
 		}
 		_processArguments = append (_processArguments, "--threads", fmt.Sprintf ("%d", _threads))
 		
@@ -1308,7 +1329,8 @@ func main_0 () (error) {
 			quiet : _quiet,
 			debug : _debug,
 			dummy : _dummy,
-			delay : _delay,
+			dummyEmpty : _dummyEmpty,
+			dummyDelay : _dummyDelay,
 		}
 	
 	
