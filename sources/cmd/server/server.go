@@ -1424,6 +1424,8 @@ func main_0 () (error) {
 		_tls2Config.NextProtos = []string { "http/1.1", "http/1.0" }
 	} else if !_http2Disabled {
 		_tls2Config.NextProtos = []string { "h2" }
+	} else if _bindQuic != "" {
+		// NOP
 	} else {
 		panic ("[1b618ffe]")
 	}
@@ -1438,21 +1440,18 @@ func main_0 () (error) {
 	
 	
 	_quicServer := & http3.Server {}
+	
 	_quicServer.Server = & http.Server {
-			
-			Addr : _bindQuic,
 			
 			Handler : _server,
 			TLSConfig : nil,
 			
-			MaxHeaderBytes : _httpsServer.ReadBufferSize,
-			
-			ReadTimeout : _httpsServer.ReadTimeout,
-			ReadHeaderTimeout : _httpsServer.ReadTimeout,
-			WriteTimeout : _httpsServer.WriteTimeout,
-			IdleTimeout : _httpsServer.IdleTimeout,
-			
 		}
+	
+	_quicTlsConfig := _tlsConfig.Clone ()
+	_quicTlsConfig.NextProtos = []string { "h3", "h3-29" }
+	_quicServer.Server.TLSConfig = _quicTlsConfig
+	
 	_quicServer.QuicConfig = & quic.Config {
 			
 			Versions : []quic.VersionNumber {
@@ -1475,8 +1474,11 @@ func main_0 () (error) {
 			
 		}
 	
-	_quicTlsConfig := _tlsConfig.Clone ()
-	_quicServer.Server.TLSConfig = _quicTlsConfig
+	if !_quiet {
+		_quicServer.Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [a6af7354]  [quic]  ", 0)
+	} else {
+		_quicServer.Server.ErrorLog = log.New (ioutil.Discard, "", 0)
+	}
 	
 	
 	
@@ -1495,12 +1497,6 @@ func main_0 () (error) {
 		_https2Server.ReadHeaderTimeout = 0
 		_https2Server.WriteTimeout = 0
 		_https2Server.IdleTimeout = 0
-		
-		// NOTE:  Are these actually used by QUIC?
-		_quicServer.ReadTimeout = 0
-		_quicServer.ReadHeaderTimeout = 0
-		_quicServer.WriteTimeout = 0
-		_quicServer.IdleTimeout = 0
 		
 	}
 	
@@ -1566,15 +1562,27 @@ func main_0 () (error) {
 		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls2); _error == nil {
 			_https2Listener = _listener_0
 		} else {
-			AbortError (_error, "[63567445]  failed creating HTTPS+2 listener!")
+			AbortError (_error, "[63567445]  [bind-2]  failed creating TCP listener!")
+		}
+	}
+	
+	var _quicListener net.PacketConn
+	if _bindQuic != "" {
+		if _listener_0, _error := net.ListenPacket ("udp4", _bindQuic); _error == nil {
+			_quicListener = _listener_0
+		} else {
+			AbortError (_error, "[3b1bfc15]  [bind-3]  failed creating UDP listener!")
 		}
 	}
 	
 	
 	var _splitListenerClose func () ()
 	if (_httpsListener != nil) && (_https2Listener == nil) && !_http2Disabled {
-		log.Printf ("[ii] [1098a405]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2 split);\n", _bindTls)
-		_tlsConfig.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
+		log.Printf ("[ii] [1098a405]  [bind-1]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2 split);\n", _bindTls)
+		_tlsConfig.NextProtos = append ([]string { "h2" }, _tlsConfig.NextProtos ...)
+		if !_quiet {
+			log.Printf ("[ii] [ba970bbb]  [bind-1]  advertising TLS next protocols: %s", _tlsConfig.NextProtos)
+		}
 		_tlsListener := tls.NewListener (_httpsListener, _tlsConfig)
 		_httpsListener_0 := & splitListener {
 				listener : _tlsListener,
@@ -1659,7 +1667,7 @@ func main_0 () (error) {
 	if _https2Listener != nil {
 		_server.https2Server = _https2Server
 	}
-	if _bindQuic != "" {
+	if _quicListener != nil {
 		_server.quicServer = _quicServer
 	}
 	
@@ -1734,7 +1742,7 @@ func main_0 () (error) {
 			if !_quiet {
 				log.Printf ("[ii] [4cf834b0]  starting QUIC server...\n")
 			}
-			if _error := _server.quicServer.Serve (nil); (_error != nil) && (_error.Error () != "server closed") {
+			if _error := _server.quicServer.Serve (_quicListener); (_error != nil) && (_error.Error () != "server closed") {
 				AbortError (_error, "[73e700c5]  failed executing server!")
 			}
 			if !_quiet {
