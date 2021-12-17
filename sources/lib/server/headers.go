@@ -22,11 +22,21 @@ func CanonicalHeaderNameFromBytes (_header []byte) (string) {
 }
 
 
+
+
 func CanonicalHeaderValueFromBytes (_value []byte) (string) {
 	if _canonical, _found := CanonicalHeaderValuesMap[BytesToString (*NoEscapeBytes (&_value))]; _found {
 		return _canonical
 	} else {
 		return string (_value)
+	}
+}
+
+func CanonicalHeaderValueArrayFromBytes (_value []byte) ([]string) {
+	if _canonical, _found := CanonicalHeaderValuesArraysMap[BytesToString (*NoEscapeBytes (&_value))]; _found {
+		return _canonical
+	} else {
+		return []string { string (_value) }
 	}
 }
 
@@ -41,6 +51,7 @@ func CanonicalHeaderValueRegister (_value string) () {
 
 var CanonicalHeaderNamesMap map[string]string
 var CanonicalHeaderValuesMap map[string]string
+var CanonicalHeaderValuesArraysMap map[string][]string
 
 
 var CanonicalHeaderNames = []string {
@@ -218,8 +229,10 @@ func init () {
 	CanonicalHeaderValues = append (CanonicalHeaderValues, MimeTypes ...)
 	
 	CanonicalHeaderValuesMap = make (map[string]string, len (CanonicalHeaderValues))
+	CanonicalHeaderValuesArraysMap = make (map[string][]string, len (CanonicalHeaderValues))
 	for _, _value := range CanonicalHeaderValues {
 		CanonicalHeaderValuesMap[_value] = _value
+		CanonicalHeaderValuesArraysMap[_value] = []string { _value }
 	}
 }
 

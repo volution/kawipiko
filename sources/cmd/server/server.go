@@ -503,27 +503,29 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	
 	_server.Serve (_context)
 	
-	_responseHeaders := _response.Header ()
-	_responseHeaders["Date"] = nil
+	_responseHeaders := HttpResponseWriterHeaderDoMagic (_response)
 	_context.Response.Header.VisitAll (
 			func (_key_0 []byte, _value_0 []byte) () {
 				switch string (_key_0) {
 					case "Connection", "Content-Length", "Date" :
 						// NOP
 					default :
-						_key := string (_key_0)
-						_value := string (_value_0)
-						_responseHeaders[_key] = append (_responseHeaders[_key], _value)
+						_key := CanonicalHeaderNameFromBytes (_key_0)
+						if _values, _ := _responseHeaders[_key]; _values == nil {
+							_values = CanonicalHeaderValueArrayFromBytes (_value_0)
+							_responseHeaders[_key] = _values
+						} else {
+							_value := CanonicalHeaderValueFromBytes (_value_0)
+							_values = append (_values, _value)
+							_responseHeaders[_key] = _values
+						}
 				}
 			})
-	
-	_responseBody := _context.Response.Body ()
-	if len (_responseBody) > 0 {
-		_responseHeaders["Content-Length"] = []string { fmt.Sprintf ("%d", len (_responseBody)) }
-	}
+	_responseHeaders["Date"] = nil
 	
 	_response.WriteHeader (_context.Response.Header.StatusCode ())
-	_response.Write (_responseBody)
+	
+	_response.Write (_context.Response.Body ())
 }
 
 
@@ -724,6 +726,7 @@ func main_0 () (error) {
 			} else {
 				AbortError (nil, "[1a5476b1]  HTTP/3 Alt-Svc is invalid!")
 			}
+			CanonicalHeaderValueRegister (_http3AltSvc)
 		}
 		
 		if !_dummy {
