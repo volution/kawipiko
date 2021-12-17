@@ -701,14 +701,17 @@ func main_0 () (error) {
 		if _http1Disabled && (_bindTls != "") {
 			AbortError (nil, "[f498816a]  HTTP/1 is mandatory with `--bind-tls`!")
 		}
+		if _http1Disabled && (_bind == "") && (_bindTls == "") && (_bindTls2 == "") {
+			log.Printf ("[ww] [6bc56c8e]  HTTP/1 is not available!\n")
+		}
 		if _http2Disabled && (_bindTls == "") && (_bindTls2 == "") {
-			log.Printf ("[ww] [1ed4864c]  HTTP/2 is only available with TLS!\n")
+			log.Printf ("[ww] [1ed4864c]  HTTP/2 is not available!\n")
 		}
 		if (_http3AltSvc != "") && (_bindQuic == "") {
-			log.Printf ("[ww] [93510d2a]  HTTP/3 Alt-Svc is only available with QUIC!\n")
+			log.Printf ("[ww] [93510d2a]  HTTP/3 Alt-Svc is not available!\n")
 		}
 		if (_http3AltSvc == "") && (_bindQuic != "") {
-			log.Printf ("[ww] [225bda04]  HTTP/3 Alt-Svc is mandatory with `--bind-quic`!\n")
+			log.Printf ("[ww] [225bda04]  HTTP/3 Alt-Svc is mandatory with QUIC!\n")
 		}
 		if (_http3AltSvc != "") {
 			if strings.HasPrefix (_http3AltSvc, "h3=") {
@@ -1512,30 +1515,30 @@ func main_0 () (error) {
 	
 	if !_quiet && (_debug || _isFirst) {
 		if _bind != "" {
-			log.Printf ("[ii] [f11e4e37]  listening on `http://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bind)
+			log.Printf ("[ii] [f11e4e37]  [bind-0]  listening on `http://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bind)
 		}
 		if _bindTls != "" {
 			if !_http1Disabled && (!_http2Disabled && _bindTls2 == "") {
-				log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0, and HTTP/2 split);\n", _bindTls)
+				log.Printf ("[ii] [21f050c3]  [bind-1]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0, and HTTP/2 split);\n", _bindTls)
 			} else if !_http1Disabled {
-				log.Printf ("[ii] [21f050c3]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0);\n", _bindTls)
+				log.Printf ("[ii] [21f050c3]  [bind-1]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0);\n", _bindTls)
 			} else {
 				panic ("[fc754170]")
 			}
 		}
 		if _bindTls2 != "" {
 			if !_http1Disabled && !_http2Disabled {
-				log.Printf ("[ii] [e7f03c99]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/2, HTTP/1.1, HTTP/1.0);\n", _bindTls2)
+				log.Printf ("[ii] [e7f03c99]  [bind-2]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/2, HTTP/1.1, HTTP/1.0);\n", _bindTls2)
 			} else if !_http1Disabled {
-				log.Printf ("[ii] [477583ad]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/1.1, HTTP/1.0 only);\n", _bindTls2)
+				log.Printf ("[ii] [477583ad]  [bind-2]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/1.1, HTTP/1.0 only);\n", _bindTls2)
 			} else if !_http2Disabled {
-				log.Printf ("[ii] [7d2c7ddb]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/2 only);\n", _bindTls2)
+				log.Printf ("[ii] [7d2c7ddb]  [bind-2]  listening on `https://%s/` (using Go HTTP supporting TLS with HTTP/2 only);\n", _bindTls2)
 			} else {
 				panic ("[d784a82c]")
 			}
 		}
 		if _bindQuic != "" {
-			log.Printf ("[ii] [b958617a]  listening on `https://%s/` (using QUIC supporting TLS with HTTP/3 only);", _bindQuic)
+			log.Printf ("[ii] [b958617a]  [bind-3]  listening on `https://%s/` (using QUIC supporting TLS with HTTP/3 only);", _bindQuic)
 		}
 	}
 	
@@ -1545,7 +1548,7 @@ func main_0 () (error) {
 		if _listener_0, _error := reuseport.Listen ("tcp4", _bind); _error == nil {
 			_httpListener = _listener_0
 		} else {
-			AbortError (_error, "[d5f51e9f]  failed creating HTTP listener!")
+			AbortError (_error, "[d5f51e9f]  [bind-0]  failed creating TCP listener!")
 		}
 	}
 	
@@ -1554,7 +1557,7 @@ func main_0 () (error) {
 		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls); _error == nil {
 			_httpsListener = _listener_0
 		} else {
-			AbortError (_error, "[e35cc693]  failed creating HTTPS listener!")
+			AbortError (_error, "[e35cc693]  [bind-1]  failed creating TCP listener!")
 		}
 	}
 	
@@ -1593,23 +1596,23 @@ func main_0 () (error) {
 							_connection := _connection_0.(*tls.Conn)
 							if _error := _connection.Handshake (); _error != nil {
 								if !_quiet {
-									LogError (_error, "[d1c3dba3]  failed negotiating TLS connection!")
+									LogError (_error, "[d1c3dba3]  [bind-1]  failed negotiating TLS connection!")
 								}
 							}
 							_protocol := _connection.ConnectionState () .NegotiatedProtocol
 							if _protocol == "h2" {
 								if _debug {
-									log.Printf ("[dd] [df9f3e7e]  dispatching HTTP/2 TLS connection!\n")
+									log.Printf ("[dd] [df9f3e7e]  [bind-1]  dispatching HTTP/2 TLS connection!\n")
 								}
 								_https2Listener_0.queue <- _connection
 							} else if (_protocol == "http/1.1") || (_protocol == "http/1.0") || (_protocol == "") {
 								if _debug {
-									log.Printf ("[dd] [d534c361]  dispatching HTTP/1.x TLS connection!\n")
+									log.Printf ("[dd] [d534c361]  [bind-1]  dispatching HTTP/1.x TLS connection!\n")
 								}
 								_httpsListener_0.queue <- _connection
 							} else {
 								if !_quiet {
-									log.Printf ("[ww] [5cc0ebde]  unknown TLS protocol `%s`!\n", _protocol)
+									log.Printf ("[ww] [5cc0ebde]  [bind-1]  unknown TLS protocol `%s`!\n", _protocol)
 								}
 								_connection.Close ()
 							}
@@ -1617,7 +1620,7 @@ func main_0 () (error) {
 					} else if strings.Contains (_error.Error (), "use of closed network connection") {
 						break
 					} else {
-						LogError (_error, "[04b6637f]  failed accepting TLS connection!")
+						LogError (_error, "[04b6637f]  [bind-1]  failed accepting TLS connection!")
 						break
 					}
 				}
@@ -1626,10 +1629,23 @@ func main_0 () (error) {
 		_https2Listener = _https2Listener_0
 	} else {
 		if _httpsListener != nil {
+			if !_quiet {
+				log.Printf ("[ii] [ceed854a]  [bind-1]  advertising TLS next protocols: %s", _tlsConfig.NextProtos)
+			}
 			_httpsListener = tls.NewListener (_httpsListener, _tlsConfig)
 		}
 		if _https2Listener != nil {
+			if !_quiet {
+				log.Printf ("[ii] [8b97c977]  [bind-2]  advertising TLS next protocols: %s", _tls2Config.NextProtos)
+			}
 			_https2Listener = tls.NewListener (_https2Listener, _tls2Config)
+		}
+	}
+	
+	
+	if _quicListener != nil {
+		if !_quiet {
+			log.Printf ("[ii] [22feb826]  [bind-3]  advertising TLS next protocols: %s", _quicTlsConfig.NextProtos)
 		}
 	}
 	
