@@ -184,7 +184,7 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 		
 		case (_responsePackage == "net/http") && (_responseTypeName == "response") : {
 			
-			log.Printf ("[dd] [73f6be95]  [magic]  detected NetHttp1 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
+			log.Printf ("[dd] [73f6be95]  [magic...]  detected NetHttp1 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
 			
 			_handlerHeaderReflect := _responseReflect.FieldByName ("handlerHeader")
 			_handlerHeaderAddress := unsafe.Pointer (_handlerHeaderReflect.UnsafeAddr ())
@@ -203,14 +203,14 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 		
 		case (_responsePackage == "net/http") && (_responseTypeName == "http2responseWriter") : {
 			
-			log.Printf ("[dd] [cfb457eb]  [magic]  detected NetHttp2 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
+			log.Printf ("[dd] [cfb457eb]  [magic...]  detected NetHttp2 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
 			
 			atomic.StoreUintptr (&_httpResponseWriterHeadersMagic_netHttp2_type, _responseRawType)
 		}
 		
 		case (_responsePackage == "github.com/lucas-clemente/quic-go/http3") && (_responseTypeName == "responseWriter") : {
 			
-			log.Printf ("[dd] [90b8f7c6]  [magic]  detected QuicHttp3 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
+			log.Printf ("[dd] [90b8f7c6]  [magic...]  detected QuicHttp3 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
 			
 			atomic.StoreUintptr (&_httpResponseWriterHeadersMagic_quicHttp3_type, _responseRawType)
 		}
