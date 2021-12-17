@@ -21,13 +21,41 @@
 
 << examples / hello-world / serve
 	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
-			--bind 127.153.215.30:8080 \
+			\
 			--archive ./examples/hello-world.cdb \
 			--archive-inmem \
 			--index-all \
+			\
 			--processes 1 \
 			--threads 1 \
+			\
 			--debug \
+			\
+			"${@}" \
+	#
+!!
+
+
+<< examples / hello-world / serve / http-fast
+	exec -- "${ZRUN[@]}" ':: examples / hello-world / serve' \
+			\
+			--bind 127.153.215.30:8080 \
+			\
+			"${@}" \
+	#
+!!
+
+
+<< examples / hello-world / serve / http-all
+	exec -- "${ZRUN[@]}" ':: examples / hello-world / serve' \
+			\
+			--bind 127.153.215.30:8080 \
+			--bind-2 127.153.215.30:8081 \
+			--bind-tls 127.153.215.30:8443 \
+			--bind-tls-2 127.153.215.30:8444 \
+			--bind-quic 127.153.215.30:8445 \
+			--http3-alt-svc 127.153.215.30:8445 \
+			\
 			"${@}" \
 	#
 !!
@@ -52,7 +80,6 @@
 
 << examples / huge / serve
 	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
-			--bind 127.153.215.30:8080 \
 			--archive ./.outputs/examples/huge.cdb \
 			--archive-mmap \
 			--processes 1 \

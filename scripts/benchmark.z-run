@@ -3,10 +3,15 @@
 
 
 
-:: benchmark / server / http / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http "${@}" --processes 1 --threads 1
-:: benchmark / server / http / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http "${@}" --processes 2 --threads 1
-:: benchmark / server / http / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http "${@}" --processes 1 --threads 2
-:: benchmark / server / http / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http "${@}" --processes 2 --threads 2
+:: benchmark / server / http-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 1 --threads 1
+:: benchmark / server / http-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 2 --threads 1
+:: benchmark / server / http-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 1 --threads 2
+:: benchmark / server / http-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 2 --threads 2
+
+:: benchmark / server / http-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 1 --threads 1
+:: benchmark / server / http-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 2 --threads 1
+:: benchmark / server / http-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 1 --threads 2
+:: benchmark / server / http-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 2 --threads 2
 
 :: benchmark / server / https-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-fast "${@}" --processes 1 --threads 1
 :: benchmark / server / https-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-fast "${@}" --processes 2 --threads 1
@@ -23,10 +28,15 @@
 :: benchmark / server / http2-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go "${@}" --processes 1 --threads 2
 :: benchmark / server / http2-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http2-go-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go-split "${@}" --processes 1 --threads 1
-:: benchmark / server / http2-go-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go-split "${@}" --processes 2 --threads 1
-:: benchmark / server / http2-go-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go-split "${@}" --processes 1 --threads 2
-:: benchmark / server / http2-go-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go-split "${@}" --processes 2 --threads 2
+:: benchmark / server / https-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 1 --threads 1
+:: benchmark / server / https-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 2 --threads 1
+:: benchmark / server / https-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 1 --threads 2
+:: benchmark / server / https-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 2 --threads 2
+
+:: benchmark / server / http2-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 1 --threads 1
+:: benchmark / server / http2-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 2 --threads 1
+:: benchmark / server / http2-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 1 --threads 2
+:: benchmark / server / http2-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 2 --threads 2
 
 :: benchmark / server / http3-quic / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http3-quic "${@}" --processes 1 --threads 1
 :: benchmark / server / http3-quic / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http3-quic "${@}" --processes 1 --threads 2
@@ -137,15 +147,21 @@
 		( http-all )
 			_arguments+=(
 					--bind 127.9.185.194:8080
+					--bind-2 127.9.185.194:8081
 					--bind-tls 127.9.185.194:8443
 					--bind-tls-2 127.9.185.194:8444
 					--bind-quic 127.9.185.194:8445
 					--http3-alt-svc 127.9.185.194:8445
 				)
 		;;
-		( http )
+		( http-fast )
 			_arguments+=(
 					--bind 127.9.185.194:8080
+				)
+		;;
+		( http-go )
+			_arguments+=(
+					--bind-2 127.9.185.194:8080
 				)
 		;;
 		( https-fast )
@@ -166,7 +182,12 @@
 					--http1-disable
 				)
 		;;
-		( http2-go-split )
+		( https-split )
+			_arguments+=(
+					--bind-tls 127.9.185.194:8443
+				)
+		;;
+		( http2-split )
 			_arguments+=(
 					--bind-tls 127.9.185.194:8444
 				)
