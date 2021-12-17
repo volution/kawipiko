@@ -177,6 +177,9 @@
 					--http3-alt-svc 127.9.185.194:8445
 				)
 		;;
+		( * )
+			printf -- '[ee]  invalid mode `%s`;  aborting!\n' "${_mode}" >&2
+		;;
 	esac
 	exec -- \
 		sudo -u root -n -E -P -- \
@@ -217,6 +220,7 @@
 
 
 << benchmark / server / profile / cpu
+	test "${#}" -ge 1
 	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
 			"${@}" \
 			--profile-cpu ./.outputs/server-cpu.txt \
@@ -224,6 +228,7 @@
 !!
 
 << benchmark / server / profile / mem
+	test "${#}" -ge 1
 	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
 			"${@}" \
 			--profile-mem ./.outputs/server-mem.txt \
@@ -241,6 +246,11 @@
 	exec -- go tool pprof -http 127.108.221.132:8080 -no_browser -functions "${@}" -- ./.outputs/server-cpu.txt
 !!
 
+<< benchmark / server / profile / cpu / analyze / web-open
+	test "${#}" -eq 0
+	exec -- x-www 'guest:*' open http://127.108.221.132:8080/
+!!
+
 
 << benchmark / server / profile / mem / analyze
 	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
@@ -249,7 +259,12 @@
 
 << benchmark / server / profile / mem / analyze / web
 	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
-	exec -- go tool pprof "${@}" -http 127.108.221.132:8080 -no_browser -functions -- ./.outputs/server-mem.txt
+	exec -- go tool pprof "${@}" -http 127.226.119.8:8080 -no_browser -functions -- ./.outputs/server-mem.txt
+!!
+
+<< benchmark / server / profile / mem / analyze / web-open
+	test "${#}" -eq 0
+	exec -- x-www 'guest:*' open http://127.226.119.8:8080/
 !!
 
 
