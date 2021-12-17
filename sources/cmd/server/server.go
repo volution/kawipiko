@@ -487,7 +487,13 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	
 	// FIXME:  Reimplemnet this to eliminate the HTTP-encode-followed-by-HTTP-decode!
 	
-	_context := fasthttp.RequestCtx {}
+	var _context *fasthttp.RequestCtx
+	if _context_0 := _requestContextsPool.Get (); _context_0 != nil {
+		_context = _context_0.(*fasthttp.RequestCtx)
+	} else {
+		_context = new (fasthttp.RequestCtx)
+	}
+	defer _requestContextsPool.Put (_context)
 	
 	_context.Request.Reset ()
 	_context.Request.Header.SetMethod (_request.Method)
@@ -495,7 +501,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	
 	_context.Response.Reset ()
 	
-	_server.Serve (&_context)
+	_server.Serve (_context)
 	
 	_responseHeaders := _response.Header ()
 	_responseHeaders["Date"] = nil
@@ -519,6 +525,9 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	_response.WriteHeader (_context.Response.Header.StatusCode ())
 	_response.Write (_responseBody)
 }
+
+
+var _requestContextsPool sync.Pool
 
 
 
