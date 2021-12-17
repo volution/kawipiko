@@ -13,6 +13,62 @@ import "unsafe"
 
 
 
+type HttpResponseWriterHeadersBuffer struct {
+	status int
+	headers [128][2][]byte
+	headersCount int
+}
+
+
+func NewHttpResponseWriterHeadersBuffer (_status int) (HttpResponseWriterHeadersBuffer) {
+	
+	return HttpResponseWriterHeadersBuffer {
+			status : _status,
+			headersCount : 0,
+		}
+}
+
+
+func (_buffer *HttpResponseWriterHeadersBuffer) Include (_name []byte, _value []byte) () {
+	
+	if _buffer.headersCount == 128 {
+		panic ("[ca806ede]")
+	}
+	
+	_buffer.headers[_buffer.headersCount] = [2][]byte {_name, _value}
+	_buffer.headersCount += 1
+}
+
+
+func (_buffer *HttpResponseWriterHeadersBuffer) WriteTo (_response http.ResponseWriter) () {
+	
+	_headers := HttpResponseWriterHeaderDoMagic (_response)
+	
+	for _index := 0; _index < _buffer.headersCount; _index += 1 {
+		
+		_nameAndValue_0 := _buffer.headers[_index]
+		_name_0 := _nameAndValue_0[0]
+		_value_0 := _nameAndValue_0[1]
+		
+		_name := CanonicalHeaderNameFromBytes (_name_0)
+		if _values, _ := _headers[_name]; _values == nil {
+			_values = CanonicalHeaderValueArrayFromBytes (_value_0)
+			_headers[_name] = _values
+		} else {
+			_value := CanonicalHeaderValueFromBytes (_value_0)
+			_values = append (_values, _value)
+			_headers[_name] = _values
+		}
+	}
+	
+	_headers["Date"] = nil
+	
+	_response.WriteHeader (_buffer.status)
+}
+
+
+
+
 func HttpResponseWriterHeaderDoMagic (_response http.ResponseWriter) (http.Header) {
 	
 	

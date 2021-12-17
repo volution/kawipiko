@@ -503,27 +503,19 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	
 	_server.Serve (_context)
 	
-	_responseHeaders := HttpResponseWriterHeaderDoMagic (_response)
+	_responseHeaders := NewHttpResponseWriterHeadersBuffer (_context.Response.Header.StatusCode ())
+	
 	_context.Response.Header.VisitAll (
-			func (_key_0 []byte, _value_0 []byte) () {
-				switch string (_key_0) {
+			func (_key []byte, _value []byte) () {
+				switch BytesToString (_key) {
 					case "Connection", "Content-Length", "Date" :
 						// NOP
 					default :
-						_key := CanonicalHeaderNameFromBytes (_key_0)
-						if _values, _ := _responseHeaders[_key]; _values == nil {
-							_values = CanonicalHeaderValueArrayFromBytes (_value_0)
-							_responseHeaders[_key] = _values
-						} else {
-							_value := CanonicalHeaderValueFromBytes (_value_0)
-							_values = append (_values, _value)
-							_responseHeaders[_key] = _values
-						}
+						_responseHeaders.Include (_key, _value)
 				}
 			})
-	_responseHeaders["Date"] = nil
 	
-	_response.WriteHeader (_context.Response.Header.StatusCode ())
+	_responseHeaders.WriteTo (_response)
 	
 	_response.Write (_context.Response.Body ())
 }
