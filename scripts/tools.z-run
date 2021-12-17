@@ -32,6 +32,11 @@
 		env -i -- \
 		./.bin/nodaemon \
 	./.bin/h2load \
+			--threads 1 \
+			--clients 1 \
+			--connection-inactivity-timeout 1 \
+			--duration 30 \
+			--warm-up-time 1 \
 			"${@}" \
 	#
 !!
