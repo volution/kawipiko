@@ -3,7 +3,6 @@
 package server
 
 
-import "bufio"
 import "bytes"
 import "context"
 import "crypto/tls"
@@ -489,28 +488,21 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	// FIXME:  Reimplemnet this to eliminate the HTTP-encode-followed-by-HTTP-decode!
 	
 	_context := fasthttp.RequestCtx {}
-	_context.Request.Reset ()
-	_context.Response.Reset ()
 	
+	_context.Request.Reset ()
 	_context.Request.Header.SetMethod (_request.Method)
 	_context.Request.Header.SetRequestURI (_request.URL.Path)
 	
+	_context.Response.Reset ()
+	
 	_server.Serve (&_context)
 	
-	{
-		_buffer := bytes.NewBuffer (make ([]byte, 0, 4096))
-		_writer := bufio.NewWriter (_buffer)
-		_context.Response.Header.Write (_writer)
-		_writer.Flush ()
-		_context.Response.Header.Read (bufio.NewReader (_buffer))
-	}
-	_responseBody := _context.Response.Body ()
-	
 	_responseHeaders := _response.Header ()
+	_responseHeaders["Date"] = nil
 	_context.Response.Header.VisitAll (
 			func (_key_0 []byte, _value_0 []byte) () {
 				switch string (_key_0) {
-					case "Connection", "Content-Length" :
+					case "Connection", "Content-Length", "Date" :
 						// NOP
 					default :
 						_key := string (_key_0)
@@ -519,6 +511,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 				}
 			})
 	
+	_responseBody := _context.Response.Body ()
 	if len (_responseBody) > 0 {
 		_responseHeaders["Content-Length"] = []string { fmt.Sprintf ("%d", len (_responseBody)) }
 	}
