@@ -63,6 +63,8 @@ const MimeTypeZip = "application/zip"
 const MimeTypeRaw = "application/octet-stream"
 
 
+
+
 var MimeTypesByExtension = map[string]string {
 		
 		// NOTE:  Based on: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
@@ -126,6 +128,68 @@ var MimeTypesByExtension = map[string]string {
 		"ics" : MimeTypeIcs,
 		
 		"zip" : MimeTypeZip,
+		
+	}
+
+
+
+
+var MimeTypes = []string {
+		
+		MimeTypeText,
+		MimeTypeCsv,
+		
+		MimeTypeHtml,
+		MimeTypeCss,
+		MimeTypeJs,
+		MimeTypeJson,
+		
+		MimeTypeXml,
+		MimeTypeXslt,
+		MimeTypeXhtml,
+		
+		MimeTypeSvg,
+		MimeTypePng,
+		MimeTypeJpeg,
+		MimeTypeWebp,
+		MimeTypeGif,
+		MimeTypeIco,
+		MimeTypeBmp,
+		MimeTypeTiff,
+		MimeTypeApng,
+		
+		MimeTypeAvif,
+		MimeTypeAvifSequence,
+		MimeTypeHeic,
+		MimeTypeHeicSequence,
+		MimeTypeHeif,
+		MimeTypeHeifSequence,
+		
+		MimeTypeOtf,
+		MimeTypeTtf,
+		MimeTypeWoff,
+		MimeTypeWoff2,
+		
+		MimeTypeWav,
+		MimeTypeMidi,
+		MimeTypeAac,
+		MimeTypeOpus,
+		MimeTypeAudioMpeg,
+		MimeTypeAudioWebm,
+		MimeTypeAudioOgg,
+		
+		MimeTypeAvi,
+		MimeTypeMp4,
+		MimeTypeVideoMpeg,
+		MimeTypeVideoWebm,
+		MimeTypeVideoOgg,
+		
+		MimeTypePdf,
+		MimeTypePs,
+		MimeTypeIcs,
+		
+		MimeTypeZip,
+		MimeTypeRaw,
 		
 	}
 
