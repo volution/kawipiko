@@ -42,10 +42,11 @@ import _ "embed"
 
 
 type server struct {
-	httpServer *fasthttp.Server
-	httpsServer *fasthttp.Server
-	https2Server *http.Server
-	quicServer *http3.Server
+	httpPlain1Server *fasthttp.Server
+	httpPlain2Server *http.Server
+	httpTls1Server *fasthttp.Server
+	httpTls2Server *http.Server
+	httpQuicServer *http3.Server
 	cdbReader *cdb.CDB
 	cachedFileFingerprints map[string][]byte
 	cachedDataMeta map[string][]byte
@@ -458,7 +459,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 				log.Printf ("[dd] [524cd64b]  [go-http.]  using Go HTTP/2 for `%s`...", _request.URL.Path)
 			}
 		case 3 :
-			_requestProtoUnsupported = (_server.quicServer == nil) || (_request.ProtoMinor != 0)
+			_requestProtoUnsupported = (_server.httpQuicServer == nil) || (_request.ProtoMinor != 0)
 			if _server.debug && !_requestProtoUnsupported {
 				log.Printf ("[dd] [be95da51]  [go-http.]  using QUIC HTTP/3 for `%s`...", _request.URL.Path)
 			}
@@ -560,8 +561,9 @@ func main_0 () (error) {
 	
 	
 	
-	var _bind string
-	var _bindTls string
+	var _bindPlain1 string
+	var _bindPlain2 string
+	var _bindTls1 string
 	var _bindTls2 string
 	var _bindQuic string
 	var _http1Disabled bool
@@ -601,8 +603,9 @@ func main_0 () (error) {
 			fmt.Fprintf (os.Stderr, "%s", usageText)
 		}
 		
-		_bind_0 := _flags.String ("bind", "", "")
-		_bindTls_0 := _flags.String ("bind-tls", "", "")
+		_bindPlain1_0 := _flags.String ("bind", "", "")
+		_bindPlain2_0 := _flags.String ("bind-2", "", "")
+		_bindTls1_0 := _flags.String ("bind-tls", "", "")
 		_bindTls2_0 := _flags.String ("bind-tls-2", "", "")
 		_bindQuic_0 := _flags.String ("bind-quic", "", "")
 		_http1Disabled_0 := _flags.Bool ("http1-disable", false, "")
@@ -635,8 +638,9 @@ func main_0 () (error) {
 		
 		FlagsParse (_flags, 0, 0)
 		
-		_bind = *_bind_0
-		_bindTls = *_bindTls_0
+		_bindPlain1 = *_bindPlain1_0
+		_bindPlain2 = *_bindPlain2_0
+		_bindTls1 = *_bindTls1_0
 		_bindTls2 = *_bindTls2_0
 		_bindQuic = *_bindQuic_0
 		_http1Disabled = *_http1Disabled_0
@@ -671,7 +675,7 @@ func main_0 () (error) {
 			_isFirst = true
 		}
 		
-		if (_bind == "") && (_bindTls == "") && (_bindTls2 == "") && (_bindQuic == "") {
+		if (_bindPlain1 == "") && (_bindPlain2 == "") && (_bindTls1 == "") && (_bindTls2 == "") && (_bindQuic == "") {
 			AbortError (nil, "[6edd9512]  expected bind address argument!")
 		}
 		if (*_tlsBundle_0 != "") && ((*_tlsPrivate_0 != "") || (*_tlsPublic_0 != "")) {
@@ -687,20 +691,20 @@ func main_0 () (error) {
 		if ((_tlsPrivate != "") && (_tlsPublic == "")) || ((_tlsPublic != "") && (_tlsPrivate == "")) {
 			AbortError (nil, "[6e5b42e4]  TLS private/public must be specified together!")
 		}
-		if ((_tlsPrivate != "") || (_tlsPublic != "")) && ((_bindTls == "") && (_bindTls2 == "") && (_bindQuic == "")) {
+		if ((_tlsPrivate != "") || (_tlsPublic != "")) && ((_bindTls1 == "") && (_bindTls2 == "") && (_bindQuic == "")) {
 			AbortError (nil, "[4e31f251]  TLS certificate specified, but TLS not enabled!")
 		}
 		
-		if _http1Disabled && (_bind != "") {
-			AbortError (nil, "[f498816a]  HTTP/1 is mandatory with `--bind`!")
+		if _http1Disabled && ((_bindPlain1 != "") || (_bindPlain2 != "")) {
+			AbortError (nil, "[bd16d596]  HTTP/1 is mandatory with `--bind` or `--bind-2`!")
 		}
-		if _http1Disabled && (_bindTls != "") {
+		if _http1Disabled && (_bindTls1 != "") {
 			AbortError (nil, "[f498816a]  HTTP/1 is mandatory with `--bind-tls`!")
 		}
-		if _http1Disabled && (_bind == "") && (_bindTls == "") && (_bindTls2 == "") {
+		if _http1Disabled && (_bindPlain1 == "") && (_bindPlain2 == "") && (_bindTls1 == "") && (_bindTls2 == "") {
 			log.Printf ("[ww] [6bc56c8e]  HTTP/1 is not available!\n")
 		}
-		if _http2Disabled && (_bindTls == "") && (_bindTls2 == "") {
+		if _http2Disabled && (_bindTls1 == "") && (_bindTls2 == "") {
 			log.Printf ("[ww] [1ed4864c]  HTTP/2 is not available!\n")
 		}
 		if (_http3AltSvc != "") && (_bindQuic == "") {
@@ -796,7 +800,7 @@ func main_0 () (error) {
 	debug.SetMaxStack (16 * 1024)
 	
 	
-	_httpServerReduceMemory := false
+	_httpReduceMemory := false
 	
 	
 	if _limitMemory > 0 {
@@ -844,11 +848,14 @@ func main_0 () (error) {
 		
 		_processName := os.Args[0]
 		_processArguments := make ([]string, 0, len (os.Args))
-		if _bind != "" {
-			_processArguments = append (_processArguments, "--bind", _bind)
+		if _bindPlain1 != "" {
+			_processArguments = append (_processArguments, "--bind", _bindPlain1)
 		}
-		if _bindTls != "" {
-			_processArguments = append (_processArguments, "--bind-tls", _bindTls)
+		if _bindPlain2 != "" {
+			_processArguments = append (_processArguments, "--bind-2", _bindPlain2)
+		}
+		if _bindTls1 != "" {
+			_processArguments = append (_processArguments, "--bind-tls", _bindTls1)
 		}
 		if _bindTls2 != "" {
 			_processArguments = append (_processArguments, "--bind-tls-2", _bindTls2)
@@ -1313,7 +1320,7 @@ func main_0 () (error) {
 	
 	
 	
-	_tlsConfig := & tls.Config {
+	_tls1Config := & tls.Config {
 			Certificates : nil,
 			MinVersion : tls.VersionTLS12,
 			MaxVersion : tls.VersionTLS13,
@@ -1336,20 +1343,20 @@ func main_0 () (error) {
 			NextProtos : []string { "http/1.1", "http/1.0" },
 		}
 	
-	if (_bindTls != "") || (_bindTls2 != "") {
+	if (_bindTls1 != "") || (_bindTls2 != "") {
 		if _tlsPrivate != "" {
 			if _certificate, _error := tls.LoadX509KeyPair (_tlsPublic, _tlsPrivate); _error == nil {
-				_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
+				_tls1Config.Certificates = append (_tls1Config.Certificates, _certificate)
 			} else {
 				AbortError (_error, "[ecdf443d]  [tls.....]  failed loading TLS certificate!")
 			}
 		}
-		if len (_tlsConfig.Certificates) == 0 {
+		if len (_tls1Config.Certificates) == 0 {
 			if !_quiet {
 				log.Printf ("[ii] [344ba198]  [tls.....]  no TLS certificate specified;  using self-signed!\n")
 			}
 			if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
-				_tlsConfig.Certificates = append (_tlsConfig.Certificates, _certificate)
+				_tls1Config.Certificates = append (_tls1Config.Certificates, _certificate)
 			} else {
 				AbortError (_error, "[98ba6d23]  [tls.....]  failed parsing TLS certificate!")
 			}
@@ -1359,7 +1366,7 @@ func main_0 () (error) {
 	
 	
 	
-	_httpServer := & fasthttp.Server {
+	_httpPlain1Server := & fasthttp.Server {
 			
 			Name : "kawipiko",
 			Handler : _server.Serve,
@@ -1384,7 +1391,7 @@ func main_0 () (error) {
 			TCPKeepalive : true,
 			TCPKeepalivePeriod : 60 * time.Second,
 			
-			ReduceMemoryUsage : _httpServerReduceMemory,
+			ReduceMemoryUsage : _httpReduceMemory,
 			
 			CloseOnShutdown : true,
 			DisableKeepalive : false,
@@ -1394,27 +1401,33 @@ func main_0 () (error) {
 		}
 	
 	
-	_httpsServer := & fasthttp.Server {}
-	*_httpsServer = *_httpServer
+	_httpTls1Server := & fasthttp.Server {}
+	*_httpTls1Server = *_httpPlain1Server
 	
 	
 	
 	
-	_https2Server := & http.Server {
+	_httpPlain2Server := & http.Server {
 			
 			Handler : _server,
-			TLSConfig : nil,
 			
-			MaxHeaderBytes : _httpsServer.ReadBufferSize,
+			MaxHeaderBytes : _httpPlain1Server.ReadBufferSize,
 			
-			ReadTimeout : _httpsServer.ReadTimeout,
-			ReadHeaderTimeout : _httpsServer.ReadTimeout,
-			WriteTimeout : _httpsServer.WriteTimeout,
-			IdleTimeout : _httpsServer.IdleTimeout,
+			ReadTimeout : _httpPlain1Server.ReadTimeout,
+			ReadHeaderTimeout : _httpPlain1Server.ReadTimeout,
+			WriteTimeout : _httpPlain1Server.WriteTimeout,
+			IdleTimeout : _httpPlain1Server.IdleTimeout,
 			
 		}
 	
-	_tls2Config := _tlsConfig.Clone ()
+	
+	_httpTls2Server := & http.Server {}
+	*_httpTls2Server = *_httpPlain2Server
+	
+	
+	
+	
+	_tls2Config := _tls1Config.Clone ()
 	if !_http1Disabled && !_http2Disabled {
 		_tls2Config.NextProtos = []string { "h2", "http/1.1", "http/1.0" }
 	} else if !_http1Disabled {
@@ -1427,29 +1440,38 @@ func main_0 () (error) {
 		panic ("[1b618ffe]")
 	}
 	
+	
+	
+	
 	if !_quiet {
-		_https2Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [f734edc4]  [go-http.]  |  ", 0)
+		_httpPlain2Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [efe8cf82]  [go-http.]  |  ", 0)
 	} else {
-		_https2Server.ErrorLog = log.New (ioutil.Discard, "", 0)
+		_httpPlain2Server.ErrorLog = log.New (ioutil.Discard, "", 0)
+	}
+	
+	if !_quiet {
+		_httpTls2Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [f734edc4]  [go-http.]  |  ", 0)
+	} else {
+		_httpTls2Server.ErrorLog = log.New (ioutil.Discard, "", 0)
 	}
 	
 	
 	
 	
-	_quicServer := & http3.Server {}
+	_httpQuicServer := & http3.Server {}
 	
-	_quicServer.Server = & http.Server {
+	_httpQuicServer.Server = & http.Server {
 			
 			Handler : _server,
 			TLSConfig : nil,
 			
 		}
 	
-	_quicTlsConfig := _tlsConfig.Clone ()
-	_quicTlsConfig.NextProtos = []string { "h3", "h3-29" }
-	_quicServer.Server.TLSConfig = _quicTlsConfig
+	_tls3Config := _tls1Config.Clone ()
+	_tls3Config.NextProtos = []string { "h3", "h3-29" }
+	_httpQuicServer.Server.TLSConfig = _tls3Config
 	
-	_quicServer.QuicConfig = & quic.Config {
+	_httpQuicServer.QuicConfig = & quic.Config {
 			
 			Versions : []quic.VersionNumber {
 					quic.Version1,
@@ -1457,7 +1479,7 @@ func main_0 () (error) {
 				},
 			
 			HandshakeIdleTimeout : 6 * time.Second,
-			MaxIdleTimeout : _httpsServer.IdleTimeout,
+			MaxIdleTimeout : _httpTls1Server.IdleTimeout,
 			
 			MaxIncomingStreams : 1024,
 			MaxIncomingUniStreams : 1024,
@@ -1472,9 +1494,9 @@ func main_0 () (error) {
 		}
 	
 	if !_quiet {
-		_quicServer.Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [a6af7354]  [quic-h3.]  |  ", 0)
+		_httpQuicServer.Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [a6af7354]  [quic-h3.]  |  ", 0)
 	} else {
-		_quicServer.Server.ErrorLog = log.New (ioutil.Discard, "", 0)
+		_httpQuicServer.Server.ErrorLog = log.New (ioutil.Discard, "", 0)
 	}
 	
 	
@@ -1482,18 +1504,23 @@ func main_0 () (error) {
 	
 	if _timeoutDisabled {
 		
-		_httpServer.ReadTimeout = 0
-		_httpServer.WriteTimeout = 0
-		_httpServer.IdleTimeout = 0
+		_httpPlain1Server.ReadTimeout = 0
+		_httpPlain1Server.WriteTimeout = 0
+		_httpPlain1Server.IdleTimeout = 0
 		
-		_httpsServer.ReadTimeout = 0
-		_httpsServer.WriteTimeout = 0
-		_httpsServer.IdleTimeout = 0
+		_httpTls1Server.ReadTimeout = 0
+		_httpTls1Server.WriteTimeout = 0
+		_httpTls1Server.IdleTimeout = 0
 		
-		_https2Server.ReadTimeout = 0
-		_https2Server.ReadHeaderTimeout = 0
-		_https2Server.WriteTimeout = 0
-		_https2Server.IdleTimeout = 0
+		_httpPlain2Server.ReadTimeout = 0
+		_httpPlain2Server.ReadHeaderTimeout = 0
+		_httpPlain2Server.WriteTimeout = 0
+		_httpPlain2Server.IdleTimeout = 0
+		
+		_httpTls2Server.ReadTimeout = 0
+		_httpTls2Server.ReadHeaderTimeout = 0
+		_httpTls2Server.WriteTimeout = 0
+		_httpTls2Server.IdleTimeout = 0
 		
 	}
 	
@@ -1507,14 +1534,17 @@ func main_0 () (error) {
 	
 	
 	if !_quiet && (_debug || _isFirst) {
-		if _bind != "" {
-			log.Printf ("[ii] [f11e4e37]  [bind-0..]  listening on `http://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bind)
+		if _bindPlain1 != "" {
+			log.Printf ("[ii] [f11e4e37]  [bind-0a.]  listening on `http://%s/` (using FastHTTP supporting HTTP/1.1, HTTP/1.0);\n", _bindPlain1)
 		}
-		if _bindTls != "" {
+		if _bindPlain2 != "" {
+			log.Printf ("[ii] [9a05dbb7]  [bind-0b.]  listening on `http://%s/` (using Go HTTP supporting HTTP/1.1, HTTP/1.0);\n", _bindPlain2)
+		}
+		if _bindTls1 != "" {
 			if !_http1Disabled && (!_http2Disabled && _bindTls2 == "") {
-				log.Printf ("[ii] [21f050c3]  [bind-1..]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0, and HTTP/2 split);\n", _bindTls)
+				log.Printf ("[ii] [21f050c3]  [bind-1..]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0, and HTTP/2 split);\n", _bindTls1)
 			} else if !_http1Disabled {
-				log.Printf ("[ii] [21f050c3]  [bind-1..]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0);\n", _bindTls)
+				log.Printf ("[ii] [8e41f2df]  [bind-1..]  listening on `https://%s/` (using FastHTTP supporting TLS with HTTP/1.1, HTTP/1.0);\n", _bindTls1)
 			} else {
 				panic ("[fc754170]")
 			}
@@ -1536,37 +1566,46 @@ func main_0 () (error) {
 	}
 	
 	
-	var _httpListener net.Listener
-	if _bind != "" {
-		if _listener_0, _error := reuseport.Listen ("tcp4", _bind); _error == nil {
-			_httpListener = _listener_0
+	var _httpPlain1Listener net.Listener
+	if _bindPlain1 != "" {
+		if _listener_0, _error := reuseport.Listen ("tcp4", _bindPlain1); _error == nil {
+			_httpPlain1Listener = _listener_0
 		} else {
-			AbortError (_error, "[d5f51e9f]  [bind-0..]  failed creating TCP listener!")
+			AbortError (_error, "[d5f51e9f]  [bind-0a.]  failed creating TCP listener!")
 		}
 	}
 	
-	var _httpsListener net.Listener
-	if _bindTls != "" {
-		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls); _error == nil {
-			_httpsListener = _listener_0
+	var _httpPlain2Listener net.Listener
+	if _bindPlain2 != "" {
+		if _listener_0, _error := reuseport.Listen ("tcp4", _bindPlain2); _error == nil {
+			_httpPlain2Listener = _listener_0
+		} else {
+			AbortError (_error, "[546075c2]  [bind-0b.]  failed creating TCP listener!")
+		}
+	}
+	
+	var _httpTls1Listener net.Listener
+	if _bindTls1 != "" {
+		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls1); _error == nil {
+			_httpTls1Listener = _listener_0
 		} else {
 			AbortError (_error, "[e35cc693]  [bind-1..]  failed creating TCP listener!")
 		}
 	}
 	
-	var _https2Listener net.Listener
+	var _httpTls2Listener net.Listener
 	if _bindTls2 != "" {
 		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls2); _error == nil {
-			_https2Listener = _listener_0
+			_httpTls2Listener = _listener_0
 		} else {
 			AbortError (_error, "[63567445]  [bind-2..]  failed creating TCP listener!")
 		}
 	}
 	
-	var _quicListener net.PacketConn
+	var _httpQuicListener net.PacketConn
 	if _bindQuic != "" {
 		if _listener_0, _error := net.ListenPacket ("udp4", _bindQuic); _error == nil {
-			_quicListener = _listener_0
+			_httpQuicListener = _listener_0
 		} else {
 			AbortError (_error, "[3b1bfc15]  [bind-3..]  failed creating UDP listener!")
 		}
@@ -1574,18 +1613,18 @@ func main_0 () (error) {
 	
 	
 	var _splitListenerClose func () ()
-	if (_httpsListener != nil) && (_https2Listener == nil) && !_http2Disabled {
-		log.Printf ("[ii] [1098a405]  [bind-1..]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2 split);\n", _bindTls)
-		_tlsConfig.NextProtos = append ([]string { "h2" }, _tlsConfig.NextProtos ...)
+	if (_httpTls1Listener != nil) && (_httpTls2Listener == nil) && !_http2Disabled {
+		log.Printf ("[ii] [1098a405]  [bind-1..]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2 split);\n", _bindTls1)
+		_tls1Config.NextProtos = append ([]string { "h2" }, _tls1Config.NextProtos ...)
 		if !_quiet {
-			log.Printf ("[ii] [ba970bbb]  [bind-1..]  advertising TLS next protocols: %s", _tlsConfig.NextProtos)
+			log.Printf ("[ii] [ba970bbb]  [bind-1..]  advertising TLS next protocols: %s", _tls1Config.NextProtos)
 		}
-		_tlsListener := tls.NewListener (_httpsListener, _tlsConfig)
-		_httpsListener_0 := & splitListener {
+		_tlsListener := tls.NewListener (_httpTls1Listener, _tls1Config)
+		_httpTls1Listener_0 := & splitListener {
 				listener : _tlsListener,
 				queue : make (chan net.Conn),
 			}
-		_https2Listener_0 := & splitListener {
+		_httpTls2Listener_0 := & splitListener {
 				listener : _tlsListener,
 				queue : make (chan net.Conn),
 			}
@@ -1601,7 +1640,7 @@ func main_0 () (error) {
 							_connection := _connection_0.(*tls.Conn)
 							if _error := _connection.Handshake (); _error != nil {
 								if !_quiet {
-									LogError (_error, "[d1c3dba3]  [bind-1..]  failed negotiating TLS connection!")
+									log.Printf ("[ww] [d1c3dba3]  [bind-1..]  failed negotiating TLS connection!\n")
 								}
 							}
 							_protocol := _connection.ConnectionState () .NegotiatedProtocol
@@ -1609,12 +1648,12 @@ func main_0 () (error) {
 								if _debug {
 									log.Printf ("[dd] [df9f3e7e]  [bind-1..]  dispatching HTTP/2 TLS connection!\n")
 								}
-								_https2Listener_0.queue <- _connection
+								_httpTls2Listener_0.queue <- _connection
 							} else if (_protocol == "http/1.1") || (_protocol == "http/1.0") || (_protocol == "") {
 								if _debug {
 									log.Printf ("[dd] [d534c361]  [bind-1..]  dispatching HTTP/1.x TLS connection!\n")
 								}
-								_httpsListener_0.queue <- _connection
+								_httpTls1Listener_0.queue <- _connection
 							} else {
 								if !_quiet {
 									log.Printf ("[ww] [5cc0ebde]  [bind-1..]  unknown TLS protocol `%s`!\n", _protocol)
@@ -1630,48 +1669,52 @@ func main_0 () (error) {
 					}
 				}
 			} ()
-		_httpsListener = _httpsListener_0
-		_https2Listener = _https2Listener_0
+		_httpTls1Listener = _httpTls1Listener_0
+		_httpTls2Listener = _httpTls2Listener_0
 	} else {
-		if _httpsListener != nil {
+		if _httpTls1Listener != nil {
 			if !_quiet {
-				log.Printf ("[ii] [ceed854a]  [bind-1..]  advertising TLS next protocols: %s", _tlsConfig.NextProtos)
+				log.Printf ("[ii] [ceed854a]  [bind-1..]  advertising TLS next protocols: %s", _tls1Config.NextProtos)
 			}
-			_httpsListener = tls.NewListener (_httpsListener, _tlsConfig)
+			_httpTls1Listener = tls.NewListener (_httpTls1Listener, _tls1Config)
 		}
-		if _https2Listener != nil {
+		if _httpTls2Listener != nil {
 			if !_quiet {
 				log.Printf ("[ii] [8b97c977]  [bind-2..]  advertising TLS next protocols: %s", _tls2Config.NextProtos)
 			}
-			_https2Listener = tls.NewListener (_https2Listener, _tls2Config)
+			_httpTls2Listener = tls.NewListener (_httpTls2Listener, _tls2Config)
 		}
 	}
 	
 	
-	if _quicListener != nil {
+	if _httpQuicListener != nil {
 		if !_quiet {
-			log.Printf ("[ii] [22feb826]  [bind-3..]  advertising TLS next protocols: %s", _quicTlsConfig.NextProtos)
+			log.Printf ("[ii] [22feb826]  [bind-3..]  advertising TLS next protocols: %s", _tls3Config.NextProtos)
 		}
 	}
 	
 	
-	if _httpListener != nil {
-		_server.httpServer = _httpServer
+	if _httpPlain1Listener != nil {
+		_server.httpPlain1Server = _httpPlain1Server
 	}
-	if _httpsListener != nil {
-		_server.httpsServer = _httpsServer
+	if _httpPlain2Listener != nil {
+		_server.httpPlain2Server = _httpPlain2Server
 	}
-	if _https2Listener != nil {
-		_server.https2Server = _https2Server
+	if _httpTls1Listener != nil {
+		_server.httpTls1Server = _httpTls1Server
 	}
-	if _quicListener != nil {
-		_server.quicServer = _quicServer
+	if _httpTls2Listener != nil {
+		_server.httpTls2Server = _httpTls2Server
+	}
+	if _httpQuicListener != nil {
+		_server.httpQuicServer = _httpQuicServer
 	}
 	
-	_httpServer = nil
-	_httpsServer = nil
-	_https2Server = nil
-	_quicServer = nil
+	_httpPlain1Server = nil
+	_httpPlain2Server = nil
+	_httpTls1Server = nil
+	_httpTls2Server = nil
+	_httpQuicServer = nil
 	
 	
 	
@@ -1684,14 +1727,14 @@ func main_0 () (error) {
 	
 	var _waiter sync.WaitGroup
 	
-	if _server.httpServer != nil {
+	if _server.httpPlain1Server != nil {
 		_waiter.Add (1)
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
 				log.Printf ("[ii] [f2061f1b]  [fasthttp]  starting FastHTTP server...\n")
 			}
-			if _error := _server.httpServer.Serve (_httpListener); _error != nil {
+			if _error := _server.httpPlain1Server.Serve (_httpPlain1Listener); _error != nil {
 				AbortError (_error, "[44f45c67]  [fasthttp]  failed executing server!")
 			}
 			if !_quiet {
@@ -1700,14 +1743,14 @@ func main_0 () (error) {
 		} ()
 	}
 	
-	if _server.httpsServer != nil {
+	if _server.httpTls1Server != nil {
 		_waiter.Add (1)
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
 				log.Printf ("[ii] [83cb1f6f]  [fasthttp]  starting FastHTTP server (for TLS)...\n")
 			}
-			if _error := _server.httpsServer.Serve (_httpsListener); _error != nil {
+			if _error := _server.httpTls1Server.Serve (_httpTls1Listener); _error != nil {
 				AbortError (_error, "[b2d50852]  [fasthttp]  failed executing server!")
 			}
 			if !_quiet {
@@ -1716,30 +1759,46 @@ func main_0 () (error) {
 		} ()
 	}
 	
-	if _server.https2Server != nil {
+	if _server.httpPlain2Server != nil {
 		_waiter.Add (1)
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
-				log.Printf ("[ii] [46ec2e41]  [go-http.]  starting Go HTTP server...\n")
+				log.Printf ("[ii] [4e579931]  [go-http.]  starting Go HTTP server...\n")
 			}
-			if _error := _server.https2Server.Serve (_https2Listener); (_error != nil) && (_error != http.ErrServerClosed) {
-				AbortError (_error, "[9f6d28f4]  [go-http.]  failed executing server!")
+			if _error := _server.httpPlain2Server.Serve (_httpPlain2Listener); (_error != nil) && (_error != http.ErrServerClosed) {
+				AbortError (_error, "[99e9abba]  [go-http.]  failed executing server!")
 			}
 			if !_quiet {
-				log.Printf ("[ii] [9a487770]  [go-http.]  stopped Go HTTP server;\n")
+				log.Printf ("[ii] [af0e9811]  [go-http.]  stopped Go HTTP server;\n")
 			}
 		} ()
 	}
 	
-	if _server.quicServer != nil {
+	if _server.httpTls2Server != nil {
+		_waiter.Add (1)
+		go func () () {
+			defer _waiter.Done ()
+			if !_quiet {
+				log.Printf ("[ii] [46ec2e41]  [go-http.]  starting Go HTTP server (for TLS)...\n")
+			}
+			if _error := _server.httpTls2Server.Serve (_httpTls2Listener); (_error != nil) && (_error != http.ErrServerClosed) {
+				AbortError (_error, "[9f6d28f4]  [go-http.]  failed executing server (for TLS)!")
+			}
+			if !_quiet {
+				log.Printf ("[ii] [9a487770]  [go-http.]  stopped Go HTTP server (for TLS);\n")
+			}
+		} ()
+	}
+	
+	if _server.httpQuicServer != nil {
 		_waiter.Add (1)
 		go func () () {
 			defer _waiter.Done ()
 			if !_quiet {
 				log.Printf ("[ii] [4cf834b0]  [quic-h3.]  starting QUIC server...\n")
 			}
-			if _error := _server.quicServer.Serve (_quicListener); (_error != nil) && (_error.Error () != "server closed") {
+			if _error := _server.httpQuicServer.Serve (_httpQuicListener); (_error != nil) && (_error.Error () != "server closed") {
 				AbortError (_error, "[73e700c5]  [quic-h3.]  failed executing server!")
 			}
 			if !_quiet {
@@ -1758,14 +1817,14 @@ func main_0 () (error) {
 			if !_quiet {
 				log.Printf ("[ii] [691cb695]  [shutdown]  terminating...\n")
 			}
-			if _server.httpServer != nil {
+			if _server.httpPlain1Server != nil {
 				_waiter.Add (1)
 				go func () () {
 					defer _waiter.Done ()
 					if !_quiet {
 						log.Printf ("[ii] [8eea3f63]  [fasthttp]  stopping FastHTTP server...\n")
 					}
-					_server.httpServer.Shutdown ()
+					_server.httpPlain1Server.Shutdown ()
 				} ()
 			}
 			if _splitListenerClose != nil {
@@ -1775,36 +1834,46 @@ func main_0 () (error) {
 					_splitListenerClose ()
 				} ()
 			}
-			if _server.httpsServer != nil {
+			if _server.httpTls1Server != nil {
 				_waiter.Add (1)
 				go func () () {
 					defer _waiter.Done ()
 					if !_quiet {
 						log.Printf ("[ii] [ff651007]  [fasthttp]  stopping FastHTTP server (for TLS)...\n")
 					}
-					_server.httpsServer.Shutdown ()
+					_server.httpTls1Server.Shutdown ()
 				} ()
 			}
-			if _server.https2Server != nil {
+			if _server.httpPlain2Server != nil {
 				_waiter.Add (1)
 				go func () () {
 					defer _waiter.Done ()
 					if !_quiet {
-						log.Printf ("[ii] [9ae5a25b]  [go-http.]  stopping Go HTTP server...\n")
+						log.Printf ("[ii] [befe966d]  [go-http.]  stopping Go HTTP server...\n")
 					}
-					_server.https2Server.Shutdown (context.TODO ())
+					_server.httpPlain2Server.Shutdown (context.TODO ())
 				} ()
 			}
-			if _server.quicServer != nil {
+			if _server.httpTls2Server != nil {
+				_waiter.Add (1)
+				go func () () {
+					defer _waiter.Done ()
+					if !_quiet {
+						log.Printf ("[ii] [9ae5a25b]  [go-http.]  stopping Go HTTP server (for TLS)...\n")
+					}
+					_server.httpTls2Server.Shutdown (context.TODO ())
+				} ()
+			}
+			if _server.httpQuicServer != nil {
 				_waiter.Add (1)
 				go func () () {
 					defer _waiter.Done ()
 					if !_quiet {
 						log.Printf ("[ii] [41dab8c2]  [quic-h3.]  stopping QUIC server...\n")
 					}
-					_server.quicServer.CloseGracefully (1 * time.Second)
+					_server.httpQuicServer.CloseGracefully (1 * time.Second)
 					time.Sleep (1 * time.Second)
-					_server.quicServer.Close ()
+					_server.httpQuicServer.Close ()
 				} ()
 			}
 			if true {
