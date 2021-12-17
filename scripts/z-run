@@ -7,6 +7,7 @@
 ::// benchmark / ...
 ::// go / ...
 ::// documentation / ...
+::// tools / ...
 ::// *
 
 
@@ -15,4 +16,5 @@
 && _/examples.z-run
 && _/benchmark.z-run
 && _/workspace.z-run
+&& _/tools.z-run
 

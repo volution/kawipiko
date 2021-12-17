@@ -1,0 +1,71 @@
+#!/dev/null
+
+
+
+
+<< tools / wrk
+	test -f ./.bin/wrk
+	test -x ./.bin/wrk
+	test "${#}" -ge 1
+	exec -- \
+		env -i -- \
+		./.bin/nodaemon \
+	./.bin/wrk \
+			--threads 1 \
+			--connections 1 \
+			--conn-reqs 65536 \
+			--timeout 1s \
+			--duration 30s \
+			--latency \
+			"${@}" \
+	#
+!!
+
+
+
+
+<< tools / h2load
+	test -f ./.bin/h2load
+	test -x ./.bin/h2load
+	test "${#}" -ge 1
+	exec -- \
+		env -i -- \
+		./.bin/nodaemon \
+	./.bin/h2load \
+			"${@}" \
+	#
+!!
+
+
+
+
+<< tools / nghttp
+	test -f ./.bin/nghttp
+	test -x ./.bin/nghttp
+	test "${#}" -ge 1
+	exec -- \
+		env -i -- \
+		./.bin/nodaemon \
+	./.bin/nghttp \
+			--no-verify-peer \
+			"${@}" \
+	#
+!!
+
+
+
+
+<< tools / curl
+	test -f ./.bin/curl
+	test -x ./.bin/curl
+	test "${#}" -ge 1
+	exec -- \
+		env -i -- \
+		./.bin/nodaemon \
+	./.bin/curl \
+			--silent \
+			--insecure \
+			"${@}" \
+	#
+!!
+

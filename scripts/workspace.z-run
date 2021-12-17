@@ -13,6 +13,7 @@
 
 
 << workspace / initialize
+	test "${#}" -eq 0
 	"${ZRUN[@]}" ':: workspace / initialize / outputs'
 	"${ZRUN[@]}" ':: workspace / initialize / go'
 !!
@@ -22,19 +23,53 @@
 
 << workspace / initialize / outputs
 	test "${#}" -eq 0
+	
 	if test ! -d ./.outputs ; then
 		_outputs_store="${TMPDIR:-/tmp}/go--${UID}--${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
 		mkdir -- "${_outputs_store}"
 		_outputs_store="$( exec -- readlink -e -- "${_outputs_store}" )"
 		ln -s -f -T -- "${_outputs_store}" ./.outputs
 	fi
+	
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	
+	_folders=(
+			binaries
+			binaries/debug
+			binaries/release
+			binaries/analyze
+			publish
+			publish/binaries
+			examples
+		)
+	
+	for _folder in "${_folders[@]}" ; do
+		if test ! -e "${_outputs}/${_folder}" ; then
+			mkdir -- "${_outputs}/${_folder}"
+		fi
+	done
 !!
 
 
 
 
+<< workspace / initialize / go / clean
+	test "${#}" -eq 0
+	
+	_outputs="$( exec -- readlink -e -- ./.outputs )"
+	if test -d "${_outputs}/go" ; then
+		chmod -R +w -- "${_outputs}/go"
+	fi
+	
+	rm -R -- "${_outputs}/go"
+	
+	exec -- "${ZRUN[@]}" ':: workspace / initialize / go'
+!!
+
+
 << workspace / initialize / go
 	test "${#}" -eq 0
+	
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	_sources="$( exec -- readlink -e -- ./sources )"
 	
@@ -45,7 +80,16 @@
 	_gosrc="${_outputs}/go/src"
 	_gopkg="${_outputs}/go/pkg"
 	
-	for _folder in "${GOPATH}" "${GOBIN}" "${GOTMPDIR}" "${GOTMPDIR}" "${GOCACHE}" "${_gosrc}" "${_gopkg}" ; do
+	_folders=(
+			"${GOPATH}"
+			"${GOBIN}"
+			"${GOTMPDIR}"
+			"${GOCACHE}"
+			"${_gosrc}"
+			"${_gopkg}"
+		)
+	
+	for _folder in "${_folders[@]}" ; do
 		if test ! -e "${_folder}" ; then
 			mkdir -- "${_folder}"
 		fi
@@ -57,6 +101,7 @@
 
 << workspace / initialize / python
 	test "${#}" -eq 0
+	
 	if test -d ./.python ; then
 		exit -- 0
 	fi

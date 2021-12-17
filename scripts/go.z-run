@@ -6,7 +6,6 @@
 << go / build / server / debug
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/debug"
 	if test -e "${_outputs}/binaries/debug/kawipiko-server" ; then
 		rm -- "${_outputs}/binaries/debug/kawipiko-server"
 	fi
@@ -21,24 +20,34 @@
 !!
 
 
+<< go / build / server / release / quick
+	export -- _BUILD_QUICK=true
+	exec -- "${ZRUN[@]}" ':: go / build / server / release' "${@}"
+!!
+
 << go / build / server / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/release"
 	if test -e "${_outputs}/binaries/release/kawipiko-server" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server"
+	fi
+	_flags=()
+	if test -z "${_BUILD_QUICK:-}" ; then
+		_flags+=(
+				-tags netgo
+				-a
+				-gcflags 'all=-l=4'
+				-ldflags 'all=-s'
+				-buildmode exe
+				-trimpath
+			)
 	fi
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-tags netgo \
-			-a \
-			-gcflags 'all=-l=4' \
-			-ldflags 'all=-s' \
-			-buildmode exe \
-			-trimpath \
+			"${_flags[@]}" \
 			-o "${_outputs}/binaries/release/kawipiko-server" \
 			-- ./cmd/server.go \
 	#
@@ -50,7 +59,6 @@
 << go / build / archiver / debug
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/debug"
 	if test -e "${_outputs}/binaries/debug/kawipiko-archiver" ; then
 		rm -- ${_outputs}/binaries/debug/kawipiko-archiver
 	fi
@@ -64,24 +72,35 @@
 	#
 !!
 
+
+<< go / build / archiver / release / quick
+	export -- _BUILD_QUICK=true
+	exec -- "${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
+!!
+
 << go / build / archiver / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/release"
 	if test -e "${_outputs}/binaries/release/kawipiko-archiver" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-archiver"
+	fi
+	_flags=()
+	if test -z "${_BUILD_QUICK:-}" ; then
+		_flags+=(
+				-tags netgo
+				-a
+				-gcflags 'all=-l=4'
+				-ldflags 'all=-s'
+				-buildmode exe
+				-trimpath
+			)
 	fi
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-tags netgo \
-			-a \
-			-gcflags 'all=-l=4' \
-			-ldflags 'all=-s' \
-			-buildmode exe \
-			-trimpath \
+			"${_flags[@]}" \
 			-o "${_outputs}/binaries/release/kawipiko-archiver" \
 			-- ./cmd/archiver.go \
 	#
@@ -93,7 +112,6 @@
 << go / build / wrapper / debug
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/debug"
 	if test -e "${_outputs}/binaries/debug/kawipiko-wrapper" ; then
 		rm -- "${_outputs}/binaries/debug/kawipiko-wrapper"
 	fi
@@ -111,7 +129,6 @@
 << go / build / wrapper / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/release"
 	if test -e "${_outputs}/binaries/release/kawipiko-wrapper" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-wrapper"
 	fi
@@ -137,7 +154,6 @@
 << go / build / server-dummy / debug
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/debug"
 	if test -e "${_outputs}/binaries/debug/kawipiko-server-dummy" ; then
 		rm -- "${_outputs}/binaries/debug/kawipiko-server-dummy"
 	fi
@@ -152,24 +168,34 @@
 !!
 
 
+<< go / build / server-dummy / release / quick
+	export -- _BUILD_QUICK=true
+	exec -- "${ZRUN[@]}" ':: go / build / server-dummy / release' "${@}"
+!!
+
 << go / build / server-dummy / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/release"
 	if test -e "${_outputs}/binaries/release/kawipiko-server-dummy" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server-dummy"
+	fi
+	_flags=()
+	if test -z "${_BUILD_QUICK:-}" ; then
+		_flags+=(
+				-tags netgo
+				-a
+				-gcflags 'all=-l=4'
+				-ldflags 'all=-s'
+				-buildmode exe
+				-trimpath
+			)
 	fi
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-tags netgo \
-			-a \
-			-gcflags 'all=-l=4' \
-			-ldflags 'all=-s' \
-			-buildmode exe \
-			-trimpath \
+			"${_flags[@]}" \
 			-o "${_outputs}/binaries/release/kawipiko-server-dummy" \
 			-- ./cmd/server-dummy.go \
 	#
@@ -181,7 +207,6 @@
 << go / build / all / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/release"
 	for _platform in linux darwin openbsd freebsd ; do
 		for _component in archiver server wrapper ; do
 			if test -e "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}" ; then
@@ -215,12 +240,6 @@
 
 << go / build / all / publish
 	test "${#}" -eq 0
-	if test ! -e ./.outputs/publish ; then
-		mkdir -- ./.outputs/publish
-	fi
-	if test ! -e ./.outputs/publish/binaries ; then
-		mkdir -- ./.outputs/publish/binaries
-	fi
 	for _platform in linux darwin openbsd freebsd ; do
 		for _component in archiver server wrapper ; do
 			cp -T -- \
@@ -237,12 +256,11 @@
 << go / build / server / analyze
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	mkdir -p -- "${_outputs}/binaries/debug"
 	exec -- "${ZRUN[@]}" ':: go / tool' \
 			build \
 			-a \
 			-gcflags '-m' \
-			-o "${_outputs}/binaries/debug/kawipiko-server-analyze" \
+			-o "${_outputs}/binaries/analyze/kawipiko-server" \
 			-- ./cmd/server/server.go \
 	#
 !!
