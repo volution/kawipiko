@@ -377,7 +377,7 @@ func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint,
 	if _cache {
 		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	} else {
-		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("private, no-cache, no-store"))
+		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("no-store, max-age=0"))
 	}
 	
 	if _server.http3AltSvc != "" {
@@ -399,7 +399,7 @@ func (_server *server) ServeRedirect (_context *fasthttp.RequestCtx, _status uin
 	if _cache {
 		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	} else {
-		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("private, no-cache, no-store"))
+		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("no-store, max-age=0"))
 	}
 	
 	if _server.http3AltSvc != "" {
@@ -421,7 +421,7 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	if _cache {
 		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("public, immutable, max-age=3600"))
 	} else {
-		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("private, no-cache, no-store"))
+		_responseHeaders.AddBytesKV (StringToBytes ("Cache-Control"), StringToBytes ("no-store, max-age=0"))
 	}
 	
 	if _banner, _bannerFound := ErrorBannersData[_status]; _bannerFound {
@@ -478,7 +478,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		_responseHeaders := _response.Header ()
 		_responseHeaders["Content-Type"] = []string { DummyContentType }
 		_responseHeaders["Content-Encoding"] = []string { DummyContentEncoding }
-		_responseHeaders["Cache-Control"] = []string { "private, no-cache, no-store" }
+		_responseHeaders["Cache-Control"] = []string { "no-store, max-age=0" }
 		_responseHeaders["Date"] = nil
 		_response.WriteHeader (http.StatusOK)
 		_response.Write (DummyData)
