@@ -181,15 +181,6 @@ func (_stat *StatMetric) Update (_timeNanoseconds uint64) () {
 		_stat.Speed1Last = _speed1Now
 		_stat.Speed2Last = _speed2Now
 		
-		_windowNew := float64 (0)
-		const _windowSizeNormal = 12
-		if _stat.WindowSize >= _windowSizeNormal {
-			_windowNew = 1 / float64 (_windowSizeNormal + 1)
-		} else {
-			_windowNew = 1 / float64 (_stat.WindowSize + 1)
-		}
-		_windowOld := 1 - _windowNew
-		
 		if ((_timeNow - _stat.TimeChanged) / 1000000000 > 6) || (_stat.TimeChanged == 0) || (_stat.WindowSize == 0) {
 			_stat.Speed1pLast = 0
 			_stat.Speed1Window = _speed1Now
@@ -198,6 +189,8 @@ func (_stat *StatMetric) Update (_timeNanoseconds uint64) () {
 			_stat.Speed2Window = _speed2Now
 			_stat.Speed2pWindow = 0
 		} else {
+			_windowNew := 1.0 / 3
+			_windowOld := 1.0 - _windowNew
 			_stat.Speed1pLast = _speed1pNow
 			_stat.Speed1Window = _stat.Speed1Window * _windowOld + _speed1Now * _windowNew
 			_stat.Speed1pWindow = _stat.Speed1pWindow * _windowOld + _speed1pNow * _windowNew
@@ -208,7 +201,7 @@ func (_stat *StatMetric) Update (_timeNanoseconds uint64) () {
 		
 		_stat.TimeChanged = _timeNow
 		_stat.ChangedCount += 1
-		_stat.WindowSize++
+		_stat.WindowSize += 1
 		
 	} else {
 		
@@ -267,20 +260,20 @@ func (_stat *StatMetric) Update (_timeNanoseconds uint64) () {
 	_stat.Speed1prLast = math.Round (_stat.Speed1pLast * 100 * 100) / 100
 	_stat.Speed1prWindow = math.Round (_stat.Speed1pWindow * 100 * 100) / 100
 	_stat.Speed2prLast = math.Round (_stat.Speed2pLast * 100 * 100) / 100
-	_stat.Speed1prWindow = math.Round (_stat.Speed1paWindow * 100 * 100) / 100
+	_stat.Speed2prWindow = math.Round (_stat.Speed2pWindow * 100 * 100) / 100
 	
 	_infinite := float64 (1.0)
 	_infinite = _infinite / 0
-	if _stat.Speed1paLast > 1000 {
+	if _stat.Speed1paLast > 10 {
 		_stat.Speed1prLast = math.Copysign (_infinite, _stat.Speed1prLast)
 	}
-	if _stat.Speed1paWindow > 1000 {
+	if _stat.Speed1paWindow > 10 {
 		_stat.Speed1prWindow = math.Copysign (_infinite, _stat.Speed1prWindow)
 	}
-	if _stat.Speed2paLast > 1000 {
+	if _stat.Speed2paLast > 10 {
 		_stat.Speed2prLast = math.Copysign (_infinite, _stat.Speed2prLast)
 	}
-	if _stat.Speed2paWindow > 1000 {
+	if _stat.Speed2paWindow > 10 {
 		_stat.Speed2prWindow = math.Copysign (_infinite, _stat.Speed2prWindow)
 	}
 }
