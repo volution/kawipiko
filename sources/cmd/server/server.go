@@ -371,6 +371,8 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	
 	_response.SetStatusCode (_responseStatus)
 	_response.SetBodyRaw (_data)
+	
+	atomic.AddUint64 (&_statsRequestsBody, uint64 (len (_data)))
 }
 
 
@@ -396,6 +398,8 @@ func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint,
 	
 	_response.SetStatusCode (int (_status))
 	_response.SetBodyRaw (_data)
+	
+	atomic.AddUint64 (&_statsRequestsBody, uint64 (len (_data)))
 }
 
 
@@ -436,6 +440,7 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	
 	if _banner, _bannerFound := ErrorBannersData[_status]; _bannerFound {
 		_response.SetBodyRaw (_banner)
+		atomic.AddUint64 (&_statsRequestsBody, uint64 (len (_banner)))
 	}
 	
 	_response.SetStatusCode (int (_status))
@@ -541,6 +546,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 			_responseHeaders.IncludeString ("Cache-Control", "no-store, max-age=0")
 			_responseHeaders.WriteTo (_response)
 			_response.Write (DummyData)
+			atomic.AddUint64 (&_statsRequestsBody, uint64 (len (DummyData)))
 		}
 		if _server.dummyDelay != 0 {
 			time.Sleep (_server.dummyDelay)
@@ -2042,6 +2048,7 @@ func (_listener *splitListener) Addr () (net.Addr) {
 
 
 var _statsRequestsTotal uint64
+var _statsRequestsBody uint64
 var _statsRequestsFast uint64
 var _statsRequestsSlow uint64
 var _statsRequests1xx uint64
@@ -2102,6 +2109,7 @@ func reportUpdateStats () () {
 	_changed := false
 	
 	_reportRequestsTotal.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequestsBody.Update2 (_timestamp, &_changed, &_invalid)
 	_reportRequestsFast.Update2 (_timestamp, &_changed, &_invalid)
 	_reportRequestsSlow.Update2 (_timestamp, &_changed, &_invalid)
 	_reportRequests1xx.Update2 (_timestamp, &_changed, &_invalid)
@@ -2156,6 +2164,10 @@ func reportUpdateStats () () {
 	if (_shouldLog || _reportRequests5xx.Changed) && _reportRequests5xx.Touched {
 		log.Printf ("[ii] [047ba05b]  [stats...]  resp-5xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequests5xx.ValueLast, _reportRequests5xx.Speed1Last, _reportRequests5xx.Speed1prLast, _reportRequests5xx.Speed1prWindow)
+	}
+	if (_shouldLog || _reportRequestsBody.Changed) && _reportRequestsBody.Touched {
+		log.Printf ("[ii] [d2d45f12]  [stats...]  resp-sz  %7.2f GB |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportRequestsBody.ValueLast, _reportRequestsBody.Speed1Last, _reportRequestsBody.Speed1prLast, _reportRequestsBody.Speed1prWindow)
 	}
 	
 	if (_shouldLog || _reportUsageCpuTotal.Changed) && _reportUsageCpuTotal.Touched {
@@ -2238,6 +2250,13 @@ var _reportRequestsTotal = & StatMetric {
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.1,
+	}
+
+var _reportRequestsBody = & StatMetric {
+		MetricSource : &_statsRequestsBody,
+		ValueScale : 1024 * 1024 * 1024, // GiB
+		SpeedScale : 1024, // KiB
+		SpeedThreshold : 1024,
 	}
 
 var _reportRequestsFast = & StatMetric {
