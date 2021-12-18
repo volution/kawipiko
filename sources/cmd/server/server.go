@@ -467,15 +467,15 @@ func (_server *server) ServeWrapped (_context *fasthttp.RequestCtx) () {
 		case _status < 100 :
 			_invalid = true
 		case _status < 200 :
-			atomic.AddUint64 (&_statsRequests1xx, 1)
+			atomic.AddUint64 (&_statsResponses1xx, 1)
 		case _status < 300 :
-			atomic.AddUint64 (&_statsRequests2xx, 1)
+			atomic.AddUint64 (&_statsResponses2xx, 1)
 		case _status < 400 :
-			atomic.AddUint64 (&_statsRequests3xx, 1)
+			atomic.AddUint64 (&_statsResponses3xx, 1)
 		case _status < 500 :
-			atomic.AddUint64 (&_statsRequests4xx, 1)
+			atomic.AddUint64 (&_statsResponses4xx, 1)
 		case _status < 600 :
-			atomic.AddUint64 (&_statsRequests5xx, 1)
+			atomic.AddUint64 (&_statsResponses5xx, 1)
 		default :
 			_invalid = true
 	}
@@ -485,7 +485,7 @@ func (_server *server) ServeWrapped (_context *fasthttp.RequestCtx) () {
 		}
 		_context.Response.Reset ()
 		_context.Response.SetStatusCode (http.StatusInternalServerError)
-		atomic.AddUint64 (&_statsRequests5xx, 1)
+		atomic.AddUint64 (&_statsResponses5xx, 1)
 	}
 }
 
@@ -534,7 +534,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		if !_server.quiet {
 			log.Printf ("[ww] [4c44e3c0]  [go-http.]  protocol HTTP/%d not supported for `%s`!", _request.ProtoMajor, _request.URL.Path)
 		}
-		atomic.AddUint64 (&_statsRequests5xx, 1)
+		atomic.AddUint64 (&_statsResponses5xx, 1)
 		return
 	}
 	
@@ -551,7 +551,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		if _server.dummyDelay != 0 {
 			time.Sleep (_server.dummyDelay)
 		}
-		atomic.AddUint64 (&_statsRequests2xx, 1)
+		atomic.AddUint64 (&_statsResponses2xx, 1)
 		return
 	}
 	
@@ -2051,11 +2051,11 @@ var _statsRequestsTotal uint64
 var _statsRequestsBody uint64
 var _statsRequestsFast uint64
 var _statsRequestsSlow uint64
-var _statsRequests1xx uint64
-var _statsRequests2xx uint64
-var _statsRequests3xx uint64
-var _statsRequests4xx uint64
-var _statsRequests5xx uint64
+var _statsResponses1xx uint64
+var _statsResponses2xx uint64
+var _statsResponses3xx uint64
+var _statsResponses4xx uint64
+var _statsResponses5xx uint64
 
 var _statsUsageCpuTotal uint64
 var _statsUsageCpuUser uint64
@@ -2112,11 +2112,11 @@ func reportUpdateStats () () {
 	_reportRequestsBody.Update2 (_timestamp, &_changed, &_invalid)
 	_reportRequestsFast.Update2 (_timestamp, &_changed, &_invalid)
 	_reportRequestsSlow.Update2 (_timestamp, &_changed, &_invalid)
-	_reportRequests1xx.Update2 (_timestamp, &_changed, &_invalid)
-	_reportRequests2xx.Update2 (_timestamp, &_changed, &_invalid)
-	_reportRequests3xx.Update2 (_timestamp, &_changed, &_invalid)
-	_reportRequests4xx.Update2 (_timestamp, &_changed, &_invalid)
-	_reportRequests5xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportResponses1xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportResponses2xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportResponses3xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportResponses4xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportResponses5xx.Update2 (_timestamp, &_changed, &_invalid)
 	
 	_reportUsageCpuTotal.Update2 (_timestamp, &_changed, &_invalid)
 	_reportUsageCpuUser.Update2 (_timestamp, &_changed, &_invalid)
@@ -2145,25 +2145,25 @@ func reportUpdateStats () () {
 		log.Printf ("[ii] [870f4146]  [stats...]  requests %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequestsTotal.ValueLast, _reportRequestsTotal.Speed1Last, _reportRequestsTotal.Speed1prLast, _reportRequestsTotal.Speed1prWindow)
 	}
-	if (_shouldLog || _reportRequests1xx.Changed) && _reportRequests1xx.Touched {
+	if (_shouldLog || _reportResponses1xx.Changed) && _reportResponses1xx.Touched {
 		log.Printf ("[ii] [d12ebda3]  [stats...]  resp-1xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
-				_reportRequests1xx.ValueLast, _reportRequests1xx.Speed1Last, _reportRequests1xx.Speed1prLast, _reportRequests1xx.Speed1prWindow)
+				_reportResponses1xx.ValueLast, _reportResponses1xx.Speed1Last, _reportResponses1xx.Speed1prLast, _reportResponses1xx.Speed1prWindow)
 	}
-	if (_shouldLog || _reportRequests2xx.Changed) && _reportRequests2xx.Touched {
+	if (_shouldLog || _reportResponses2xx.Changed) && _reportResponses2xx.Touched {
 		log.Printf ("[ii] [2464e4c2]  [stats...]  resp-2xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
-				_reportRequests2xx.ValueLast, _reportRequests2xx.Speed1Last, _reportRequests2xx.Speed1prLast, _reportRequests2xx.Speed1prWindow)
+				_reportResponses2xx.ValueLast, _reportResponses2xx.Speed1Last, _reportResponses2xx.Speed1prLast, _reportResponses2xx.Speed1prWindow)
 	}
-	if (_shouldLog || _reportRequests3xx.Changed) && _reportRequests3xx.Touched {
+	if (_shouldLog || _reportResponses3xx.Changed) && _reportResponses3xx.Touched {
 		log.Printf ("[ii] [59bea970]  [stats...]  resp-3xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
-				_reportRequests3xx.ValueLast, _reportRequests3xx.Speed1Last, _reportRequests3xx.Speed1prLast, _reportRequests3xx.Speed1prWindow)
+				_reportResponses3xx.ValueLast, _reportResponses3xx.Speed1Last, _reportResponses3xx.Speed1prLast, _reportResponses3xx.Speed1prWindow)
 	}
-	if (_shouldLog || _reportRequests4xx.Changed) && _reportRequests4xx.Touched {
+	if (_shouldLog || _reportResponses4xx.Changed) && _reportResponses4xx.Touched {
 		log.Printf ("[ii] [babb043c]  [stats...]  resp-4xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
-				_reportRequests4xx.ValueLast, _reportRequests4xx.Speed1Last, _reportRequests4xx.Speed1prLast, _reportRequests4xx.Speed1prWindow)
+				_reportResponses4xx.ValueLast, _reportResponses4xx.Speed1Last, _reportResponses4xx.Speed1prLast, _reportResponses4xx.Speed1prWindow)
 	}
-	if (_shouldLog || _reportRequests5xx.Changed) && _reportRequests5xx.Touched {
+	if (_shouldLog || _reportResponses5xx.Changed) && _reportResponses5xx.Touched {
 		log.Printf ("[ii] [047ba05b]  [stats...]  resp-5xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
-				_reportRequests5xx.ValueLast, _reportRequests5xx.Speed1Last, _reportRequests5xx.Speed1prLast, _reportRequests5xx.Speed1prWindow)
+				_reportResponses5xx.ValueLast, _reportResponses5xx.Speed1Last, _reportResponses5xx.Speed1prLast, _reportResponses5xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportRequestsBody.Changed) && _reportRequestsBody.Touched {
 		log.Printf ("[ii] [d2d45f12]  [stats...]  resp-sz  %7.2f GB |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
@@ -2273,36 +2273,36 @@ var _reportRequestsSlow = & StatMetric {
 		SpeedThreshold : 1.0,
 	}
 
-var _reportRequests1xx = & StatMetric {
-		MetricSource : &_statsRequests1xx,
+var _reportResponses1xx = & StatMetric {
+		MetricSource : &_statsResponses1xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
 	}
 
-var _reportRequests2xx = & StatMetric {
-		MetricSource : &_statsRequests2xx,
+var _reportResponses2xx = & StatMetric {
+		MetricSource : &_statsResponses2xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 8.0,
 	}
 
-var _reportRequests3xx = & StatMetric {
-		MetricSource : &_statsRequests3xx,
+var _reportResponses3xx = & StatMetric {
+		MetricSource : &_statsResponses3xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
 	}
 
-var _reportRequests4xx = & StatMetric {
-		MetricSource : &_statsRequests4xx,
+var _reportResponses4xx = & StatMetric {
+		MetricSource : &_statsResponses4xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
 	}
 
-var _reportRequests5xx = & StatMetric {
-		MetricSource : &_statsRequests5xx,
+var _reportResponses5xx = & StatMetric {
+		MetricSource : &_statsResponses5xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
