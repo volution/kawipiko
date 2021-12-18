@@ -35,7 +35,7 @@ func NewHttpResponseWriterHeadersBuffer (_status int) (HttpResponseWriterHeaders
 func (_buffer *HttpResponseWriterHeadersBuffer) IncludeBytes (_name []byte, _value []byte) () {
 	
 	if _buffer.headersCount == 128 {
-		panic ("[ca806ede]")
+		panic ("[ca806ede]  [magic]  too many headers!")
 	}
 	
 	_buffer.headers[_buffer.headersCount] = [2][]byte {_name, _value}
@@ -118,9 +118,12 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteTo (_response http.Response
 		return
 	}
 	
-	_httpResponseWriterHeadersMagic_detect (_response)
-	
-	goto _redo
+	if _httpResponseWriterHeadersMagic_detect (_response) {
+		goto _redo
+	} else {
+		_buffer.WriteToGenericResponse (_response)
+		return
+	}
 }
 
 var _httpResponseWriterHeadersMagic_netHttp1_type uintptr
@@ -135,7 +138,7 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteToNetHttp1 (_response http.
 	_responseRaw := * ((*[2]uintptr) (unsafe.Pointer (&_response)))
 	_responseAddress := unsafe.Pointer (_responseRaw[1])
 	
-	_headers := make (map[string][]string, 16)
+	_headers := make (map[string][]string, _buffer.headersCount)
 	
 	_buffer.WriteToGenericHeaders (_headers)
 	
@@ -170,7 +173,7 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteToNetHttp2 (_response http.
 	_responseAddress := unsafe.Pointer (_responseRaw[1])
 	_responseAddress = unsafe.Pointer (* ((*uintptr) (_responseAddress)))
 	
-	_headers := make (map[string][]string, 16)
+	_headers := make (map[string][]string, _buffer.headersCount)
 	
 	_buffer.WriteToGenericHeaders (_headers)
 	
@@ -207,7 +210,7 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteToQuicHttp3 (_response http
 
 
 
-func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
+func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) (bool) {
 	
 	
 	// NOTE:  Because we don't modify the headers after calling `WriteHeader`,
@@ -242,6 +245,8 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 			atomic.StoreInt32 (&_httpResponseWriterHeadersMagic_netHttp1_cwHeaderOffset, _cwHeaderOffset)
 			
 			atomic.StoreUintptr (&_httpResponseWriterHeadersMagic_netHttp1_type, _responseRawType)
+			
+			return true
 		}
 		
 		case (_responsePackage == "net/http") && (_responseTypeName == "http2responseWriter") : {
@@ -265,6 +270,8 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 			atomic.StoreInt32 (&_httpResponseWriterHeadersMagic_netHttp2_snapHeaderOffset, _snapHeaderOffset)
 			
 			atomic.StoreUintptr (&_httpResponseWriterHeadersMagic_netHttp2_type, _responseRawType)
+			
+			return true
 		}
 		
 		case (_responsePackage == "github.com/lucas-clemente/quic-go/http3") && (_responseTypeName == "responseWriter") : {
@@ -272,22 +279,29 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 			log.Printf ("[dd] [90b8f7c6]  [magic...]  detected QuicHttp3 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
 			
 			atomic.StoreUintptr (&_httpResponseWriterHeadersMagic_quicHttp3_type, _responseRawType)
+			
+			return true
 		}
 		
 		default : {
 			
-			log.Printf ("[ee] [64583df9]  unsupported HTTP ResponseWriter `%s.%s`!\n", _responsePackage, _responseTypeName)
+			if !_httpResponseWriterHeadersMagic_quiet {
+				log.Printf ("[ee] [64583df9]  unsupported HTTP ResponseWriter `%s.%s`!\n", _responsePackage, _responseTypeName)
+			}
 			
 			if _httpResponseWriterHeadersMagic_panic {
 				panic (fmt.Sprintf ("[09274c17]  unsupported HTTP ResponseWriter `%s.%s`!", _responsePackage, _responseTypeName))
 			}
+			
+			return false
 		}
 	}
 }
 
 
-var _httpResponseWriterHeadersMagic_enabled = true
-var _httpResponseWriterHeadersMagic_panic = true
+const _httpResponseWriterHeadersMagic_enabled = true
+const _httpResponseWriterHeadersMagic_panic = true
+const _httpResponseWriterHeadersMagic_quiet = false
 
 var _httpResponseWriterHeadersMagic_netHttp1_handlerHeaderOffset int32
 var _httpResponseWriterHeadersMagic_netHttp1_cwHeaderOffset int32
