@@ -1,5 +1,7 @@
 
+
 package common
+
 
 import "reflect"
 import "unsafe"
@@ -59,5 +61,38 @@ func StringToBytes (_input string) ([]byte) {
 	_outputHeader.Cap = _inputHeader.Len
 	
 	return _output
+}
+
+
+
+
+// NOTE:  https://github.com/aristanetworks/goarista/blob/master/monotime/nanotime.go
+
+//go:noescape
+//go:linkname runtime_nanotime runtime.nanotime
+func runtime_nanotime () (int64)
+
+func RuntimeNanoseconds () (uint64) {
+	return uint64 (runtime_nanotime ())
+}
+
+func RuntimeMicroseconds () (uint64) {
+	return uint64 (runtime_nanotime ()) / 1000
+}
+
+func RuntimeMilliseconds () (uint64) {
+	return uint64 (runtime_nanotime ()) / 1000 / 1000
+}
+
+func RuntimeSeconds () (uint64) {
+	return uint64 (runtime_nanotime ()) / 1000 / 1000 / 1000
+}
+
+func RuntimeSecondsFloat () (float64) {
+	return float64 (runtime_nanotime ()) / 1000 / 1000 / 1000
+}
+
+func RuntimeHoursFloat () (float64) {
+	return float64 (RuntimeSeconds ()) / 3600
 }
 
