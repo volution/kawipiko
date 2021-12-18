@@ -1881,6 +1881,18 @@ func main_0 () (error) {
 		} ()
 	}
 	
+	if _reportStatsEnabled {
+		_reportStatsQuiet = _quiet
+		go func () () {
+			reportStatsLoop ()
+		} ()
+	}
+	
+	if !_quiet {
+		time.Sleep (100 * time.Millisecond)
+		log.Printf ("[--] [        ]\n")
+	}
+	
 	{
 		_waiter.Add (1)
 		_signals := make (chan os.Signal, 32)
@@ -1888,6 +1900,10 @@ func main_0 () (error) {
 		go func () () {
 			defer _waiter.Done ()
 			<- _signals
+			_reportStatsStop = true
+			if !_quiet {
+				log.Printf ("[--] [        ]\n")
+			}
 			if !_quiet {
 				log.Printf ("[ii] [691cb695]  [shutdown]  terminating...\n")
 			}
@@ -2033,6 +2049,150 @@ var _statsRequests2xx uint64
 var _statsRequests3xx uint64
 var _statsRequests4xx uint64
 var _statsRequests5xx uint64
+
+
+
+
+func reportStatsLoop () {
+	reportStats ()
+	for {
+		if _reportStatsStop {
+			break
+		}
+		time.Sleep (1000 * time.Millisecond)
+		reportStats ()
+	}
+}
+
+
+func reportStats () () {
+	
+	_timestamp := RuntimeNanoseconds ()
+	
+	_reportHeartbeatCounter += 1
+	
+	_shouldLog := false
+	if !_reportStatsQuiet {
+		_shouldLog = _shouldLog || ((_reportHeartbeatCounter % 30) == 0)
+	} else {
+		_shouldLog = _shouldLog || ((_reportHeartbeatCounter % 360) == 0)
+	}
+	
+	_reportHeartbeat.Update (_timestamp)
+	if _reportHeartbeat.Speed1paLast < 0.001 {
+		_reportHeartbeat.Changed = false
+	}
+	
+	_invalid := false
+	_changed := false
+	
+	_reportRequestsTotal.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequestsFast.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequestsSlow.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequests1xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequests2xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequests3xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequests4xx.Update2 (_timestamp, &_changed, &_invalid)
+	_reportRequests5xx.Update2 (_timestamp, &_changed, &_invalid)
+	
+	if _invalid || (!_shouldLog && !_changed) {
+		return
+	}
+	
+	if _shouldLog && !_reportStatsQuiet {
+		log.Printf ("[--] [        ]\n")
+	}
+	if (_shouldLog || _reportHeartbeat.Changed) && _reportHeartbeat.Touched {
+		log.Printf ("[ii] [addc4553]  [stats...]  uptime   %6.2fh | tps  %7.2f %+.1f%%\n",
+				_reportHeartbeat.ValueLast / 3600, _reportHeartbeat.Speed1Last, _reportHeartbeat.Speed1prLast)
+	}
+	if (_shouldLog || _reportRequestsTotal.Changed) && _reportRequestsTotal.Touched {
+		log.Printf ("[ii] [870f4146]  [stats...]  requests %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+				_reportRequestsTotal.ValueLast, _reportRequestsTotal.Speed1Last, _reportRequestsTotal.Speed1prLast, _reportRequestsTotal.Speed1prWindow)
+	}
+	if (_shouldLog || _reportRequests1xx.Changed) && _reportRequests1xx.Touched {
+		log.Printf ("[ii] [d12ebda3]  [stats...]  resp-1xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+				_reportRequests1xx.ValueLast, _reportRequests1xx.Speed1Last, _reportRequests1xx.Speed1prLast, _reportRequests1xx.Speed1prWindow)
+	}
+	if (_shouldLog || _reportRequests2xx.Changed) && _reportRequests2xx.Touched {
+		log.Printf ("[ii] [2464e4c2]  [stats...]  resp-2xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+				_reportRequests2xx.ValueLast, _reportRequests2xx.Speed1Last, _reportRequests2xx.Speed1prLast, _reportRequests2xx.Speed1prWindow)
+	}
+	if (_shouldLog || _reportRequests3xx.Changed) && _reportRequests3xx.Touched {
+		log.Printf ("[ii] [59bea970]  [stats...]  resp-3xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+				_reportRequests3xx.ValueLast, _reportRequests3xx.Speed1Last, _reportRequests3xx.Speed1prLast, _reportRequests3xx.Speed1prWindow)
+	}
+	if (_shouldLog || _reportRequests4xx.Changed) && _reportRequests4xx.Touched {
+		log.Printf ("[ii] [babb043c]  [stats...]  resp-4xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+				_reportRequests4xx.ValueLast, _reportRequests4xx.Speed1Last, _reportRequests4xx.Speed1prLast, _reportRequests4xx.Speed1prWindow)
+	}
+	if (_shouldLog || _reportRequests5xx.Changed) && _reportRequests5xx.Touched {
+		log.Printf ("[ii] [047ba05b]  [stats...]  resp-5xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+				_reportRequests5xx.ValueLast, _reportRequests5xx.Speed1Last, _reportRequests5xx.Speed1prLast, _reportRequests5xx.Speed1prWindow)
+	}
+	if _shouldLog && !_reportStatsQuiet {
+		log.Printf ("[--] [        ]\n")
+	}
+}
+
+
+var _reportStatsEnabled = true
+var _reportStatsQuiet = false
+var _reportStatsStop = false
+
+var _reportHeartbeatCounter uint64
+var _reportHeartbeat = & StatMetric {
+		MetricSource : &_reportHeartbeatCounter,
+	}
+
+var _reportRequestsTotal = & StatMetric {
+		MetricSource : &_statsRequestsTotal,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 0.1,
+	}
+var _reportRequestsFast = & StatMetric {
+		MetricSource : &_statsRequestsFast,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 1.0,
+	}
+var _reportRequestsSlow = & StatMetric {
+		MetricSource : &_statsRequestsSlow,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 1.0,
+	}
+var _reportRequests1xx = & StatMetric {
+		MetricSource : &_statsRequests1xx,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 0.01,
+	}
+var _reportRequests2xx = & StatMetric {
+		MetricSource : &_statsRequests2xx,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 1.0,
+	}
+var _reportRequests3xx = & StatMetric {
+		MetricSource : &_statsRequests3xx,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 0.01,
+	}
+var _reportRequests4xx = & StatMetric {
+		MetricSource : &_statsRequests4xx,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 0.01,
+	}
+var _reportRequests5xx = & StatMetric {
+		MetricSource : &_statsRequests5xx,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 0.01,
+	}
 
 
 
