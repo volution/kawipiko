@@ -21,6 +21,7 @@ import "runtime/pprof"
 import "strconv"
 import "strings"
 import "sync"
+import "sync/atomic"
 import "syscall"
 import "time"
 import "unsafe"
@@ -66,7 +67,7 @@ type server struct {
 
 
 
-func (_server *server) Serve (_context *fasthttp.RequestCtx) () {
+func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	
 	
 	if _server.dummy {
@@ -450,7 +451,55 @@ func (_server *server) ServeDummy (_context *fasthttp.RequestCtx) () {
 
 
 
+func (_server *server) ServeWrapped (_context *fasthttp.RequestCtx) () {
+	_context.Response.SetStatusCode (-1)
+	_server.ServeUnwrapped (_context)
+	_status := _context.Response.StatusCode ()
+	_invalid := false
+	switch {
+		case _status < 100 :
+			_invalid = true
+		case _status < 200 :
+			atomic.AddUint64 (&_statsRequests1xx, 1)
+		case _status < 300 :
+			atomic.AddUint64 (&_statsRequests2xx, 1)
+		case _status < 400 :
+			atomic.AddUint64 (&_statsRequests3xx, 1)
+		case _status < 500 :
+			atomic.AddUint64 (&_statsRequests4xx, 1)
+		case _status < 600 :
+			atomic.AddUint64 (&_statsRequests5xx, 1)
+		default :
+			_invalid = true
+	}
+	if _invalid {
+		if !_server.quiet {
+			log.Printf ("[ee] [3db6b217]  [http-x..]  invalid status code `%d`!\n", _status)
+		}
+		_context.Response.Reset ()
+		_context.Response.SetStatusCode (http.StatusInternalServerError)
+		atomic.AddUint64 (&_statsRequests5xx, 1)
+	}
+}
+
+
+
+
+func (_server *server) ServeFast (_context *fasthttp.RequestCtx) () {
+	
+	atomic.AddUint64 (&_statsRequestsFast, 1)
+	atomic.AddUint64 (&_statsRequestsTotal, 1)
+	
+	_server.ServeWrapped (_context)
+}
+
+
+
+
 func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.Request) () {
+	
+	atomic.AddUint64 (&_statsRequestsSlow, 1)
+	atomic.AddUint64 (&_statsRequestsTotal, 1)
 	
 	_requestProtoUnsupported := false
 	switch _request.ProtoMajor {
@@ -478,6 +527,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		if !_server.quiet {
 			log.Printf ("[ww] [4c44e3c0]  [go-http.]  protocol HTTP/%d not supported for `%s`!", _request.ProtoMajor, _request.URL.Path)
 		}
+		atomic.AddUint64 (&_statsRequests5xx, 1)
 		return
 	}
 	
@@ -493,6 +543,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 		if _server.dummyDelay != 0 {
 			time.Sleep (_server.dummyDelay)
 		}
+		atomic.AddUint64 (&_statsRequests2xx, 1)
 		return
 	}
 	
@@ -512,7 +563,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	
 	_context.Response.Reset ()
 	
-	_server.Serve (_context)
+	_server.ServeWrapped (_context)
 	
 	_responseHeaders := NewHttpResponseWriterHeadersBuffer (_context.Response.Header.StatusCode ())
 	
@@ -1390,7 +1441,7 @@ func main_0 () (error) {
 	_httpPlain1Server := & fasthttp.Server {
 			
 			Name : "kawipiko",
-			Handler : _server.Serve,
+			Handler : _server.ServeFast,
 			GetOnly : true,
 			
 			NoDefaultServerHeader : true,
@@ -1968,6 +2019,18 @@ func (_listener *splitListener) Addr () (net.Addr) {
 		return nil
 	}
 }
+
+
+
+
+var _statsRequestsTotal uint64
+var _statsRequestsFast uint64
+var _statsRequestsSlow uint64
+var _statsRequests1xx uint64
+var _statsRequests2xx uint64
+var _statsRequests3xx uint64
+var _statsRequests4xx uint64
+var _statsRequests5xx uint64
 
 
 
