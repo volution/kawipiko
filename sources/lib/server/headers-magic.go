@@ -80,8 +80,6 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteToGenericHeaders (_headers 
 			_headers[_name] = _values
 		}
 	}
-	
-	_headers["Date"] = nil
 }
 
 
@@ -96,7 +94,7 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteTo (_response http.Response
 	}
 	
 	
-	_responseRaw := *(*[2]uintptr) (unsafe.Pointer (&_response))
+	_responseRaw := * ((*[2]uintptr) (unsafe.Pointer (&_response)))
 	_responseType := _responseRaw[0]
 	
 	
@@ -134,10 +132,20 @@ var _httpResponseWriterHeadersMagic_quicHttp3_type uintptr
 
 func (_buffer *HttpResponseWriterHeadersBuffer) WriteToNetHttp1 (_response http.ResponseWriter) () {
 	
-	_responseRaw := *(*[2]uintptr) (unsafe.Pointer (&_response))
+	_responseRaw := * ((*[2]uintptr) (unsafe.Pointer (&_response)))
 	_responseAddress := unsafe.Pointer (_responseRaw[1])
 	
 	_headers := make (map[string][]string, 16)
+	
+	_buffer.WriteToGenericHeaders (_headers)
+	
+	// NOTE:  It seems if `Content-Type` is missing, then Go HTTP divines a value...
+	if _, _exists := _headers["Content-Type"]; !_exists {
+		_headers["Content-Type"] = nil
+	}
+	
+	// NOTE:  It seems that Go HTTP always divines a `Date` value...
+	_headers["Date"] = nil
 	
 	{
 		_handlerHeaderOffset := atomic.LoadInt32 (&_httpResponseWriterHeadersMagic_netHttp1_handlerHeaderOffset)
@@ -150,7 +158,7 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteToNetHttp1 (_response http.
 		*_cwHeaderValue = _headers
 	}
 	
-	_buffer.WriteToGenericHeaders (_headers)
+	_response.WriteHeader (_buffer.status)
 }
 
 
@@ -158,7 +166,34 @@ func (_buffer *HttpResponseWriterHeadersBuffer) WriteToNetHttp1 (_response http.
 
 func (_buffer *HttpResponseWriterHeadersBuffer) WriteToNetHttp2 (_response http.ResponseWriter) () {
 	
-	_buffer.WriteToGenericResponse (_response)
+	_responseRaw := * ((*[2]uintptr) (unsafe.Pointer (&_response)))
+	_responseAddress := unsafe.Pointer (_responseRaw[1])
+	_responseAddress = unsafe.Pointer (* ((*uintptr) (_responseAddress)))
+	
+	_headers := make (map[string][]string, 16)
+	
+	_buffer.WriteToGenericHeaders (_headers)
+	
+	// NOTE:  It seems if `Content-Type` is missing, then Go HTTP divines a value...
+	if _, _exists := _headers["Content-Type"]; !_exists {
+		_headers["Content-Type"] = nil
+	}
+	
+	// NOTE:  It seems that Go HTTP always divines a `Date` value...
+	_headers["Date"] = nil
+	
+	_response.WriteHeader (_buffer.status)
+	
+	{
+		_handlerHeaderOffset := atomic.LoadInt32 (&_httpResponseWriterHeadersMagic_netHttp2_handlerHeaderOffset)
+		_snapHeaderOffset := atomic.LoadInt32 (&_httpResponseWriterHeadersMagic_netHttp2_snapHeaderOffset)
+		
+		_handlerHeaderValue := (*http.Header) (unsafe.Add (_responseAddress, _handlerHeaderOffset))
+		_snapHeaderValue := (*http.Header) (unsafe.Add (_responseAddress, _snapHeaderOffset))
+		
+		*_handlerHeaderValue = _headers
+		*_snapHeaderValue = _headers
+	}
 }
 
 
@@ -180,12 +215,11 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 	//        This eliminates the `http.Header.Clone()` call on `WriteHeader`.
 	
 	_responseReflect := reflect.ValueOf (_response) .Elem ()
-	_responseAddress := unsafe.Pointer (_responseReflect.UnsafeAddr ())
 	_responseType := _responseReflect.Type ()
 	_responsePackage := _responseType.PkgPath ()
 	_responseTypeName := _responseType.Name ()
 	
-	_responseRaw := *(*[2]uintptr) (unsafe.Pointer (&_response))
+	_responseRaw := * ((*[2]uintptr) (unsafe.Pointer (&_response)))
 	_responseRawType := _responseRaw[0]
 	
 	switch {
@@ -200,6 +234,7 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 			_cwHeaderReflect := _responseReflect.FieldByName ("cw") .FieldByName ("header")
 			_cwHeaderAddress := unsafe.Pointer (_cwHeaderReflect.UnsafeAddr ())
 			
+			_responseAddress := unsafe.Pointer (_responseReflect.UnsafeAddr ())
 			_handlerHeaderOffset := int32 (int64 (uintptr (_handlerHeaderAddress)) - int64 (uintptr (_responseAddress)))
 			_cwHeaderOffset := int32 (int64 (uintptr (_cwHeaderAddress)) - int64 (uintptr (_responseAddress)))
 			
@@ -212,6 +247,22 @@ func _httpResponseWriterHeadersMagic_detect (_response http.ResponseWriter) {
 		case (_responsePackage == "net/http") && (_responseTypeName == "http2responseWriter") : {
 			
 			log.Printf ("[dd] [cfb457eb]  [magic...]  detected NetHttp2 (`%s.%s`) with type `%08x`;", _responsePackage, _responseTypeName, _responseRawType)
+			
+			_responseReflect = _responseReflect.FieldByName ("rws") .Elem ()
+			
+			_handlerHeaderReflect := _responseReflect.FieldByName ("handlerHeader")
+			_handlerHeaderAddress := unsafe.Pointer (_handlerHeaderReflect.UnsafeAddr ())
+			
+			_snapHeaderReflect := _responseReflect.FieldByName ("snapHeader")
+			_snapHeaderAddress := unsafe.Pointer (_snapHeaderReflect.UnsafeAddr ())
+			
+			_responseAddress := unsafe.Pointer (_responseReflect.UnsafeAddr ())
+			
+			_handlerHeaderOffset := int32 (int64 (uintptr (_handlerHeaderAddress)) - int64 (uintptr (_responseAddress)))
+			_snapHeaderOffset := int32 (int64 (uintptr (_snapHeaderAddress)) - int64 (uintptr (_responseAddress)))
+			
+			atomic.StoreInt32 (&_httpResponseWriterHeadersMagic_netHttp2_handlerHeaderOffset, _handlerHeaderOffset)
+			atomic.StoreInt32 (&_httpResponseWriterHeadersMagic_netHttp2_snapHeaderOffset, _snapHeaderOffset)
 			
 			atomic.StoreUintptr (&_httpResponseWriterHeadersMagic_netHttp2_type, _responseRawType)
 		}
@@ -240,4 +291,7 @@ var _httpResponseWriterHeadersMagic_panic = true
 
 var _httpResponseWriterHeadersMagic_netHttp1_handlerHeaderOffset int32
 var _httpResponseWriterHeadersMagic_netHttp1_cwHeaderOffset int32
+
+var _httpResponseWriterHeadersMagic_netHttp2_handlerHeaderOffset int32
+var _httpResponseWriterHeadersMagic_netHttp2_snapHeaderOffset int32
 
