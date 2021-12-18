@@ -27,6 +27,7 @@ type StatMetric struct {
 	
 	Changed bool
 	Invalid bool
+	Touched bool
 	
 	metricLast_0 uint64
 	dividerLast_0 uint64
@@ -40,7 +41,8 @@ type StatMetric struct {
 	TimeLast uint64
 	TimeFirst uint64
 	TimeChanged uint64
-	CountChanged uint64
+	UpdateCount uint64
+	ChangedCount uint64
 	
 	Speed1Last float64
 	Speed1Window float64
@@ -153,7 +155,7 @@ func (_stat *StatMetric) Update (_timeNanoseconds uint64) () {
 		_speed0Now = _speed0Now / _stat.SpeedScale
 	}
 	
-	if _stat.CountChanged == 0 {
+	if _stat.UpdateCount == 0 {
 		_stat.TimeFirst = _timeNow
 		_invalid = true
 	}
@@ -205,6 +207,7 @@ func (_stat *StatMetric) Update (_timeNanoseconds uint64) () {
 		}
 		
 		_stat.TimeChanged = _timeNow
+		_stat.ChangedCount += 1
 		_stat.WindowSize++
 		
 	} else {
@@ -250,9 +253,10 @@ func (_stat *StatMetric) Update (_timeNanoseconds uint64) () {
 	_stat.TimeLast = _timeNow
 	_stat.TimeDelta = uint64 (_timeDelta)
 	
-	_stat.CountChanged += 1
+	_stat.UpdateCount += 1
 	
 	_stat.Invalid = _invalid
+	_stat.Touched = (_stat.ChangedCount > 0)
 	
 	
 	_stat.Speed1paLast = math.Abs (_stat.Speed1pLast)
