@@ -2050,22 +2050,37 @@ var _statsRequests3xx uint64
 var _statsRequests4xx uint64
 var _statsRequests5xx uint64
 
+var _statsUsageCpuTotal uint64
+var _statsUsageCpuUser uint64
+var _statsUsageCpuSys uint64
+var _statsUsageSwitchPreempted uint64
+var _statsUsageSwitchVoluntary uint64
+var _statsUsageFaultsMajor uint64
+var _statsUsageFaultsMinor uint64
+var _statsUsageIoReads uint64
+var _statsUsageIoWrites uint64
 
 
 
-func reportStatsLoop () {
-	reportStats ()
+
+
+func reportStatsLoop () () {
+	
 	for {
+		
+		reportUpdateUsage ()
+		reportUpdateStats ()
+		
+		time.Sleep (1000 * time.Millisecond)
+		
 		if _reportStatsStop {
 			break
 		}
-		time.Sleep (1000 * time.Millisecond)
-		reportStats ()
 	}
 }
 
 
-func reportStats () () {
+func reportUpdateStats () () {
 	
 	_timestamp := RuntimeNanoseconds ()
 	
@@ -2095,6 +2110,16 @@ func reportStats () () {
 	_reportRequests4xx.Update2 (_timestamp, &_changed, &_invalid)
 	_reportRequests5xx.Update2 (_timestamp, &_changed, &_invalid)
 	
+	_reportUsageCpuTotal.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageCpuUser.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageCpuSys.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageSwitchPreempted.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageSwitchVoluntary.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageFaultsMajor.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageFaultsMinor.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageIoReads.Update2 (_timestamp, &_changed, &_invalid)
+	_reportUsageIoWrites.Update2 (_timestamp, &_changed, &_invalid)
+	
 	if _invalid || (!_shouldLog && !_changed) {
 		return
 	}
@@ -2102,37 +2127,100 @@ func reportStats () () {
 	if _shouldLog && !_reportStatsQuiet {
 		log.Printf ("[--] [        ]\n")
 	}
+	
 	if (_shouldLog || _reportHeartbeat.Changed) && _reportHeartbeat.Touched {
-		log.Printf ("[ii] [addc4553]  [stats...]  uptime   %6.2fh | tps  %7.2f %+.1f%%\n",
+		log.Printf ("[ii] [addc4553]  [stats...]  uptime   %7.2f h  |  tps  %7.2f %6.1f%%\n",
 				_reportHeartbeat.ValueLast / 3600, _reportHeartbeat.Speed1Last, _reportHeartbeat.Speed1prLast)
 	}
+	
 	if (_shouldLog || _reportRequestsTotal.Changed) && _reportRequestsTotal.Touched {
-		log.Printf ("[ii] [870f4146]  [stats...]  requests %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [870f4146]  [stats...]  requests %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequestsTotal.ValueLast, _reportRequestsTotal.Speed1Last, _reportRequestsTotal.Speed1prLast, _reportRequestsTotal.Speed1prWindow)
 	}
 	if (_shouldLog || _reportRequests1xx.Changed) && _reportRequests1xx.Touched {
-		log.Printf ("[ii] [d12ebda3]  [stats...]  resp-1xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [d12ebda3]  [stats...]  resp-1xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequests1xx.ValueLast, _reportRequests1xx.Speed1Last, _reportRequests1xx.Speed1prLast, _reportRequests1xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportRequests2xx.Changed) && _reportRequests2xx.Touched {
-		log.Printf ("[ii] [2464e4c2]  [stats...]  resp-2xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [2464e4c2]  [stats...]  resp-2xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequests2xx.ValueLast, _reportRequests2xx.Speed1Last, _reportRequests2xx.Speed1prLast, _reportRequests2xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportRequests3xx.Changed) && _reportRequests3xx.Touched {
-		log.Printf ("[ii] [59bea970]  [stats...]  resp-3xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [59bea970]  [stats...]  resp-3xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequests3xx.ValueLast, _reportRequests3xx.Speed1Last, _reportRequests3xx.Speed1prLast, _reportRequests3xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportRequests4xx.Changed) && _reportRequests4xx.Touched {
-		log.Printf ("[ii] [babb043c]  [stats...]  resp-4xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [babb043c]  [stats...]  resp-4xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequests4xx.ValueLast, _reportRequests4xx.Speed1Last, _reportRequests4xx.Speed1prLast, _reportRequests4xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportRequests5xx.Changed) && _reportRequests5xx.Touched {
-		log.Printf ("[ii] [047ba05b]  [stats...]  resp-5xx %6.2fM | krps %7.2f %+.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [047ba05b]  [stats...]  resp-5xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequests5xx.ValueLast, _reportRequests5xx.Speed1Last, _reportRequests5xx.Speed1prLast, _reportRequests5xx.Speed1prWindow)
 	}
+	
+	if (_shouldLog || _reportUsageCpuTotal.Changed) && _reportUsageCpuTotal.Touched {
+		log.Printf ("[ii] [e27def0f]  [stats...]  cpu-all  %7.2f h  |  load %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageCpuTotal.ValueLast / 3600, _reportUsageCpuTotal.Speed1Last, _reportUsageCpuTotal.Speed1prLast, _reportUsageCpuTotal.Speed1prWindow)
+	}
+	if (_shouldLog || _reportUsageCpuSys.Changed) && _reportUsageCpuSys.Touched {
+		log.Printf ("[ii] [4a13138d]  [stats...]  cpu-sys  %7.2f h  |  load %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageCpuSys.ValueLast / 3600, _reportUsageCpuSys.Speed1Last, _reportUsageCpuSys.Speed1prLast, _reportUsageCpuSys.Speed1prWindow)
+	}
+	
+	if (_shouldLog || _reportUsageSwitchPreempted.Changed) && _reportUsageSwitchPreempted.Touched {
+		log.Printf ("[ii] [9e3fe2a8]  [stats...]  csw-prem %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageSwitchPreempted.ValueLast, _reportUsageSwitchPreempted.Speed1Last, _reportUsageSwitchPreempted.Speed1prLast, _reportUsageSwitchPreempted.Speed1prWindow)
+	}
+	if (_shouldLog || _reportUsageSwitchVoluntary.Changed) && _reportUsageSwitchVoluntary.Touched {
+		log.Printf ("[ii] [e8059c56]  [stats...]  csw-norm %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageSwitchVoluntary.ValueLast, _reportUsageSwitchVoluntary.Speed1Last, _reportUsageSwitchVoluntary.Speed1prLast, _reportUsageSwitchVoluntary.Speed1prWindow)
+	}
+	
+	if (_shouldLog || _reportUsageFaultsMajor.Changed) && _reportUsageFaultsMajor.Touched {
+		log.Printf ("[ii] [08adfe80]  [stats...]  mem-maj  %7.2f GB |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageFaultsMajor.ValueLast, _reportUsageFaultsMajor.Speed1Last / 1024, _reportUsageFaultsMajor.Speed1prLast, _reportUsageFaultsMajor.Speed1prWindow)
+	}
+	if (_shouldLog || _reportUsageFaultsMinor.Changed) && _reportUsageFaultsMinor.Touched {
+		log.Printf ("[ii] [6681ca7b]  [stats...]  mem-min  %7.2f GB |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageFaultsMinor.ValueLast, _reportUsageFaultsMinor.Speed1Last / 1024, _reportUsageFaultsMinor.Speed1prLast, _reportUsageFaultsMinor.Speed1prWindow)
+	}
+	
+	if (_shouldLog || _reportUsageIoReads.Changed) && _reportUsageIoReads.Touched {
+		log.Printf ("[ii] [db937bbe]  [stats...]  io-read  %7.2f GB  |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageIoReads.ValueLast, _reportUsageIoReads.Speed1Last / 1024, _reportUsageIoReads.Speed1prLast, _reportUsageIoReads.Speed1prWindow)
+	}
+	if (_shouldLog || _reportUsageIoWrites.Changed) && _reportUsageIoWrites.Touched {
+		log.Printf ("[ii] [ea16e474]  [stats...]  io-write %7.2f GB  |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+				_reportUsageIoWrites.ValueLast, _reportUsageIoWrites.Speed1Last / 1024, _reportUsageIoWrites.Speed1prLast, _reportUsageIoWrites.Speed1prWindow)
+	}
+	
 	if _shouldLog && !_reportStatsQuiet {
 		log.Printf ("[--] [        ]\n")
 	}
+}
+
+
+func reportUpdateUsage () () {
+	
+	var _usage syscall.Rusage
+	
+	if _error := syscall.Getrusage (syscall.RUSAGE_SELF, &_usage); _error != nil {
+		LogError (_error, "[c1d79147]  [stats...]  failed getting usage!")
+		return
+	}
+	
+	_pageSize := uint64 (syscall.Getpagesize ())
+	_ioSize := uint64 (512)
+	
+	_statsUsageCpuUser = (uint64 (_usage.Utime.Sec) * 1000 * 1000) + uint64 (_usage.Utime.Usec)
+	_statsUsageCpuSys = (uint64 (_usage.Stime.Sec) * 1000 * 1000) + uint64 (_usage.Stime.Usec)
+	_statsUsageCpuTotal = _statsUsageCpuUser + _statsUsageCpuSys
+	_statsUsageSwitchVoluntary = uint64 (_usage.Nvcsw)
+	_statsUsageSwitchPreempted = uint64 (_usage.Nivcsw)
+	_statsUsageFaultsMajor = uint64 (_usage.Majflt) * _pageSize
+	_statsUsageFaultsMinor = uint64 (_usage.Minflt) * _pageSize
+	_statsUsageIoReads = uint64 (_usage.Inblock) * _ioSize
+	_statsUsageIoWrites = uint64 (_usage.Oublock) * _ioSize
 }
 
 
@@ -2151,47 +2239,118 @@ var _reportRequestsTotal = & StatMetric {
 		SpeedScale : 1000,
 		SpeedThreshold : 0.1,
 	}
+
 var _reportRequestsFast = & StatMetric {
 		MetricSource : &_statsRequestsFast,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 1.0,
 	}
+
 var _reportRequestsSlow = & StatMetric {
 		MetricSource : &_statsRequestsSlow,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 1.0,
 	}
+
 var _reportRequests1xx = & StatMetric {
 		MetricSource : &_statsRequests1xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
 	}
+
 var _reportRequests2xx = & StatMetric {
 		MetricSource : &_statsRequests2xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
-		SpeedThreshold : 1.0,
+		SpeedThreshold : 8.0,
 	}
+
 var _reportRequests3xx = & StatMetric {
 		MetricSource : &_statsRequests3xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
 	}
+
 var _reportRequests4xx = & StatMetric {
 		MetricSource : &_statsRequests4xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
 	}
+
 var _reportRequests5xx = & StatMetric {
 		MetricSource : &_statsRequests5xx,
 		ValueScale : 1000 * 1000,
 		SpeedScale : 1000,
 		SpeedThreshold : 0.01,
+	}
+
+
+var _reportUsageCpuTotal = & StatMetric {
+		MetricSource : &_statsUsageCpuTotal,
+		ValueScale : 1000 * 1000, // microseconds -> seconds
+		SpeedScale : 1000 * 1000, // microseconds -> seconds
+		SpeedThreshold : 0.50, // -> percent
+	}
+
+var _reportUsageCpuUser = & StatMetric {
+		MetricSource : &_statsUsageCpuUser,
+		ValueScale : 1000 * 1000, // microseconds -> seconds
+		SpeedScale : 1000 * 1000, // microseconds -> seconds
+		SpeedThreshold : 0.10, // -> percent
+	}
+
+var _reportUsageCpuSys = & StatMetric {
+		MetricSource : &_statsUsageCpuSys,
+		ValueScale : 1000 * 1000, // microseconds -> seconds
+		SpeedScale : 1000 * 1000, // microseconds -> seconds
+		SpeedThreshold : 0.25, // -> percent
+	}
+
+var _reportUsageSwitchPreempted = & StatMetric {
+		MetricSource : &_statsUsageSwitchPreempted,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 0.1,
+	}
+
+var _reportUsageSwitchVoluntary = & StatMetric {
+		MetricSource : &_statsUsageSwitchVoluntary,
+		ValueScale : 1000 * 1000,
+		SpeedScale : 1000,
+		SpeedThreshold : 10,
+	}
+
+var _reportUsageFaultsMajor = & StatMetric {
+		MetricSource : &_statsUsageFaultsMajor,
+		ValueScale : 1024 * 1024 * 1024, // GiB
+		SpeedScale : 1024, // KiB
+		SpeedThreshold : 1024,
+	}
+
+var _reportUsageFaultsMinor = & StatMetric {
+		MetricSource : &_statsUsageFaultsMinor,
+		ValueScale : 1024 * 1024 * 1024, // GiB
+		SpeedScale : 1024, // KiB
+		SpeedThreshold : 1024,
+	}
+
+var _reportUsageIoReads = & StatMetric {
+		MetricSource : &_statsUsageIoReads,
+		ValueScale : 1024 * 1024 * 1024, // GiB
+		SpeedScale : 1024, // KiB
+		SpeedThreshold : 1024,
+	}
+
+var _reportUsageIoWrites = & StatMetric {
+		MetricSource : &_statsUsageIoWrites,
+		ValueScale : 1024 * 1024 * 1024, // GiB
+		SpeedScale : 1024, // KiB
+		SpeedThreshold : 16,
 	}
 
 
