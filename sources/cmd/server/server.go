@@ -73,6 +73,8 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	if _server.dummy {
 		if !_server.dummyEmpty {
 			_server.ServeDummy (_context)
+		} else {
+			_context.Response.SetStatusCode (fasthttp.StatusOK)
 		}
 		if _server.dummyDelay != 0 {
 			time.Sleep (_server.dummyDelay)
