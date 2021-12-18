@@ -280,7 +280,7 @@
 
 << benchmark / server / profile / mem / analyze / web
 	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
-	exec -- go tool pprof "${@}" -http 127.226.119.8:8080 -no_browser -functions -- ./.outputs/server-mem.txt
+	exec -- go tool pprof -http 127.226.119.8:8080 -no_browser -functions "${@}" -- ./.outputs/server-mem.txt
 !!
 
 << benchmark / server / profile / mem / analyze / web-open
@@ -393,15 +393,15 @@
 
 
 << benchmark / h2load / https
-	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8443 --npn-list=http/1.1 "${@}"
+	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8443 "${@}" --npn-list=http/1.1
 !!
 
 << benchmark / h2load / http2
-	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8444 --npn-list=h2 "${@}"
+	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8444 "${@}" --npn-list=h2
 !!
 
 << benchmark / h2load / http3
-	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8445 --npn-list=h3 "${@}"
+	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8445 "${@}" --npn-list=h3
 !!
 
 --<< benchmark / h2load
