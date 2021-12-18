@@ -40,15 +40,15 @@
 
 
 << clients / curl / http
-	exec -- "${ZRUN[@]}" ':: clients / curl' http 127.9.185.194:8080 --http1.1 "${@}"
+	exec -- "${ZRUN[@]}" ':: clients / curl' http 127.9.185.194:8080 "${@}" --http1.1
 !!
 
 << clients / curl / https
-	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.9.185.194:8443 --http1.1 "${@}"
+	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.9.185.194:8443 "${@}" --http1.1
 !!
 
 << clients / curl / http2
-	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.9.185.194:8444 --http2 "${@}"
+	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.9.185.194:8444 "${@}" --http2
 !!
 
 << clients / curl
