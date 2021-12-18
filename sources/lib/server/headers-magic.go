@@ -11,6 +11,9 @@ import "sync/atomic"
 import "unsafe"
 
 
+import . "github.com/volution/kawipiko/lib/common"
+
+
 
 
 type HttpResponseWriterHeadersBuffer struct {
@@ -29,7 +32,7 @@ func NewHttpResponseWriterHeadersBuffer (_status int) (HttpResponseWriterHeaders
 }
 
 
-func (_buffer *HttpResponseWriterHeadersBuffer) Include (_name []byte, _value []byte) () {
+func (_buffer *HttpResponseWriterHeadersBuffer) IncludeBytes (_name []byte, _value []byte) () {
 	
 	if _buffer.headersCount == 128 {
 		panic ("[ca806ede]")
@@ -37,6 +40,11 @@ func (_buffer *HttpResponseWriterHeadersBuffer) Include (_name []byte, _value []
 	
 	_buffer.headers[_buffer.headersCount] = [2][]byte {_name, _value}
 	_buffer.headersCount += 1
+}
+
+
+func (_buffer *HttpResponseWriterHeadersBuffer) IncludeString (_name string, _value string) () {
+	_buffer.IncludeBytes (StringToBytes (_name), StringToBytes (_value))
 }
 
 

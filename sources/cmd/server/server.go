@@ -483,12 +483,11 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 	
 	if _server.dummy {
 		if !_server.dummyEmpty {
-			_responseHeaders := _response.Header ()
-			_responseHeaders["Content-Type"] = []string { DummyContentType }
-			_responseHeaders["Content-Encoding"] = []string { DummyContentEncoding }
-			_responseHeaders["Cache-Control"] = []string { "no-store, max-age=0" }
-			_responseHeaders["Date"] = nil
-			_response.WriteHeader (http.StatusOK)
+			_responseHeaders := NewHttpResponseWriterHeadersBuffer (http.StatusOK)
+			_responseHeaders.IncludeString ("Content-Type", DummyContentType)
+			_responseHeaders.IncludeString ("Content-Encoding", DummyContentEncoding)
+			_responseHeaders.IncludeString ("Cache-Control", "no-store, max-age=0")
+			_responseHeaders.WriteTo (_response)
 			_response.Write (DummyData)
 		}
 		if _server.dummyDelay != 0 {
@@ -523,7 +522,7 @@ func (_server *server) ServeHTTP (_response http.ResponseWriter, _request *http.
 					case "Connection", "Content-Length", "Date" :
 						// NOP
 					default :
-						_responseHeaders.Include (_key, _value)
+						_responseHeaders.IncludeBytes (_key, _value)
 				}
 			})
 	
@@ -812,7 +811,7 @@ func main_0 () (error) {
 	
 	debug.SetGCPercent (50)
 	debug.SetMaxThreads (int (128 * (_threads / 64 + 1)))
-	debug.SetMaxStack (16 * 1024)
+	debug.SetMaxStack (32 * 1024)
 	
 	
 	_httpReduceMemory := false
