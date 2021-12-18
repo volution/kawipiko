@@ -61,6 +61,9 @@ func MetadataDecode (_data []byte) ([][2]string, error) {
 	}
 }
 
+
+
+
 func MetadataDecodeIterate (_data []byte, _callback func ([]byte, []byte) ()) (error) {
 	
 	_dataSize := len (_data)
@@ -73,30 +76,29 @@ func MetadataDecodeIterate (_data []byte, _callback func ([]byte, []byte) ()) (e
 		}
 		
 		_data := _data[_headerOffset :]
-		_headerLimit := bytes.IndexByte (_data, '\r')
+		_headerLimit := bytes.Index (_data, []byte ("\r\n"))
 		if (_headerLimit == -1) {
 			return fmt.Errorf ("[2d0d442a]  invalid metadata encoding")
 		}
-		if ((_headerOffset + _headerLimit) == (_dataSize - 1)) || (_data[_headerLimit + 1] != '\n') {
-			return fmt.Errorf ("[0e319685]  invalid metadata encoding")
-		}
-		_headerOffset += _headerLimit + 2
 		
 		_data = _data[: _headerLimit]
 		_separator := bytes.Index (_data, []byte (": "))
 		if _separator == -1 {
 			return fmt.Errorf ("[41f3756c]  invalid metadata encoding")
 		}
+		
 		_key := _data[: _separator]
 		_value := _data[_separator + 2 :]
-		if len (_key) == 0 {
+		if _separator == 0 {
 			return fmt.Errorf ("[c3f5e8f3]  invalid metadata encoding (empty key)")
 		}
-		if len (_value) == 0 {
+		if _separator == (_headerLimit - 2) {
 			return fmt.Errorf ("[d6a923b6]  invalid metadata encoding (empty value)")
 		}
 		
 		_callback (_key, _value)
+		
+		_headerOffset += _headerLimit + 2
 	}
 }
 
