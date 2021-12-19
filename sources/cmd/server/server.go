@@ -250,7 +250,7 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 		if !_server.quiet {
 			log.Printf ("[ww] [7416f61d]  [http-x..]  not found `%s`!\n", *_requestUriString)
 		}
-		_server.ServeError (_context, http.StatusNotFound, nil, true)
+		_server.ServeError (_context, http.StatusNotFound, nil, false)
 		return
 	}
 	
@@ -313,7 +313,8 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	
 	_responseStatus := http.StatusOK
 	
-	_handleHeader := func (_name []byte, _value []byte) {
+	_headersInvalid := false
+	_handleHeader := func (_name []byte, _value []byte) () {
 			if _name[0] != '!' {
 				_responseHeaders.AddBytesKV (_name, _value)
 			} else {
@@ -326,23 +327,28 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 								if !_server.quiet {
 									log.Printf ("[ee] [c2f7ec36]  [cdb.....]  invalid data metadata for `%s`!\n", *_requestUriString)
 								}
-								_responseStatus = http.StatusInternalServerError
-								}
+								_headersInvalid = true
+							}
 						} else {
 							if !_server.quiet {
 								log.Printf ("[ee] [beedae55]  [cdb.....]  invalid data metadata for `%s`!\n", *_requestUriString)
 							}
-							_responseStatus = http.StatusInternalServerError
+							_headersInvalid = true
 						}
 					default :
 						if !_server.quiet {
 							log.Printf ("[ee] [7acc7d90]  [cdb.....]  invalid data metadata for `%s`!\n", *_requestUriString)
 						}
+						_headersInvalid = true
 				}
 			}
 		}
 	if _error := MetadataDecodeIterate (_dataMetaRaw, _handleHeader); _error != nil {
 		_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+		return
+	}
+	if _headersInvalid {
+		_server.ServeError (_context, http.StatusInternalServerError, nil, false)
 		return
 	}
 	
@@ -817,7 +823,6 @@ func main_0 () (error) {
 			_archiveInmem = false
 			_archiveMmap = false
 			_archivePreload = false
-			_indexAll = false
 			_indexPaths = false
 			_indexDataMeta = false
 			_indexDataContent = false
@@ -1310,6 +1315,12 @@ func main_0 () (error) {
 				}
 			} else {
 				log.Printf ("[ww] [30314f31]  [cdb.....]  missing archive files index;  ignoring!\n")
+				_indexPaths = false
+				_indexDataMeta = false
+				_indexDataContent = false
+				_cachedFileFingerprints = nil
+				_cachedDataMeta = nil
+				_cachedDataContent = nil
 			}
 		} else {
 			AbortError (_error, "[82299b3d]  [cdb.....]  failed indexing arcdive!")
