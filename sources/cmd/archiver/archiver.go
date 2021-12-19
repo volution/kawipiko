@@ -43,7 +43,7 @@ type context struct {
 	storedDataContent map[string]bool
 	storedDataContentMeta map[string]map[string]string
 	storedFiles map[string][2]string
-	storedKeys map[string]string
+	storedKeys map[string]uint64
 	archivedReferences uint
 	compress string
 	compressLevel int
@@ -352,8 +352,8 @@ func archiveDataContent (_context *context, _fingerprintContent string, _dataCon
 	
 	{
 		var _key string
-		if _key_0, _error := prepareKey (_context, NamespaceDataContent, _fingerprintContent); _error == nil {
-			_key = fmt.Sprintf ("%s:%s", NamespaceDataContent, _key_0)
+		if _key_0, _error := prepareKeyString (_context, NamespaceDataContent, _fingerprintContent); _error == nil {
+			_key = _key_0
 		} else {
 			return _error
 		}
@@ -382,8 +382,8 @@ func archiveDataMeta (_context *context, _fingerprintMeta string, _dataMeta []by
 	
 	{
 		var _key string
-		if _key_0, _error := prepareKey (_context, NamespaceDataMetadata, _fingerprintMeta); _error == nil {
-			_key = fmt.Sprintf ("%s:%s", NamespaceDataMetadata, _key_0)
+		if _key_0, _error := prepareKeyString (_context, NamespaceDataMetadata, _fingerprintMeta); _error == nil {
+			_key = _key_0
 		} else {
 			return _error
 		}
@@ -420,21 +420,26 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 	
 	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
 	
-	var _keyMeta, _keyContent string
-	if _key_0, _error := prepareKey (_context, NamespaceDataMetadata, _fingerprintMeta); _error == nil {
+	var _keyMeta, _keyContent uint64
+	if _key_0, _error := prepareKeyUint (_context, NamespaceDataMetadata, _fingerprintMeta); _error == nil {
 		_keyMeta = _key_0
 	} else {
 		return _error
 	}
-	if _key_0, _error := prepareKey (_context, NamespaceDataContent, _fingerprintContent); _error == nil {
+	if _key_0, _error := prepareKeyUint (_context, NamespaceDataContent, _fingerprintContent); _error == nil {
 		_keyContent = _key_0
 	} else {
 		return _error
 	}
-	_references := fmt.Sprintf ("%s:%s", _keyMeta, _keyContent)
+	var _references string
+	if _references_0, _error := EncodeKeysPairToString (NamespaceDataMetadata, _keyMeta, NamespaceDataContent, _keyContent); _error == nil {
+		_references = _references_0
+	} else {
+		return _error
+	}
 	
 	if _context.debug {
-		log.Printf ("[dd] [2b9c053a]  reference    ++ `%s` :: `%s` -> `%s` ~ `%s`\n", _namespace, _pathInArchive, _keyMeta, _keyContent)
+		log.Printf ("[dd] [2b9c053a]  reference    ++ `%s` :: `%s` -> `%s`\n", _namespace, _pathInArchive, _references)
 	}
 	
 	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_references)); _error != nil {
@@ -735,18 +740,31 @@ func prepareDataMeta (_context *context, _dataMeta map[string]string) (string, [
 
 
 
-func prepareKey (_context *context, _namespace string, _fingerprint string) (string, error) {
+func prepareKeyUint (_context *context, _namespace string, _fingerprint string) (uint64, error) {
 	_qualified := fmt.Sprintf ("%s:%s", _namespace, _fingerprint)
-	if _key, _found := _context.storedKeys[_qualified]; _found {
-		return _key, nil
+	if _keyValue, _found := _context.storedKeys[_qualified]; _found {
+		return _keyValue, nil
 	}
 	_keyIndex := len (_context.storedKeys) + 1
-	if _keyIndex >= (1 << 32) {
-		return "", fmt.Errorf ("[aba09b4d]  maximum stored keys reached!")
+	if _keyValue, _error := PrepareKey (_namespace, uint64 (_keyIndex)); _error == nil {
+		_context.storedKeys[_qualified] = _keyValue
+		return _keyValue, nil
+	} else {
+		return 0, _error
 	}
-	_key := fmt.Sprintf ("%x", _keyIndex)
-	_context.storedKeys[_qualified] = _key
-	return _key, nil
+	
+}
+
+func prepareKeyString (_context *context, _namespace string, _fingerprint string) (string, error) {
+	if _keyValue, _error := prepareKeyUint (_context, _namespace, _fingerprint); _error == nil {
+		if _key, _error := EncodeKeyToString (_namespace, _keyValue); _error == nil {
+			return _key, nil
+		} else {
+			return "", _error
+		}
+	} else {
+		return "", _error
+	}
 }
 
 
@@ -1049,7 +1067,7 @@ func main_0 () (error) {
 			storedDataContent : make (map[string]bool, 16 * 1024),
 			storedDataContentMeta : make (map[string]map[string]string, 16 * 1024),
 			storedFiles : make (map[string][2]string, 16 * 1024),
-			storedKeys : make (map[string]string, 16 * 1024),
+			storedKeys : make (map[string]uint64, 16 * 1024),
 			compress : _compress,
 			compressLevel : _compressLevel,
 			compressCache : _compressCacheDb,
@@ -1065,7 +1083,6 @@ func main_0 () (error) {
 		}
 	
 	_context.progressStarted = time.Now ()
-	
 	if _error := _context.cdbWriter.Put ([]byte (NamespaceSchemaVersion), []byte (CurrentSchemaVersion)); _error != nil {
 		AbortError (_error, "[43228812]  failed writing archive!")
 	}
@@ -1083,12 +1100,16 @@ func main_0 () (error) {
 			_buffer = append (_buffer, _path ...)
 			_buffer = append (_buffer, '\n')
 		}
-		if _error := _context.cdbWriter.Put ([]byte (NamespaceFilesIndex), _buffer); _error != nil {
-			AbortError (_error, "[1dbdde05]  failed writing archive!")
+		if _key, _error := PrepareKeyToString (NamespaceFilesIndex, 1); _error == nil {
+			if _error := _context.cdbWriter.Put ([]byte (_key), _buffer); _error != nil {
+				AbortError (_error, "[1dbdde05]  failed writing archive!")
+			}
+			_context.cdbWriteCount += 1
+			_context.cdbWriteKeySize += len (_key)
+			_context.cdbWriteDataSize += len (_buffer)
+		} else {
+			AbortError (_error, "[b94abb82]  failed writing archive!")
 		}
-		_context.cdbWriteCount += 1
-		_context.cdbWriteKeySize += len (NamespaceFilesIndex)
-		_context.cdbWriteDataSize += len (_buffer)
 	}
 	
 	if _includeFolderListing {
@@ -1097,12 +1118,16 @@ func main_0 () (error) {
 			_buffer = append (_buffer, _path ...)
 			_buffer = append (_buffer, '\n')
 		}
-		if _error := _context.cdbWriter.Put ([]byte (NamespaceFoldersIndex), _buffer); _error != nil {
-			AbortError (_error, "[e2dd2de0]  failed writing archive!")
+		if _key, _error := PrepareKeyToString (NamespaceFoldersIndex, 1); _error == nil {
+			if _error := _context.cdbWriter.Put ([]byte (_key), _buffer); _error != nil {
+				AbortError (_error, "[e2dd2de0]  failed writing archive!")
+			}
+			_context.cdbWriteCount += 1
+			_context.cdbWriteKeySize += len (_key)
+			_context.cdbWriteDataSize += len (_buffer)
+		} else {
+			AbortError (_error, "[0afc95f6]  failed writing archive!")
 		}
-		_context.cdbWriteCount += 1
-		_context.cdbWriteKeySize += len (NamespaceFilesIndex)
-		_context.cdbWriteDataSize += len (_buffer)
 	}
 	
 	if _error := _context.cdbWriter.Close (); _error != nil {
