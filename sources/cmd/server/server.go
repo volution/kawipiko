@@ -182,13 +182,13 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 			
 			if _server.cachedReferences != nil {
 				_key := _keyBufferLarge[:0]
+				_key = append (_key, KeyNamespacePrefix (_namespace), ':')
 				_key = append (_key, _path ...)
 				_key = append (_key, _pathSuffix ...)
 				_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
 			} else {
 				_key := _keyBufferLarge[:0]
-				_key = append (_key, _namespace ...)
-				_key = append (_key, ':')
+				_key = append (_key, KeyNamespacePrefix (_namespace), ':')
 				_key = append (_key, _path ...)
 				_key = append (_key, _pathSuffix ...)
 				if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
@@ -226,13 +226,13 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 			
 			if _server.cachedReferences != nil {
 				_key := _keyBufferLarge[:0]
+				_key = append (_key, NamespaceFilesContentPrefix, ':')
 				_key = append (_key, _path[: _pathLimit] ...)
 				_key = append (_key, "/*" ...)
 				_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
 			} else {
 				_key := _keyBufferLarge[:0]
-				_key = append (_key, NamespaceFilesContent ...)
-				_key = append (_key, ':')
+				_key = append (_key, NamespaceFilesContentPrefix, ':')
 				_key = append (_key, _path[: _pathLimit] ...)
 				_key = append (_key, "/*" ...)
 				if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
@@ -353,7 +353,7 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 				}
 			}
 		}
-	if _error := MetadataDecodeIterate (_dataMetaRaw, _handleHeader); _error != nil {
+	if _error := MetadataDecodeBinaryIterate (_dataMetaRaw, _handleHeader); _error != nil {
 		_server.ServeError (_context, http.StatusInternalServerError, _error, false)
 		return
 	}
@@ -1276,8 +1276,7 @@ func main_0 () (error) {
 					var _fileReferences []byte
 					{
 						_key := _keyBuffer[:0]
-						_key = append (_key, NamespaceFilesContent ...)
-						_key = append (_key, ':')
+						_key = append (_key, NamespaceFilesContentPrefix, ':')
 						_key = append (_key, _filePath ...)
 						if _references_0, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
 							if _references_0 != nil {
@@ -1297,7 +1296,10 @@ func main_0 () (error) {
 						AbortError (_error, "[7d1a366f]  [cdb.....]  failed indexing archive!")
 					}
 					if _indexPaths {
-						_cachedReferences[BytesToString (_filePath)] = [2]uint64 { _keyDataMeta, _keyDataContent }
+						_key := _keyBuffer[:0]
+						_key = append (_key, NamespaceFilesContentPrefix, ':')
+						_key = append (_key, _filePath ...)
+						_cachedReferences[string (_key)] = [2]uint64 { _keyDataMeta, _keyDataContent }
 					}
 					if _indexDataMeta {
 						if _, _wasCached := _cachedDataMeta[_keyDataMeta]; !_wasCached {

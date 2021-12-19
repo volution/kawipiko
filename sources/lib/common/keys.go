@@ -43,7 +43,7 @@ func EncodeKeyToBytes_0 (_namespace string, _key uint64, _buffer []byte) (error)
 	}
 	_prefix := KeyNamespacePrefix (_namespace)
 	if _prefix == 0 {
-		return fmt.Errorf ("[feece73b]  invalid key namespace `%s`!", _namespace)
+		return fmt.Errorf ("[8c6ba154]  invalid key namespace `%s`!", _namespace)
 	}
 	_keyPrefix := byte (_key >> 56)
 	if _keyPrefix != _prefix {

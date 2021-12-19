@@ -418,7 +418,8 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 	}
 	_context.archivedReferences += 1
 	
-	_key := fmt.Sprintf ("%s:%s", _namespace, _pathInArchive)
+	_namespacePrefix := KeyNamespacePrefix (_namespace)
+	_key := fmt.Sprintf ("%c:%s", _namespacePrefix, _pathInArchive)
 	
 	var _keyMeta, _keyContent uint64
 	if _key_0, _error := prepareKeyUint (_context, NamespaceDataMetadata, _fingerprintMeta); _error == nil {
@@ -721,7 +722,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 func prepareDataMeta (_context *context, _dataMeta map[string]string) (string, []byte, error) {
 	
 	var _dataMetaRaw []byte
-	if _dataMetaRaw_0, _error := MetadataEncode (_dataMeta); _error == nil {
+	if _dataMetaRaw_0, _error := MetadataEncodeBinary (_dataMeta); _error == nil {
 		_dataMetaRaw = _dataMetaRaw_0
 	} else {
 		return "", nil, _error
@@ -752,7 +753,6 @@ func prepareKeyUint (_context *context, _namespace string, _fingerprint string) 
 	} else {
 		return 0, _error
 	}
-	
 }
 
 func prepareKeyString (_context *context, _namespace string, _fingerprint string) (string, error) {
