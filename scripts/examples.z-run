@@ -3,10 +3,26 @@
 
 
 
+<< examples / curl / http
+	exec -- "${ZRUN[@]}" ':: clients / curl' http 127.153.215.30:8080 "${@}" --http1.1
+!!
+
+<< examples / curl / https
+	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.153.215.30:8443 "${@}" --http1.1
+!!
+
+<< examples / curl / http2
+	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.153.215.30:8444 "${@}" --http2
+!!
+
+
+
+
 << examples / hello-world / archive
 	"${ZRUN[@]}" ':: execute / archiver / debug' \
 			--sources ./examples/hello-world \
 			--archive ./examples/hello-world.cdb \
+			--include-folder-listing \
 			--progress \
 			--debug \
 			"${@}" \
@@ -85,6 +101,31 @@
 			--processes 1 \
 			--threads 1 \
 			--debug \
+			"${@}" \
+	#
+!!
+
+
+<< examples / huge / serve / http-fast
+	exec -- "${ZRUN[@]}" ':: examples / huge / serve' \
+			\
+			--bind 127.153.215.30:8080 \
+			\
+			"${@}" \
+	#
+!!
+
+
+<< examples / huge / serve / http-all
+	exec -- "${ZRUN[@]}" ':: examples / huge / serve' \
+			\
+			--bind 127.153.215.30:8080 \
+			--bind-2 127.153.215.30:8081 \
+			--bind-tls 127.153.215.30:8443 \
+			--bind-tls-2 127.153.215.30:8444 \
+			--bind-quic 127.153.215.30:8445 \
+			--http3-alt-svc 127.153.215.30:8445 \
+			\
 			"${@}" \
 	#
 !!
