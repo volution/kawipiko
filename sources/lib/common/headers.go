@@ -1,14 +1,11 @@
 
 
-package server
+package common
 
 
 import "fmt"
 import "net/http"
 import "strings"
-
-
-import . "github.com/volution/kawipiko/lib/common"
 
 
 
