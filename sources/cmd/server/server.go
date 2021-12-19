@@ -1627,6 +1627,10 @@ func main_0 () (error) {
 	
 	if _timeoutDisabled {
 		
+		if !_quiet {
+			log.Printf ("[ii] [5e901455]  [http-x..]  disabling HTTP timeouts!\n")
+		}
+		
 		_httpPlain1Server.ReadTimeout = 0
 		_httpPlain1Server.WriteTimeout = 0
 		_httpPlain1Server.IdleTimeout = 0
