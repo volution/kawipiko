@@ -47,8 +47,15 @@ func CanonicalHeaderValueRegister (_value string) () {
 
 
 var CanonicalHeaderNamesMap map[string]string
+var CanonicalHeaderNamesToKey map[string]uint64
+var CanonicalHeaderNamesFromKey map[uint64]string
+
 var CanonicalHeaderValuesMap map[string]string
+var CanonicalHeaderValuesToKey map[string]uint64
+var CanonicalHeaderValuesFromKey map[uint64]string
 var CanonicalHeaderValuesArraysMap map[string][]string
+
+
 
 
 var CanonicalHeaderNames = []string {
@@ -101,7 +108,6 @@ var CanonicalHeaderNames = []string {
 		"Expires",
 		"Feature-Policy",
 		"Forwarded",
-		"From",
 		"Host",
 		"If-Match",
 		"If-Modified-Since",
@@ -206,7 +212,10 @@ func init () {
 	
 	
 	CanonicalHeaderNamesMap = make (map[string]string, len (CanonicalHeaderNames) * 4)
-	for _, _header := range CanonicalHeaderNames {
+	CanonicalHeaderNamesToKey = make (map[string]uint64, len (CanonicalHeaderNames) * 4)
+	CanonicalHeaderNamesFromKey = make (map[uint64]string, len (CanonicalHeaderNames))
+	
+	for _index, _header := range CanonicalHeaderNames {
 		
 		_http := http.CanonicalHeaderKey (_header)
 		_toLower := strings.ToLower (_header)
@@ -216,10 +225,21 @@ func init () {
 			panic (fmt.Sprintf ("[f0dffe23]  invalid duplicate header `%s`", _header))
 		}
 		
+		_key, _error := PrepareKey (NamespaceHeaderName, uint64 (_index + 1))
+		if _error != nil {
+			panic (_error)
+		}
+		
 		CanonicalHeaderNamesMap[_header] = _header
 		CanonicalHeaderNamesMap[_toLower] = _header
 		CanonicalHeaderNamesMap[_toUpper] = _header
 		CanonicalHeaderNamesMap[_http] = _header
+		
+		CanonicalHeaderNamesToKey[_header] = _key
+		CanonicalHeaderNamesToKey[_toLower] = _key
+		CanonicalHeaderNamesToKey[_toUpper] = _key
+		CanonicalHeaderNamesToKey[_http] = _key
+		CanonicalHeaderNamesFromKey[_key] = _header
 	}
 	
 	
@@ -227,9 +247,21 @@ func init () {
 	
 	CanonicalHeaderValuesMap = make (map[string]string, len (CanonicalHeaderValues))
 	CanonicalHeaderValuesArraysMap = make (map[string][]string, len (CanonicalHeaderValues))
-	for _, _value := range CanonicalHeaderValues {
+	CanonicalHeaderValuesToKey = make (map[string]uint64, len (CanonicalHeaderValues))
+	CanonicalHeaderValuesFromKey = make (map[uint64]string, len (CanonicalHeaderValues))
+	
+	for _index, _value := range CanonicalHeaderValues {
+		
+		_key, _error := PrepareKey (NamespaceHeaderValue, uint64 (_index + 1))
+		if _error != nil {
+			panic (_error)
+		}
+		
 		CanonicalHeaderValuesMap[_value] = _value
 		CanonicalHeaderValuesArraysMap[_value] = []string { _value }
+		
+		CanonicalHeaderValuesToKey[_value] = _key
+		CanonicalHeaderValuesFromKey[_key] = _value
 	}
 }
 
