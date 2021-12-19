@@ -6,6 +6,7 @@ import "fmt"
 import "os"
 import "runtime"
 import "runtime/debug"
+import "strconv"
 import "time"
 
 import "github.com/valyala/fasthttp"
@@ -17,7 +18,7 @@ import "github.com/valyala/fasthttp/reuseport"
 func main () () {
 	
 	
-	runtime.GOMAXPROCS (2)
+	runtime.GOMAXPROCS (1)
 	
 	debug.SetGCPercent (-1)
 	debug.SetMaxThreads (128)
@@ -25,6 +26,7 @@ func main () () {
 	
 	
 	_endpoint := "127.0.0.1:8080"
+	_threads := 1
 	_timeouts := false
 	
 	switch len (os.Args) {
@@ -32,8 +34,20 @@ func main () () {
 			// NOP
 		case 2 :
 			_endpoint = os.Args[1]
+		case 3 :
+			_endpoint = os.Args[1]
+			if _threads_0, _error := strconv.Atoi (os.Args[2]); (_error == nil) && (_threads > 0) {
+				_threads = _threads_0
+			} else {
+				panic ("[40396d14]  invalid arguments!")
+			}
 		default :
 			panic ("[60023f00]  invalid arguments!")
+	}
+	
+	if _threads > 1 {
+		runtime.GOMAXPROCS (_threads)
+		debug.SetMaxThreads (int (128 * (_threads / 64 + 1)))
 	}
 	
 	_listener, _error := reuseport.Listen ("tcp4", _endpoint)
@@ -41,7 +55,7 @@ func main () () {
 		panic (fmt.Sprintf ("[8c30a625]  failed to listen:  %s", _error))
 	}
 	
-	fmt.Fprintf (os.Stderr, "[ii] [04fa2421]  listening on `http://%s/`...\n", _endpoint)
+	fmt.Fprintf (os.Stderr, "[ii] [04fa2421]  listening on `http://%s/` (using %d threads)...\n", _endpoint, _threads)
 	
 	_server := & fasthttp.Server {
 			
