@@ -193,3 +193,9 @@ var MimeTypes = []string {
 		
 	}
 
+
+
+var MimeTypesAliases = map[string]string {
+		"text/xml; charset=utf-8" : MimeTypeXml,
+	}
+

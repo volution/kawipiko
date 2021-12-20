@@ -541,6 +541,11 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 	}
 	if (_dataType == "") {
 		_dataType = http.DetectContentType (_dataContent)
+		if _dataType != "" {
+			if _dataType_0, _ := MimeTypesAliases[_dataType]; _dataType_0 != "" {
+				_dataType = _dataType_0
+			}
+		}
 	}
 	if _dataType == "" {
 		_dataType = MimeTypeRaw

@@ -1,41 +1,55 @@
 
-+1,5
-s
-2021a
++6,14
+schema
+kawipiko-2021b
 
-+3,3
++3,16
 f:/
-1:2
+m0000001d0000002
 
-+3,117
-m:1
-Cache-Control: public, immutable, max-age=3600
-Content-Encoding: identity
-Content-Type: text/plain; charset=utf-8
++8,48
+m0000001
+h0000017H0000001h000001cH0000003h0000025H000000d
 
-
-+3,13
-c:2
++8,13
+d0000002
 Hello world!
 
 
-+4,3
++3,16
+l:/
+m0000003d0000004
+
++8,48
+m0000003
+h0000017H0000001h000001cH0000003h0000025H0000012
+
++8,82
+d0000004
+{"entries":[{"name":"index.txt","type":"file","size":13}],"indices":["index.txt"]}
+
++4,16
 f:/*
-1:2
+m0000001d0000002
 
-+8,3
++8,16
 f:/index
-1:2
+m0000001d0000002
 
-+12,3
++12,16
 f:/index.txt
-1:2
+m0000001d0000002
 
-+2,23
-fi
++8,23
+F0000001
 /
 /*
 /index
 /index.txt
+
+
++8,2
+L0000001
+/
 
 
