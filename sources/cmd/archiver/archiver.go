@@ -601,6 +601,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 	if _compressAlgorithm != "identity" {
 		
 		var _dataCompressed []byte
+		var _dataCompressedZero bool
 		var _dataCompressedCached bool
 		
 		_cacheBucketName := fmt.Sprintf ("%s:%d", _compressAlgorithm, _context.compressLevel)
@@ -614,13 +615,19 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 			if _cacheBucket != nil {
 				_dataCompressed = _cacheBucket.Get ([]byte (_fingerprintContent))
 				_dataCompressedCached = _dataCompressed != nil
+				if _dataCompressedCached {
+					_dataCompressedZero = len (_dataCompressed) == 0
+					if _dataCompressedZero {
+						_dataCompressed = nil
+					}
+				}
 			}
 			if _error := _cacheTxn.Rollback (); _error != nil {
 				AbortError (_error, "[a06cfe46]  unexpected compression cache error!")
 			}
 		}
 		
-		if _dataCompressed == nil {
+		if _dataCompressed == nil && !_dataCompressedZero {
 			if _dataContent == nil {
 				if _data_0, _error := _dataContentRead (); _error == nil {
 					_dataContent = _data_0
@@ -639,22 +646,24 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		_dataCompressedDelta := _dataUncompressedSize - _dataCompressedSize
 		_dataCompressedRatio := float32 (_dataCompressedDelta) * 100 / float32 (_dataUncompressedSize)
 		_accepted := false
-		_accepted = _accepted || ((_dataUncompressedSize > (1024 * 1024)) && (_dataCompressedRatio >= 5))
-		_accepted = _accepted || ((_dataUncompressedSize > (64 * 1024)) && (_dataCompressedRatio >= 10))
-		_accepted = _accepted || ((_dataUncompressedSize > (32 * 1024)) && (_dataCompressedRatio >= 15))
-		_accepted = _accepted || ((_dataUncompressedSize > (16 * 1024)) && (_dataCompressedRatio >= 20))
-		_accepted = _accepted || ((_dataUncompressedSize > (8 * 1024)) && (_dataCompressedRatio >= 25))
-		_accepted = _accepted || ((_dataUncompressedSize > (4 * 1024)) && (_dataCompressedRatio >= 30))
-		_accepted = _accepted || ((_dataUncompressedSize > (2 * 1024)) && (_dataCompressedRatio >= 35))
-		_accepted = _accepted || ((_dataUncompressedSize > (1 * 1024)) && (_dataCompressedRatio >= 40))
-		_accepted = _accepted || (_dataCompressedRatio >= 90)
+		if !_dataCompressedZero {
+			_accepted = _accepted || ((_dataUncompressedSize > (1024 * 1024)) && (_dataCompressedRatio >= 5))
+			_accepted = _accepted || ((_dataUncompressedSize > (64 * 1024)) && (_dataCompressedRatio >= 10))
+			_accepted = _accepted || ((_dataUncompressedSize > (32 * 1024)) && (_dataCompressedRatio >= 15))
+			_accepted = _accepted || ((_dataUncompressedSize > (16 * 1024)) && (_dataCompressedRatio >= 20))
+			_accepted = _accepted || ((_dataUncompressedSize > (8 * 1024)) && (_dataCompressedRatio >= 25))
+			_accepted = _accepted || ((_dataUncompressedSize > (4 * 1024)) && (_dataCompressedRatio >= 30))
+			_accepted = _accepted || ((_dataUncompressedSize > (2 * 1024)) && (_dataCompressedRatio >= 35))
+			_accepted = _accepted || ((_dataUncompressedSize > (1 * 1024)) && (_dataCompressedRatio >= 40))
+			_accepted = _accepted || (_dataCompressedRatio >= 90)
+		}
 		if _accepted {
 			_dataContent = _dataCompressed
 			_dataEncoding = _compressEncoding
 			_dataSize = _dataCompressedSize
 		}
 		
-		if (_context.compressCache != nil) && !_dataCompressedCached && _accepted {
+		if (_context.compressCache != nil) && !_dataCompressedCached {
 			_cacheTxn, _error := _context.compressCache.Begin (true)
 			if _error != nil {
 				AbortError (_error, "[ddbe6a70]  unexpected compression cache error!")
@@ -668,7 +677,11 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 				}
 			}
 			_cacheBucket.FillPercent = 0.9
-			if _error := _cacheBucket.Put ([]byte (_fingerprintContent), _dataCompressed); _error != nil {
+			_dataCompressed_1 := _dataCompressed
+			if !_accepted {
+				_dataCompressed_1 = []byte {}
+			}
+			if _error := _cacheBucket.Put ([]byte (_fingerprintContent), _dataCompressed_1); _error != nil {
 				AbortError (_error, "[51d57220]  unexpected compression cache error!")
 			}
 			if _error := _cacheTxn.Commit (); _error != nil {
@@ -676,13 +689,15 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 			}
 		}
 		
-		if _dataSize < _dataUncompressedSize {
-			if _context.debug {
-				log.Printf ("[dd] [271e48d6]  compress     -- %.1f%% %d (%d) `%s`\n", _dataCompressedRatio, _dataCompressedSize, _dataCompressedDelta, _pathInArchive)
-			}
-		} else {
-			if _context.debug || _context.progress {
-				log.Printf ("[dd] [2174c2d6]  compress-NOK -- %.1f%% %d (%d) `%s`\n", _dataCompressedRatio, _dataCompressedSize, _dataCompressedDelta, _pathInArchive)
+		if !_dataCompressedZero {
+			if _dataSize < _dataUncompressedSize {
+				if _context.debug {
+					log.Printf ("[dd] [271e48d6]  compress     -- %.1f%% %d (%d) `%s`\n", _dataCompressedRatio, _dataCompressedSize, _dataCompressedDelta, _pathInArchive)
+				}
+			} else {
+				if _context.debug {
+					log.Printf ("[dd] [2174c2d6]  compress-NOK -- %.1f%% %d (%d) `%s`\n", _dataCompressedRatio, _dataCompressedSize, _dataCompressedDelta, _pathInArchive)
+				}
 			}
 		}
 		
