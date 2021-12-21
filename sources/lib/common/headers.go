@@ -244,6 +244,7 @@ func init () {
 	
 	
 	CanonicalHeaderValues = append (CanonicalHeaderValues, MimeTypes ...)
+	CanonicalHeaderValues = append (CanonicalHeaderValues, MimeTypesExtras ...)
 	
 	CanonicalHeaderValuesMap = make (map[string]string, len (CanonicalHeaderValues))
 	CanonicalHeaderValuesArraysMap = make (map[string][]string, len (CanonicalHeaderValues))

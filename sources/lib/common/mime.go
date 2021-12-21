@@ -199,3 +199,24 @@ var MimeTypesAliases = map[string]string {
 		"text/xml; charset=utf-8" : MimeTypeXml,
 	}
 
+
+var MimeTypesExtras = []string {
+		
+		"text/plain; charset=utf-16be",
+		"text/plain; charset=utf-16le",
+		
+		"audio/aiff",
+		"audio/basic",
+		"audio/wave",
+		
+		"video/avi",
+		
+		"font/collection",
+		
+		"application/ogg",
+		"application/vnd.ms-fontobject",
+		"application/wasm",
+		"application/x-gzip",
+		"application/x-rar-compressed",
+	}
+
