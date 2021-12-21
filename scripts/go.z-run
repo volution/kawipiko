@@ -31,15 +31,16 @@
 	if test -e "${_outputs}/binaries/release/kawipiko-server" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server"
 	fi
-	_flags=()
+	_flags=(
+			-tags netgo
+		)
 	if test -z "${_BUILD_QUICK:-}" ; then
 		_flags+=(
-				-tags netgo
-				-a
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
 				-buildmode exe
 				-trimpath
+				-a
 			)
 	fi
 	exec -- \
@@ -84,15 +85,16 @@
 	if test -e "${_outputs}/binaries/release/kawipiko-archiver" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-archiver"
 	fi
-	_flags=()
+	_flags=(
+			-tags netgo
+		)
 	if test -z "${_BUILD_QUICK:-}" ; then
 		_flags+=(
-				-tags netgo
-				-a
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
 				-buildmode exe
 				-trimpath
+				-a
 			)
 	fi
 	exec -- \
@@ -179,15 +181,16 @@
 	if test -e "${_outputs}/binaries/release/kawipiko-server-dummy" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server-dummy"
 	fi
-	_flags=()
+	_flags=(
+			-tags netgo
+		)
 	if test -z "${_BUILD_QUICK:-}" ; then
 		_flags+=(
-				-tags netgo
-				-a
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
 				-buildmode exe
 				-trimpath
+				-a
 			)
 	fi
 	exec -- \
