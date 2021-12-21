@@ -19,7 +19,6 @@ import "runtime"
 import "runtime/debug"
 import "sort"
 import "strings"
-import "syscall"
 import "time"
 
 import "github.com/colinmarc/cdb"
@@ -75,22 +74,17 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 	var _fileDev uint64
 	var _fileInode uint64
 	var _fileSize uint64
-	var _fileTimestamp [2]uint64
+	var _fileTimestamp uint64
 	if _stat, _error := os.Stat (_pathResolved); _error == nil {
-		_stat := _stat.Sys()
-		if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
-			_fileDev = uint64 (_stat.Dev)
-			_fileInode = uint64 (_stat.Ino)
-			_fileSize = uint64 (_stat.Size)
-			_fileTimestamp = [2]uint64 { uint64 (_stat.Mtim.Sec), uint64 (_stat.Mtim.Nsec) }
-		} else {
-			return fmt.Errorf ("[6578d2d7]  failed `stat`-ing:  `%s`!", _pathResolved)
+		_fileDev, _fileInode, _fileSize, _fileTimestamp, _error = statExtract (_stat)
+		if _error != nil {
+			return _error
 		}
 	} else {
 		return _error
 	}
 	
-	_fileIdText := fmt.Sprintf ("%d.%d-%d-%d.%d", _fileDev, _fileInode, _fileSize, _fileTimestamp[0], _fileTimestamp[1])
+	_fileIdText := fmt.Sprintf ("%d.%d.%d.%d", _fileDev, _fileInode, _fileSize, _fileTimestamp)
 	_fileIdRaw := blake3.Sum256 ([]byte (_fileIdText))
 	_fileId := hex.EncodeToString (_fileIdRaw[:])
 	
@@ -121,18 +115,16 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 				}
 				defer _file.Close ()
 				if _stat, _error := _file.Stat (); _error == nil {
-					_stat := _stat.Sys()
-					if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
-						if (
-								(_fileDev != uint64 (_stat.Dev)) ||
-								(_fileInode != uint64 (_stat.Ino)) ||
-								(_fileSize != uint64 (_stat.Size)) ||
-								(_fileTimestamp[0] != uint64 (_stat.Mtim.Sec)) ||
-								(_fileTimestamp[1] != uint64 (_stat.Mtim.Nsec))) {
-							return nil, fmt.Errorf ("[3a07643b]  file changed while reading:  `%s`!", _pathResolved)
-						}
-					} else {
-						return nil, fmt.Errorf ("[4daf593a]  failed `stat`-ing:  `%s`!", _pathResolved)
+					_fileDev_0, _fileInode_0, _fileSize_0, _fileTimestamp_0, _error := statExtract (_stat)
+					if _error != nil {
+						return nil, _error
+					}
+					if (
+							(_fileDev != _fileDev_0) ||
+							(_fileInode != _fileInode_0) ||
+							(_fileSize != _fileSize_0) ||
+							(_fileTimestamp != _fileTimestamp_0)) {
+						return nil, fmt.Errorf ("[3a07643b]  file changed while reading:  `%s`!", _pathResolved)
 					}
 				} else {
 					return nil, _error
@@ -144,16 +136,14 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 					return nil, _error
 				}
 				if _stat, _error := _file.Stat (); _error == nil {
-					_stat := _stat.Sys()
-					if _stat, _ok := _stat.(*syscall.Stat_t); _ok {
-						if (
-								(_fileSize != uint64 (_stat.Size)) ||
-								(_fileTimestamp[0] != uint64 (_stat.Mtim.Sec)) ||
-								(_fileTimestamp[1] != uint64 (_stat.Mtim.Nsec))) {
-							return nil, fmt.Errorf ("[9689146e]  file changed while reading:  `%s`!", _pathResolved)
-						}
-					} else {
-						return nil, fmt.Errorf ("[523fa3d1]  failed `stat`-ing:  `%s`!", _pathResolved)
+					_, _, _fileSize_0, _fileTimestamp_0, _error := statExtract (_stat)
+					if _error != nil {
+						return nil, _error
+					}
+					if (
+							(_fileSize != _fileSize_0) ||
+							(_fileTimestamp != _fileTimestamp_0)) {
+						return nil, fmt.Errorf ("[9689146e]  file changed while reading:  `%s`!", _pathResolved)
 					}
 				} else {
 					return nil, _error

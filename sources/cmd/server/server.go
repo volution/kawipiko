@@ -898,25 +898,8 @@ func main_0 () (error) {
 		if !_quiet && _isMaster {
 			log.Printf ("[ii] [2c130d70]  limiting memory to %d MiB;\n", _limitMemory)
 		}
-		{
-			_limitMb := (2 * _limitMemory) + (1 * 1024)
-			_limit := syscall.Rlimit {
-					Cur : uint64 (_limitMb) * 1024 * 1024,
-					Max : uint64 (_limitMb) * 1024 * 1024,
-				}
-			if _error := syscall.Setrlimit (syscall.RLIMIT_AS, &_limit); _error != nil {
-				AbortError (_error, "[4da96378]  failed to configure memory limit!")
-			}
-		}
-		{
-			_limitMb := _limitMemory
-			_limit := syscall.Rlimit {
-					Cur : uint64 (_limitMb) * 1024 * 1024,
-					Max : uint64 (_limitMb) * 1024 * 1024,
-				}
-			if _error := syscall.Setrlimit (syscall.RLIMIT_DATA, &_limit); _error != nil {
-				AbortError (_error, "[f661b4fe]  failed to configure memory limit!")
-			}
+		if _error := setrlimit (_limitMemory); _error != nil {
+			AbortError (_error, "[4da96378]  failed to configure memory limit!")
 		}
 	}
 	
