@@ -526,6 +526,60 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		_dataSize = len (_dataContent)
 	}
 	
+	_dataContent_1 := _dataContent
+	_dataSize_1 := _dataSize
+	_dataContentRead_1 := _dataContentRead
+	_dataContentRead = func () ([]byte, error) {
+			if _dataContent_1 != nil {
+				return _dataContent_1, nil
+			}
+			if (_context.sourcesCache != nil) && (_dataContentId != "") && (_dataSize_1 <= 16 * 1024) {
+				_cacheTxn, _error := _context.sourcesCache.Begin (false)
+				if _error != nil {
+					AbortError (_error, "[4e7853f4]  unexpected sources cache error!")
+				}
+				_cacheBucket := _cacheTxn.Bucket ([]byte ("content"))
+				if _cacheBucket != nil {
+					if _dataContent_0 := _cacheBucket.Get ([]byte (_fingerprintContent)); _dataContent_0 != nil {
+						_dataContent_1 = _dataContent_0
+					}
+				}
+				if _error := _cacheTxn.Rollback (); _error != nil {
+					AbortError (_error, "[a0dd23c2]  unexpected sources cache error!")
+				}
+			}
+			if _dataContent_1 != nil {
+				return _dataContent_1, nil
+			}
+			if _dataContent_0, _error := _dataContentRead_1 (); _error == nil {
+				_dataContent_1 = _dataContent_0
+			} else {
+				return nil, _error
+			}
+			if (_context.sourcesCache != nil) && (_dataContentId != "") && (_dataSize_1 <= 16 * 1024) {
+				_cacheTxn, _error := _context.sourcesCache.Begin (true)
+				if _error != nil {
+					AbortError (_error, "[deecec9d]  unexpected sources cache error!")
+				}
+				_cacheBucket := _cacheTxn.Bucket ([]byte ("content"))
+				if _cacheBucket == nil {
+					if _bucket_0, _error := _cacheTxn.CreateBucket ([]byte ("content")); _error == nil {
+						_cacheBucket = _bucket_0
+					} else {
+						AbortError (_error, "[40236265]  unexpected sources cache error!")
+					}
+				}
+				_cacheBucket.FillPercent = 0.9
+				if _error := _cacheBucket.Put ([]byte (_fingerprintContent), _dataContent_1); _error != nil {
+					AbortError (_error, "[84d20b6d]  unexpected sources cache error!")
+				}
+				if _error := _cacheTxn.Commit (); _error != nil {
+					AbortError (_error, "[5468cced]  unexpected sources cache error!")
+				}
+			}
+			return _dataContent_1, nil
+		}
+	
 	if _wasStored, _ := _context.storedDataContent[_fingerprintContent]; _wasStored {
 		_dataMeta := _context.storedDataContentMeta[_fingerprintContent]
 		return _fingerprintContent, nil, _dataMeta, nil
