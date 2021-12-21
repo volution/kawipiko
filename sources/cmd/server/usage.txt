@@ -29,6 +29,8 @@
     --tls-bundle <path>       (TLS certificate bundle)
     --tls-public <path>       (TLS certificate public)
     --tls-private <path>      (TLS certificate private)
+    --tls-self-rsa            (use self-signed RSA)
+    --tls-self-ed25519        (use self-signed Ed25519)
 
     --processes <count>       (of slave processes)
     --threads <count>         (of threads per process)

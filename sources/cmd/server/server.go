@@ -656,6 +656,8 @@ func main_0 () (error) {
 	var _http3AltSvc string
 	var _tlsPrivate string
 	var _tlsPublic string
+	var _tlsEmbeddedRsa bool
+	var _tlsEmbeddedEd bool
 	var _archivePath string
 	var _archiveInmem bool
 	var _archiveMmap bool
@@ -712,6 +714,8 @@ func main_0 () (error) {
 		_tlsPrivate_0 := _flags.String ("tls-private", "", "")
 		_tlsPublic_0 := _flags.String ("tls-public", "", "")
 		_tlsBundle_0 := _flags.String ("tls-bundle", "", "")
+		_tlsEmbeddedRsa_0 := _flags.Bool ("tls-self-rsa", false, "")
+		_tlsEmbeddedEd_0 := _flags.Bool ("tls-self-ed25519", false, "")
 		_processes_0 := _flags.Uint ("processes", 0, "")
 		_threads_0 := _flags.Uint ("threads", 0, "")
 		_slave_0 := _flags.Uint ("slave", 0, "")
@@ -779,10 +783,15 @@ func main_0 () (error) {
 			_tlsPrivate = *_tlsPrivate_0
 			_tlsPublic = *_tlsPublic_0
 		}
+		_tlsEmbeddedRsa = *_tlsEmbeddedRsa_0
+		_tlsEmbeddedEd = *_tlsEmbeddedEd_0
 		if ((_tlsPrivate != "") && (_tlsPublic == "")) || ((_tlsPublic != "") && (_tlsPrivate == "")) {
 			AbortError (nil, "[6e5b42e4]  TLS private/public must be specified together!")
 		}
-		if ((_tlsPrivate != "") || (_tlsPublic != "")) && ((_bindTls1 == "") && (_bindTls2 == "") && (_bindQuic == "")) {
+		if (_tlsPrivate != "") && (_tlsEmbeddedRsa || _tlsEmbeddedEd) {
+			AbortError (nil, "[3de098d3]  TLS self-signed and TLS bundle or TLS private/public are mutually exclusive!")
+		}
+		if ((_tlsPrivate != "") || (_tlsPublic != "") || _tlsEmbeddedRsa || _tlsEmbeddedEd) && ((_bindTls1 == "") && (_bindTls2 == "") && (_bindQuic == "")) {
 			AbortError (nil, "[4e31f251]  TLS certificate specified, but TLS not enabled!")
 		}
 		
@@ -975,6 +984,12 @@ func main_0 () (error) {
 		}
 		if _tlsPublic != "" {
 			_processArguments = append (_processArguments, "--tls-public", _tlsPublic)
+		}
+		if _tlsEmbeddedRsa {
+			_processArguments = append (_processArguments, "--tls-self-rsa")
+		}
+		if _tlsEmbeddedEd {
+			_processArguments = append (_processArguments, "--tls-self-ed25519")
 		}
 		if _timeoutDisabled {
 			_processArguments = append (_processArguments, "--timeout-disable")
@@ -1460,10 +1475,27 @@ func main_0 () (error) {
 			}
 		}
 		if len (_tls1Config.Certificates) == 0 {
-			if !_quiet {
-				log.Printf ("[ii] [344ba198]  [tls.....]  no TLS certificate specified;  using self-signed!\n")
+			var _tlsPublic, _tlsPrivate []byte
+			if _tlsEmbeddedRsa {
+				if !_quiet {
+					log.Printf ("[ii] [46ad23d6]  [tls.....]  using self-signed RSA certificate!\n")
+				}
+				_tlsPublic = DefaultTlsRsaCertificatePublic
+				_tlsPrivate = DefaultTlsRsaCertificatePrivate
+			} else if _tlsEmbeddedEd {
+				if !_quiet {
+					log.Printf ("[ii] [80c7d1b7]  [tls.....]  using self-signed Ed25519 certificate!\n")
+				}
+				_tlsPublic = DefaultTlsEd25519CertificatePublic
+				_tlsPrivate = DefaultTlsEd25519CertificatePrivate
+			} else {
+				if !_quiet {
+					log.Printf ("[ii] [344ba198]  [tls.....]  no TLS certificate specified;  using self-signed RSA certificate!\n")
+				}
+				_tlsPublic = DefaultTlsRsaCertificatePublic
+				_tlsPrivate = DefaultTlsRsaCertificatePrivate
 			}
-			if _certificate, _error := tls.X509KeyPair ([]byte (DefaultTlsCertificatePublic), []byte (DefaultTlsCertificatePrivate)); _error == nil {
+			if _certificate, _error := tls.X509KeyPair (_tlsPublic, _tlsPrivate); _error == nil {
 				_tls1Config.Certificates = append (_tls1Config.Certificates, _certificate)
 			} else {
 				AbortError (_error, "[98ba6d23]  [tls.....]  failed parsing TLS certificate!")
