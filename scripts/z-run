@@ -9,6 +9,7 @@
 ::// go / ...
 ::// documentation / ...
 ::// tools / ...
+::// tls / ...
 ::// *
 
 
@@ -19,4 +20,5 @@
 && _/benchmark.z-run
 && _/workspace.z-run
 && _/tools.z-run
+&& _/tls.z-run
 
