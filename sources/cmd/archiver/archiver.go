@@ -3,6 +3,8 @@
 package archiver
 
 
+import "bytes"
+import "encoding/gob"
 import "encoding/hex"
 import "encoding/json"
 import "flag"
@@ -496,7 +498,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		_cacheBucket := _cacheTxn.Bucket ([]byte ("prepare"))
 		if _cacheBucket != nil {
 			if _dataPreparedRaw := _cacheBucket.Get ([]byte (_dataContentId)); _dataPreparedRaw != nil {
-				if _error := json.Unmarshal (_dataPreparedRaw, &_dataPrepared); _error != nil {
+				if _error := gobUnmarshal (_dataPreparedRaw, &_dataPrepared); _error != nil {
 					AbortError (_error, "[6865d963]  unexpected sources cache error!")
 				}
 			}
@@ -571,7 +573,7 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 		}
 		_cacheBucket.FillPercent = 0.9
 		var _dataPreparedRaw []byte
-		if _data_0, _error := json.Marshal (_dataPrepared); _error == nil {
+		if _data_0, _error := gobMarshal (_dataPrepared); _error == nil {
 			_dataPreparedRaw = _data_0
 		} else {
 			AbortError (_error, "[5538658b]  unexpected sources cache error!")
@@ -1166,6 +1168,27 @@ func main_0 () (error) {
 			)
 	}
 	
+	return nil
+}
+
+
+
+
+func gobMarshal (_object interface{}) ([]byte, error) {
+	_buffer := bytes.NewBuffer (nil)
+	_encoder := gob.NewEncoder (_buffer)
+	if _error := _encoder.Encode (_object); _error != nil {
+		return nil, _error
+	}
+	return _buffer.Bytes (), nil
+}
+
+func gobUnmarshal (_data []byte, _object interface{}) (error) {
+	_buffer := bytes.NewBuffer (_data)
+	_encoder := gob.NewDecoder (_buffer)
+	if _error := _encoder.Decode (_object); _error != nil {
+		return _error
+	}
 	return nil
 }
 
