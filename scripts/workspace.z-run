@@ -109,14 +109,13 @@
 	test -d ./.outputs
 	mkdir -- ./.outputs/python
 	
-	virtualenv-2.7 \
-			--python python2.7 \
+	virtualenv-3.8 \
+			--python python3.8 \
 			--clear \
-			--no-site-packages \
+			--symlinks \
 			--no-setuptools \
 			--no-wheel \
 			--no-download \
-			--unzip-setuptools \
 			-- \
 			./.outputs/python \
 	#
@@ -165,7 +164,7 @@
 
 << documentation / readme / open
 	test "${#}" -eq 0
-	exec -- x-www open http://127.33.237.174:8080/
+	exec -- x-www 'guest:*' open http://127.33.237.174:8080/
 !!
 
 << documentation / readme / server

@@ -10,21 +10,23 @@ kawipiko -- blazingly fast static HTTP server
 About
 =====
 
-``kawipiko`` is a simple static website HTTP server written in Go_, whose main purpose is to serve static website content as fast as possible.
-However "simple" doesn't imply "dumb" or "limited", instead it implies "efficiency" and removal of superfluous features, inline with UNIX's philosophy of `do one thing and do it well <https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well>`__.
-As such ``kawipiko`` basically supports only ``GET`` (and ``HEAD``) requests and does not provide features like dynamic content, authentication, reverse proxying, etc.
+``kawipiko`` is a **super-lightweight static HTTP (and HTTPS, H2, H3) server** written in Go, whose main purpose is to serve static content as fast as possible, and with the lowest resource consumption (CPU and RAM) as possible.
 
-However, ``kawipiko`` does provide something unique, that no other HTTP server offers:  the static website content is served from a CDB_ database with almost zero latency.
-Moreover, the static website content can be compressed (with either ``gzip``, ``zopfli` or ``brotli``) ahead of time, thus reducing not only CPU but also bandwidth and latency.
+However "simple" doesn't imply "dumb" or "limited", instead it implies "efficient" through the removal of superfluous features, thus being inline with UNIX's old philosophy of `"do one thing and do it well" <https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well>`__.
+As such ``kawipiko`` basically supports only ``GET`` requests, and does not provide features like dynamic content generation, authentication, reverse proxying, etc.;  while still providing compression (``gzip``, ``zopfli``, ``brotli``), plus HTML-CSS-JS minification (TODO), without affecting its performance (due to its unique architecture as seen below).
+
+What ``kawipiko`` does provide is something very unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost no latency (as compared to classical static servers that still have to pass through the OS via the ``open-read-close`` syscalls).
+Moreover as noted earlier, the static content can be compressed (with either ``gzip``, ``zopfli`` or ``brotli``) or minified ahead of time, thus reducing not only CPU but also bandwidth and latency.
 
 CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
 This also makes them suitable for low-latency static website content serving over HTTP, which this project provides.
 
-For those familiar with Netlify_, ``kawipiko`` is a "host-it-yourself" alternative featuring:
+For those familiar with Netlify (or competitors like CloudFlare Pages, GitHub Pages, etc.), ``kawipiko`` is a "host-it-yourself" alternative featuring:
 
-* simple deployment and configuration;  (i.e. just `fetch the executable <#installation>`__ and use the `proper flags <#kawipiko-server>`__;)
+* self-contained deployment with simple configuration;  (i.e. just `fetch the executable <#installation>`__ and use the `proper flags <#kawipiko-server>`__;)
 * low and constant resource consumption (both in terms of CPU and RAM);  (i.e. you won't have surprises when under load;)
-* (hopefully) extremely secure;  (i.e. it doesn't launch processes, it doesn't open any files, etc.;  basically you can easily ``chroot`` it;)
+* (hopefully) extremely secure;  (i.e. it doesn't launch processes, it doesn't connect to other services or databases, it doesn't open any files, etc.;  basically you can easily ``chroot`` it, or containerize it as is in fashion these days;)
+* highly portable, supporting at least Linux (the main development, testing and deployment platform), FreeBSD, OpenBSD, and OSX;
 
 For a complete list of features please consult the `features section <#features>`__.
 Unfortunately, there are also some tradeoffs as described in the `limitations section <#limitations>`__ (although none are critical).
@@ -80,19 +82,20 @@ Documentation
 Workflow
 --------
 
-The project provides the following executables:
+The project provides the following executables (statically linked, without any other dependencies):
 
-* ``kawipiko-server`` -- which serves the static website content from the CDB file;
-* ``kawipiko-archiver`` -- which creates the CDB file from a source folder holding the static website content;
+* ``kawipiko-server`` -- which serves the static content from the CDB file either via HTTP, HTTPS, H2 (i.e. HTTP/2) or H3 (i.e. HTTP/3 over QUIC);
+* ``kawipiko-archiver`` -- which creates the CDB file from a source folder holding the static content, optionally compressing and minimifing it;
 * ``kawipiko`` -- an all-in-one executable that bundles all functionality in one executable;  (i.e. ``kawipiko server ...`` or ``kawipiko archiver ...``);
 
 Unlike most (if not all) other servers out-there, in which you just point your web server to the folder holding the static website content root, ``kawipiko`` takes a radically different approach.
-In order to serve the static website content, one has to first "compile" it into the CDB file through ``kawipiko-archiver``, and then one can "serve" it from the CDB file through ``kawipiko-server``.
+In order to serve the static content, one has to first "archive" the content into the CDB file through ``kawipiko-archiver``, and then one can "serve" it from the CDB file through ``kawipiko-server``.
 
 This two step phase also presents a few opportunities:
 
 * one can decouple the "building", "testing", and "publishing" phases of a static website, by using a similar CI/CD pipeline as done for other software projects;
 * one can instantaneously rollback to a previous version if the newly published one has issues;
+* one can apply extreme compression (e.g. ``brotli``) to trade CPU during deployment vs latency and bandwidth at runtime.
 
 
 .. note ::
@@ -123,24 +126,29 @@ This two step phase also presents a few opportunities:
 
 ::
 
-    kawipiko-server
-
     --archive <path>
     --archive-inmem           (memory-loaded archive file)
     --archive-mmap            (memory-mapped archive file)
     --archive-preload         (preload archive in OS cache)
 
-    --bind <ip>:<port>        (HTTP, only HTTP/1.1)
-    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1)
-    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2)
+    --bind <ip>:<port>        (HTTP, only HTTP/1.1, FastHTTP)
+    --bind-2 <ip>:<port>      (HTTP, only HTTP/1.1, Go net/http)
+    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1, FastHTTP)
+    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2, Go net/http)
+    --bind-quic <ip>:<port>   (HTTPS, with HTTP/3)
+
+    --http1-disable
+    --http2-disable
+    --http3-alt-svc <ip>:<port>
 
     --tls-bundle <path>       (TLS certificate bundle)
     --tls-public <path>       (TLS certificate public)
     --tls-private <path>      (TLS certificate private)
+    --tls-self-rsa            (use self-signed RSA)
+    --tls-self-ed25519        (use self-signed Ed25519)
 
     --processes <count>       (of slave processes)
     --threads <count>         (of threads per process)
-
     --index-all
     --index-paths
     --index-data-meta
@@ -148,77 +156,100 @@ This two step phase also presents a few opportunities:
 
     --security-headers-tls
     --security-headers-disable
+
+    --limit-memory <MiB>
     --timeout-disable
+    --profile-cpu <path> ; --profile-mem <path>
 
-    --profile-cpu <path>
-    --profile-mem <path>
-
-    --debug
-    --dummy
-    --delay <duration>
+    --report ; --quiet ; --debug
+    --dummy ; --dummy-empty ; --dummy-delay <duration>
 
 
 Flags
 .....
 
 
-``--bind <ip:port>``, ``--bind-tls <ip:port>``, and ``--bind-tls-2 <ip:port>``
+``--bind <ip:port>``, ``--bind-tls <ip:port>``, ``--bind-2 <ip:port>``, ``--bind-tls-2 <ip:port>``, and ``--bind-quic <ip:port>``
+
     The IP and port to listen for requests with:
 
-    * (HTTP) HTTP/1.1 only for ``--bind``, leveraging ``fasthttp``;
-    * (HTTPS) HTTP/1.1 over TLS for ``--bind-tls``, leveraging ``fasthttp``;
-    * (HTTPS) HTTP/2 or HTTP/1.1 over TLS for ``--bind-tls-2``, leveraging Go's ``net/http``;  (this can be safely used in production, however it is not as performant as the other two options;)
+    * (insecure) HTTP/1.1 for ``--bind``, leveraging ``fasthttp`` library;
+    * (secure) HTTP/1.1 over TLS for ``--bind-tls``, leveraging ``fasthttp`` library;
+    * (insecure) HTTP/1.1 for `--bind-2``, leveraging Go's ``net/http`` library; (not as performant as the ``fasthttp`` powered endpoint;)
+    * (secure) H2 or HTTP/1.1 over TLS for ``--bind-tls-2``, leveraging Go's ``net/http``;  (not as performant as the ``fasthttp`` powered endpoint;)
+    * (secure) H3 over QUIC for ``--bind-quic``, leveraging ``github.com/lucas-clemente/quic-go`` library;  (given that H3 is still a new protocol, this must be used with caution;  also one should use the ``--http3-alt-svc <ip:port>``;)
+
+    * if one uses just ``--bind-tls`` (without ``--bind-tls-2``, and without ``--http2-disabled``), then the TLS endpoint is split between ``fasthttp`` for HTTP/1.1 and Go's ``net/http`` for H2;
 
 ``--tls-bundle <path>``, ``--tls-public <path>``, and ``--tls-private <path>`` (optional)
-    If TLS is used these options allows one to specify the certificate to use, either as a single file (the bundle) or separate files (the actual public certificate and the private key).
-    If one doesn't specify any of these options, an embedded self-signed certificate will be used.
+
+    If TLS is enabled, these options allows one to specify the certificate to use, either as a single file (a bundle) or separate files (the actual public certificate and the private key).
+
+    If one doesn't specify any of these options, an embedded self-signed certificate will be used.  In such case, one can choose between RSA (the ``--tls-self-rsa`` flag) or Ed25519 (the ``--tls-self-ed25519`` flag);
+
+``--http1-disable``, ``--http2-disable``
+
+    Disables that particular protocol.
+    (It can be used only with ``--bind-tls-2``, given that ``fasthttp`` only supports HTTP/1.)
 
 ``--processes <count>`` and ``--threads <count>``
-    The number of processes and threads per each process to start.
-    It is highly recommended to use 1 process and as many threads as there are cores.
+
+    The number of processes and threads per each process to start.  (Given Go's concurrency model, the threads count is somewhat a soft limit, hinting to the runtime the desired parallelism level.)
+
+    It is highly recommended to use one process and as many threads as there are cores.
 
     Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
-    (However note that if using ``--archive-inmem`` each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
+    (However note that if using ``--archive-inmem``, then each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
 
 ``--archive <path>``
-    The path of the CDB file that contains the archived static website content.
+
+    The path of the CDB file that contains the archived static content.
     (It can be created with the ``kawipiko-archiver`` tool.)
 
 ``--archive-inmem``
-    Reads the CDB file in memory, and thus all requests are served from RAM.
-    (This can be used if enough RAM is available to avoid swapping.)
+
+    Reads the CDB file in RAM, and thus all requests are served from RAM without touching the file-system.
+    (The memory impact is equal to the size of the CDB archive.  This can be used if enough RAM is available to avoid swapping.)
 
 ``--archive-mmap``
-    The CDB file is `memory mapped <#mmap>`__.
-    (**Highly recommended!**)
+
+    (**recommended**) The CDB file is `memory mapped <#mmap>`__, thus reading its data uses the kernel's file-system cache, as opposed to issuing ``read`` syscalls.
 
 ``--archive-preload``
-    Before starting to serve requests, read the CDB file so that its data is buffered by the OS.
-    (**Highly recommended!**)
+
+    Before starting to serve requests, read the CDB file so that its data is buffered in the kernel's file-system cache.  (This option can be used with or without ``--archive-mmap``.)
 
 ``--index-all``, ``--index-paths``, ``--index-data-meta``,  and ``--index-data-content``
-    In order to serve a request:
 
-    * the request URL's path is used to locate a resource's metadata (i.e. response headers) and data (i.e. response body) fingerprints;
-      by using ``--index-paths`` an RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+    In order to serve a request ``kawipiko`` does the following:
 
-    * based on the resource's metadata fingerprint, the actual metadata (i.e. the response headers) is located;
-      by using ``--index-data-meta`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+    * given the request's path, it is used to locate the corresponding resource's metadata (i.e. response headers) and data (i.e. response body) references;
+      by using ``--index-paths`` a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource paths combined;  given that the number of resources is acceptable, say up to a couple hundred thousand, one could safely use this option;)
 
-    * based on the resource's data fingerprint, the actual data (i.e. the response body) is located;
-      by using ``--index-data-content`` a RAM-based hash-map is created to eliminate a CDB lookup operation for this purpose;
+    * based on the resource's metadata reference, the actual metadata (i.e. the response headers) is located;
+      by using ``--index-data-meta`` a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource metadata blocks combined;  given that the metadata blocks are deduplicated, one could safely use this option;  if one also uses ``--archive-mmap`` or ``--archive-inmem``, then the memory impact is only proportional to the number of resource metadata blocks;)
 
-    * ``--index-all`` enables all these indices;
+    * based on the resource's data reference, the actual data (i.e. the response body) is located;
+      by using ``--index-data-content`` a RAM-based lookup table is created to eliminate a CDB operation operation for this purpose;  (the memory impact is proportional to the size of all resource data blocks combined;  one can use this option to obtain the best performance;  if one also uses ``--archive-mmap`` or ``--archive-inmem``, then the memory impact is only proportional to the number of resource data blocks;)
 
-    * (depending on the use-case) it is highly recommended to use ``--index-paths``;   if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
+    * ``--index-all`` enables all the options above;
 
-    * it is highly recommended to use ``--archive-inmem`` or ``--archive-mmap`` or else (especially if data is indexed) the net effect is that of loading everything in RAM;
+    * (depending on the use-case) it is recommended to use ``--index-paths``;  if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
+
+    * it is recommended to use either ``--archive-mmap`` or  ``--archive-inmem``, else (especially if data is indexed) the resulting effect is that of loading everything in RAM;
 
 ``--security-headers-tls``
-    Enables adding the ``Strict-Transport-Security: max-age=31536000`` and ``Content-Security-Policy: upgrade-insecure-requests`` to the response headers, which instruct the browser to always use HTTPS for the served domain.
+
+    Enables adding the following TLS related headers to the response: ::
+
+      Strict-Transport-Security: max-age=31536000
+      Content-Security-Policy: upgrade-insecure-requests
+
+    These instruct the browser to always use HTTPS for the served domain.
     (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)
 
 ``--security-headers-disable``
+
     Disables adding a few security related headers: ::
 
       Referrer-Policy: strict-origin-when-cross-origin
@@ -226,22 +257,35 @@ Flags
       X-XSS-Protection: 1; mode=block
       X-Frame-Options: sameorigin
 
-``--debug``
-    Enables verbose logging.
-    (**Highly discouraged!**)
+``--report``
 
-``--dummy``
-    It starts the server in "dummy" mode, ignoring all archive related arguments and always responding with ``hello world!\n`` and without additional headers except the HTTP status line and ``Content-Length``.
-    This argument can be used to benchmark the raw performance of the underlying Go and ``fasthttp`` performance;  this is the upper limit on the achievable performance given the underlying technologies.
+    Enables periodic reporting of various metrics.
+    Also enables reporting a selection of metrics if certain thresholds are matched (which most likely is a sign of high-load).
+
+``--quiet``
+
+    Disables most logging messages.
+
+``--debug``
+
+    Enables all logging messages.
+
+``--dummy``, ``--dummy-empty``
+
+    It starts the server in a "dummy" mode, ignoring all archive related arguments and always responding with ``hello world!\n`` (unless ``--dummy-empty`` was used) and without additional headers except the HTTP status line and ``Content-Length``.
+
+    This argument can be used to benchmark the raw performance of the underlying ``fasthttp``, Go's ``net/http``, or QUIC performance;  this is the upper limit of the achievable performance given the underlying technologies.
     (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
 
 ``--delay <duration>``
+
     Enables delaying each response with a certain amount (for example ``1s``, ``1ms``, etc.)
+
     It can be used to simulate the real-world network latencies, perhaps to see how a site with many resources loads in various conditions.
     (For example, see `an experiment <https://notes.volution.ro/v1/2019/08/notes/e8700e9a/>`__ I made with an image made out of 1425 tiles.)
-    (**Highly discouraged!**)
 
 ``--profile-cpu <path>`` and ``--profile-mem <path>``
+
     Enables CPU and memory profiling using Go's profiling infrastructure.
 
 
@@ -257,12 +301,13 @@ Flags
 
 ::
 
-    kawipiko-archiver
-
     --sources <path>
 
     --archive <path>
+
     --compress <gzip | zopfli | brotli | identity>
+    --compress-level <number>
+    --compress-cache <path>
 
     --exclude-index
     --exclude-strip
@@ -272,6 +317,7 @@ Flags
     --exclude-file-listing
     --include-folder-listing
 
+    --progress
     --debug
 
 
@@ -279,39 +325,75 @@ Flags
 .....
 
 ``--sources``
-    The path to the input folder that is the root of the static website content.
+
+    The path to the source folder that is the root of the static website content.
 
 ``--archive``
-    The path to the output CDB file that contains the archived static website content.
 
-``--compress``
-    Each individual file (and consequently of the corresponding HTTP response body) is compressed with either ``gzip`` or Brotli_;  by default (or alternatively ``identity``) no compression is used.
+    The path to the target CDB file that contains the archived static content.
+
+``--compress``, and ``--compress-level``
+
+    Each individual file (and consequently of the corresponding HTTP response body) is compressed with either ``gzip``, ``zopfli`` or ``brotli``;  by default (or alternatively with ``identity``) no compression is used.
+
     Even if compression is explicitly requested, if the compression ratio is bellow a certain threshold (depending on the uncompressed size), the file is stored without any compression.
     (It's senseless to force the client to spend time and decompress the response body if that time is not recovered during network transmission.)
 
+    The compression level can be chosen, the value depending on the algorithm:
+
+    * ``gzip`` -- ``-1`` for algorithm default, ``-2`` for Huffman only, ``0`` to ``9`` for fast to slow;
+    * ``zopfli`` -- ``-1`` for algorithm default, ``0`` to ``30`` iterations for fast to slow;
+    * ``brotli`` -- ``-1`` for algorithm default, ``0`` to ``9`` for fast to slow, ``-2`` for extreme;
+    * (by "algorithm default", it is meant "what that algorithm considers the recommended default compression level";)
+    * ``kawipiko`` by default uses the maximum compression level for each algorithm;  (i.e. ``9`` for ``gzip``, ``30`` for ``zopfli``, and ``-2`` for ``brotli``;)
+
+``--sources-cache <path>``, and ``--compress-cache <path>``
+
+    At the given path a single file is created (that is an BBolt database), that will be used to cache the following information:
+
+    * in case of ``--sources-cache``, the fingerprint of each file contents is stored, so that if the file was not changed, re-reading it shouldn't be attempted unless it is absolutely necessary;  also if the file is small enough, its contents is stored in this database (deduplicated by its fingerprint);
+    * in case of ``--compress-cache`` the compression outcome of each file contents is stored (deduplicated by its fingerprint), so that compression is done only once over multiple runs;
+
+    Each of these caches can be safely reused between multiple related archives, especially when they have many files in common.
+    Each of these caches can be independently used (or shared).
+
+    Using these caches allows one to very quickly rebuild an archive when only a couple of files have been changed, without even touching the file-system for the unchanged ones.
+
 ``--exclude-index``
-    Disables using ``index.*`` files (where ``.*`` is one of ``.html``, ``.htm``, ``.xhtml``, ``.xht``, ``.txt``, ``.json``, and ``.xml``) to respond to a request whose URL ends in ``/`` (corresponding to the folder wherein ``index.*`` file is located).
+
+    Disables using ``index.*`` files (where ``.*`` is one of ``.html``, ``.htm``, ``.xhtml``, ``.xht``, ``.txt``, ``.json``, and ``.xml``) to respond to a request whose URL path ends in ``/`` (corresponding to the folder wherein ``index.*`` file is located).
     (This can be used to implement "slash" blog style URL's like ``/blog/whatever/`` which maps to ``/blog/whatever/index.html``.)
 
 ``--exclude-strip``
+
     Disables using a file with the suffix ``.html``, ``.htm``, ``.xhtml``, ``.xht``, and ``.txt`` to respond to a request whose URL does not exactly match an existing file.
     (This can be used to implement "suffix-less" blog style URL's like ``/blog/whatever`` which maps to ``/blog/whatever.html``.)
 
 ``--exclude-cache``
+
     Disables adding an ``Cache-Control: public, immutable, max-age=3600`` header that forces the browser (and other intermediary proxies) to cache the response for an hour (the ``public`` and ``max-age=3600`` arguments), and furthermore not request it even on reloads (the ``immutable`` argument).
 
 ``--include-etag``
+
     Enables adding an ``ETag`` response header that contains the SHA256 of the response body.
-    By not including the ``ETag`` header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without ``ETag`` generates the same headers), this can lead to significant reduction in stored headers, including reducing RAM usage.
+
+    By not including the ``ETag`` header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without ``ETag`` generates the same headers), this can lead to significant reduction in stored headers blocks, including reducing RAM usage.
     (At this moment it does not support HTTP conditional requests, i.e. the ``If-None-Match``, ``If-Modified-Since`` and their counterparts;  however this ``ETag`` header might be used in conjuction with ``HEAD`` requests to see if the resource has changed.)
 
 ``--exclude-file-listing``
+
     Disables the creation of an internal list of files that can be used in conjunction with the ``--index-all`` flag of the ``kawipiko-server``.
 
 ``--include-folder-listing``
+
     Enables the creation of an internal list of folders.  (Currently not used by the ``kawipiko-server`` tool.)
 
+``--progress``
+
+    Enables periodic reporting of various metrics.
+
 ``--debug``
+
     Enables verbose logging.
     It will log various information about the archived files (including compression statistics).
 
@@ -472,10 +554,11 @@ Install the prerequisites
     zypper install git-core
     zypper install go
 
-* other Linux / FreeBSD / Apple macOS:
+* other Linux / FreeBSD / OpenBSD / OSX:
 
   * fetch and install Go from: https://golang.org/dl
   * add ``/usr/local/go/bin`` to your ``PATH``;
+  * install Git;
 
 
 Prepare the environment
@@ -559,7 +642,7 @@ Compile the (dynamic) executables: ::
 Build the static executables
 ............................
 
-Compile the (static) executables (for archiver it removes Brotli support): ::
+Compile the (static) executables: ::
 
     cd /tmp/kawipiko/src/sources
 
@@ -631,9 +714,9 @@ Implemented
 
 The following is a list of the most important features:
 
-* (optionally)  the static website content is compressed when the CDB database is created, thus no CPU cycles are used while serving requests;
+* (optionally)  the static content is compressed when the CDB database is created, thus no CPU cycles are used while serving requests;
 
-* (optionally)  the static website content can be compressed with either ``gzip`` or Brotli_;
+* (optionally)  the static content can be compressed with either ``gzip``, ``zopfli`` or ``brotli``;
 
 * (optionally)  in order to reduce the serving latency even further, one can preload the entire CDB database in memory, or alternatively mapping it in memory (mmap_);  this trades memory for CPU;
 
@@ -641,7 +724,9 @@ The following is a list of the most important features:
 
 * ``_wildcard.*`` files (where ``.*`` are the regular extensions like ``.txt``, ``.html``, etc.) which will be used if an actual resource is not found under that folder;  (these files respect the hierarchical tree structure, i.e. "deeper" ones override the ones closer to "root";)
 
-* support for HTTPS, with HTTP/1.1 leveraging ``fasthttp`` and HTTP/2 leveraging Go's ``net/http``;
+* support for HTTPS, with HTTP/1.1, by leveraging ``fasthttp``;
+* support for H2 (i.e. HTTP/2), by leveraging Go's ``net/http``;
+* support for H3 (i.e. HTTP/3), by leveraging ``github.com/lucas-clemente/quic-go``;
 
 
 

@@ -47,7 +47,7 @@
     --timeout-disable
     --profile-cpu <path> ; --profile-mem <path>
 
-    --quiet ; --debug
+    --report ; --quiet ; --debug
     --dummy ; --dummy-empty ; --dummy-delay <duration>
 
   ** for details see:
