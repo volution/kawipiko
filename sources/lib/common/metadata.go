@@ -144,14 +144,28 @@ func MetadataEncodeBinary (_metadata map[string]string) ([]byte, error) {
 		if !_keyFound {
 			return nil, fmt.Errorf ("[a2a62863]  invalid metadata key:  `%s` (not canonical)", _key)
 		}
-		if !_valueFound {
-			return nil, fmt.Errorf ("[5ed34411]  invalid metadata value:  `%s` (not canonical)", _value)
+		if _valueFound {
+			var _pairBuffer [16]byte
+			if _error := EncodeKeysPairToBytes_0 (NamespaceHeaderName, _keyId, NamespaceHeaderValue, _valueId, _pairBuffer[:]); _error != nil {
+				return nil, _error
+			}
+			_buffer.Write (_pairBuffer[:])
+		} else {
+			_valueSize := len (_value)
+			if _valueSize > 4096 {
+				return nil, fmt.Errorf ("[85c25588]  invalid metadata value:  `%s`", _value)
+			}
+			var _pairBuffer [12]byte
+			if _error := EncodeKeyToBytes_0 (NamespaceHeaderName, _keyId, _pairBuffer[:8]); _error != nil {
+				return nil, _error
+			}
+			_pairBuffer[8] = 'Z'
+			_pairBuffer[9] = byte (_valueSize / 25 / 25) + 'a'
+			_pairBuffer[10] = byte (_valueSize / 25 % 25) + 'a'
+			_pairBuffer[11] = byte (_valueSize % 25) + 'a'
+			_buffer.Write (_pairBuffer[:])
+			_buffer.Write ([]byte (_value))
 		}
-		var _pairBuffer [16]byte
-		if _error := EncodeKeysPairToBytes_0 (NamespaceHeaderName, _keyId, NamespaceHeaderValue, _valueId, _pairBuffer[:]); _error != nil {
-			return nil, _error
-		}
-		_buffer.Write (_pairBuffer[:])
 	}
 	
 	_data := _buffer.Bytes ()
@@ -210,20 +224,42 @@ func MetadataDecodeBinaryIterate (_data []byte, _callback func ([]byte, []byte) 
 		}
 		_slice = _data[_dataOffset:]
 		
-		if _slice[0] != NamespaceHeaderValuePrefix {
+		var _value []byte
+		if _slice[0] == NamespaceHeaderValuePrefix {
+			
+			if _sliceSize < 8 {
+				return fmt.Errorf ("[7cd40b03]  invalid metadata encoding")
+			}
+			if _value_0, _found := CanonicalHeaderValuesFromKey[DecodeKey_9 (_slice[0:8])]; _found {
+				_value = StringToBytes (_value_0)
+			} else {
+				return fmt.Errorf ("[334e65ef]  invalid metadata encoding")
+			}
+			
+			_dataOffset += 8
+			
+		} else if _slice[0] == 'Z' {
+			
+			if _sliceSize < 4 {
+				return fmt.Errorf ("[3c4a6b51]  invalid metadata encoding")
+			}
+			
+			_valueSize := 0
+			_valueSize += int (_slice[1] - 'a') * 25 * 25
+			_valueSize += int (_slice[2] - 'a') * 25
+			_valueSize += int (_slice[3] - 'a')
+			
+			if _sliceSize < (4 + _valueSize) {
+				return fmt.Errorf ("[3c4a6b51]  invalid metadata encoding")
+			}
+			
+			_value = _slice[4 : 4 + _valueSize]
+			
+			_dataOffset += 4 + _valueSize
+			
+		} else {
 			return fmt.Errorf ("[2b43651c]  invalid metadata encoding")
 		}
-		if _sliceSize < 8 {
-			return fmt.Errorf ("[7cd40b03]  invalid metadata encoding")
-		}
-		var _value []byte
-		if _value_0, _found := CanonicalHeaderValuesFromKey[DecodeKey_9 (_slice[0:8])]; _found {
-			_value = StringToBytes (_value_0)
-		} else {
-			return fmt.Errorf ("[334e65ef]  invalid metadata encoding")
-		}
-		
-		_dataOffset += 8
 		
 		_callback (_key, _value)
 	}
