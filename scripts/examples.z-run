@@ -23,6 +23,7 @@
 			--sources ./examples/hello-world \
 			--archive ./examples/hello-world.cdb \
 			--include-folder-listing \
+			--include-etag \
 			--progress \
 			--debug \
 			"${@}" \
