@@ -44,6 +44,25 @@
 
 
 
+<< tools / hey
+	test -f ./.bin/hey
+	test -x ./.bin/hey
+	test "${#}" -ge 1
+	exec -- \
+		env -i -- \
+		./.bin/nodaemon \
+	./.bin/hey \
+			-cpus 1 \
+			-c 1 \
+			-z 30s \
+			-t 1 \
+			"${@}" \
+	#
+!!
+
+
+
+
 << tools / nghttp
 	test -f ./.bin/nghttp
 	test -x ./.bin/nghttp

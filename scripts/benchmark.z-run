@@ -126,6 +126,22 @@
 :: benchmark / h2load / http3 / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 1
 
 
+:: benchmark / hey / http / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 16384 -t 6s
+:: benchmark / hey / http / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 4096
+:: benchmark / hey / http / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 2048
+:: benchmark / hey / http / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 1024
+:: benchmark / hey / http / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 512
+:: benchmark / hey / http / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 256
+:: benchmark / hey / http / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 128
+:: benchmark / hey / http / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 64
+:: benchmark / hey / http / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 32
+:: benchmark / hey / http / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 16
+:: benchmark / hey / http / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 8
+:: benchmark / hey / http / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 4
+:: benchmark / hey / http / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 2
+:: benchmark / hey / http / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 1
+
+
 
 
 --<< benchmark / server
@@ -315,6 +331,26 @@
 
 
 
+<< benchmark / alternatives / haproxy
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 0,1 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.bin/haproxy \
+			-db \
+			-f ./examples/haproxy.conf \
+			"${@}" \
+	#
+!!
+
+
+
+
 
 
 
@@ -431,6 +467,47 @@
 		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
 	"${ZRUN[@]}" ':: tools / h2load' \
+			"${@}" \
+			-- \
+			"${_url_base}/${_path}" \
+	#
+!!
+
+
+
+
+<< benchmark / hey / http
+	exec -- "${ZRUN[@]}" ':: benchmark / hey' http 127.9.185.194:8080 "${@}"
+!!
+
+<< benchmark / hey / https
+	exec -- "${ZRUN[@]}" ':: benchmark / hey' https 127.9.185.194:8443 "${@}"
+!!
+
+--<< benchmark / hey
+	test "${#}" -ge 2
+	_url_base="${1}://${2}"
+	shift -- 2
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
+	else
+		_path=''
+	fi
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 2,3 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+	"${ZRUN[@]}" ':: tools / hey' \
 			"${@}" \
 			-- \
 			"${_url_base}/${_path}" \
