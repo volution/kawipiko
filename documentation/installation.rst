@@ -21,9 +21,11 @@ Installation
 Download prebuilt executables
 -----------------------------
 
+
 .. warning ::
 
   No executables are currently available for download!
+
   Please consult the `build from sources section <#build-from-sources>`__ for now.
 
 
@@ -33,18 +35,23 @@ Build from sources
 ------------------
 
 
+
+
 Install the prerequisites
 .........................
+
 
 * Ubuntu / Debian: ::
 
     apt-get install git-core
     apt-get install golang
 
+
 * OpenSUSE: ::
 
     zypper install git-core
     zypper install go
+
 
 * other Linux / FreeBSD / OpenBSD / OSX:
 
@@ -53,8 +60,11 @@ Install the prerequisites
   * install Git;
 
 
+
+
 Prepare the environment
 .......................
+
 
 ::
 
@@ -66,8 +76,11 @@ Prepare the environment
     #
 
 
+
+
 Fetch the sources
 .................
+
 
 Either clone the full Git repository: ::
 
@@ -76,6 +89,7 @@ Either clone the full Git repository: ::
             git://github.com/volution/kawipiko.git \
             /tmp/kawipiko/src \
     #
+
 
 Either fetch and extract the latest sources bundle: ::
 
@@ -93,8 +107,11 @@ Either fetch and extract the latest sources bundle: ::
     #
 
 
+
+
 Build the dynamic executables
 .............................
+
 
 Compile the (dynamic) executables: ::
 
@@ -104,8 +121,9 @@ Compile the (dynamic) executables: ::
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
-            -ldflags 'all=-s' \
             -gcflags 'all=-l=4' \
+            -ldflags 'all=-s' \
+            -trimpath \
             -o /tmp/kawipiko/bin/kawipiko \
             ./cmd/wrapper.go \
     #
@@ -114,8 +132,9 @@ Compile the (dynamic) executables: ::
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
-            -ldflags 'all=-s' \
             -gcflags 'all=-l=4' \
+            -ldflags 'all=-s' \
+            -trimpath \
             -o /tmp/kawipiko/bin/kawipiko-server \
             ./cmd/server.go \
     #
@@ -124,15 +143,19 @@ Compile the (dynamic) executables: ::
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
-            -ldflags 'all=-s' \
             -gcflags 'all=-l=4' \
+            -ldflags 'all=-s' \
+            -trimpath \
             -o /tmp/kawipiko/bin/kawipiko-archiver \
             ./cmd/archiver.go \
     #
 
 
+
+
 Build the static executables
 ............................
+
 
 Compile the (static) executables: ::
 
@@ -170,16 +193,18 @@ Compile the (static) executables: ::
             -gcflags 'all=-l=4' \
             -ldflags 'all=-s' \
             -trimpath \
+            -o /tmp/kawipiko/bin/kawipiko-archiver \
             ./cmd/archiver.go \
     #
+
+
 
 
 Deploy the executables
 ......................
 
-(Basically just copy the two executables anywhere on the system, or any compatible remote system.)
 
-::
+Just copy the two executables anywhere on the system, or any compatible remote system: ::
 
     cp \
             -t /usr/local/bin \
