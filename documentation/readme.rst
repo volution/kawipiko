@@ -90,26 +90,8 @@ plus efficient management and storage of large collections of many small files.
 
 
 
-::
-
-    +---------------------------------------------------------------------------+
-    .                                                                           .
-    .   __                                                 __                   .
-    .  /\ \                              __            __ /\ \                  .
-    .  \ \ \/'\       __     __  __  __ /\_\   _____  /\_\\ \ \/'\      ___     .
-    .   \ \ , <     /'__`\  /\ \/\ \/\ \\/\ \ /\ '__`\\/\ \\ \ , <     / __`\   .
-    .    \ \ \\`\  /\ \L\.\_\ \ \_/ \_/ \\ \ \\ \ \L\ \\ \ \\ \ \\`\  /\ \L\ \  .
-    .     \ \_\ \_\\ \__/.\_\\ \___x___/' \ \_\\ \ ,__/ \ \_\\ \_\ \_\\ \____/  .
-    .      \/_/\/_/ \/__/\/_/ \/__//__/    \/_/ \ \ \/   \/_/ \/_/\/_/ \/___/   .
-    .                                            \ \_\                          .
-    .                                             \/_/                          .
-    .                                                                           .
-    .            _  _ ___ ___ ___     ____ ____ ____ _  _ ____ ____             .
-    .            |__|  |   |  |__]    [__  |___ |__/ |  | |___ |__/             .
-    .            |  |  |   |  |       ___] |___ |  \  \/  |___ |  \             .
-    .                                                                           .
-    .                                                                           .
-    +---------------------------------------------------------------------------+
+.. image:: ./documentation/banner.png
+     :width: 50em
 
 
 
@@ -541,6 +523,11 @@ under a different license, please send an email to the authors,
 stating the licensing requirements, accompanied with the reasons
 and other details; then, depending on the situation, the authors might
 release the sources and/or documentation under a different license.
+
+
+
+
+--------
 
 
 
