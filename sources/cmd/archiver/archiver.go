@@ -1257,3 +1257,7 @@ func gobUnmarshal (_data []byte, _object interface{}) (error) {
 //go:embed usage.txt
 var usageText string
 
+func init () {
+	usageText = strings.ReplaceAll (usageText, "@{SCHEMA}", CurrentSchemaVersion)
+}
+

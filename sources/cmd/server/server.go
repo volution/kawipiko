@@ -2442,3 +2442,7 @@ var _reportUsageIoWrites = & StatMetric {
 //go:embed usage.txt
 var usageText string
 
+func init () {
+	usageText = strings.ReplaceAll (usageText, "@{SCHEMA}", CurrentSchemaVersion)
+}
+

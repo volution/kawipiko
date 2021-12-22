@@ -1,3 +1,4 @@
+
   ====  kawipiko -- blazingly fast static HTTP server  ====
 
   |  Documentation, issues and sources:
@@ -50,5 +51,8 @@
     --report ; --quiet ; --debug
     --dummy ; --dummy-empty ; --dummy-delay <duration>
 
+  ** supported archive version:  @{SCHEMA}
+
   ** for details see:
-     https://github.com/volution/kawipiko#kawipiko-server
+     https://github.com/volution/kawipiko/blob/development/documentation/manual-server.rst
+

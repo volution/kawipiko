@@ -1,3 +1,4 @@
+
   ====  kawipiko -- blazingly fast static HTTP server  ====
 
   |  Documentation, issues and sources:
@@ -32,5 +33,8 @@
     --progress
     --debug
 
+  ** supported archive version:  @{SCHEMA}
+
   ** for details see:
-     https://github.com/volution/kawipiko#kawipiko-archiver
+     https://github.com/volution/kawipiko/blob/development/documentation/manual-archiver.rst
+
