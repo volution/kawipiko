@@ -1,0 +1,182 @@
+
+
+#############################################
+kawipiko -- blazingly fast static HTTP server
+#############################################
+
+
+
+
+``kawipiko-server``
+-------------------
+
+::
+
+    >> kawipiko-server --help
+
+::
+
+    --archive <path>
+    --archive-inmem           (memory-loaded archive file)
+    --archive-mmap            (memory-mapped archive file)
+    --archive-preload         (preload archive in OS cache)
+
+    --bind <ip>:<port>        (HTTP, only HTTP/1.1, FastHTTP)
+    --bind-2 <ip>:<port>      (HTTP, only HTTP/1.1, Go net/http)
+    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1, FastHTTP)
+    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2, Go net/http)
+    --bind-quic <ip>:<port>   (HTTPS, with HTTP/3)
+
+    --http1-disable
+    --http2-disable
+    --http3-alt-svc <ip>:<port>
+
+    --tls-bundle <path>       (TLS certificate bundle)
+    --tls-public <path>       (TLS certificate public)
+    --tls-private <path>      (TLS certificate private)
+    --tls-self-rsa            (use self-signed RSA)
+    --tls-self-ed25519        (use self-signed Ed25519)
+
+    --processes <count>       (of slave processes)
+    --threads <count>         (of threads per process)
+    --index-all
+    --index-paths
+    --index-data-meta
+    --index-data-content
+
+    --security-headers-tls
+    --security-headers-disable
+
+    --limit-memory <MiB>
+    --timeout-disable
+    --profile-cpu <path> ; --profile-mem <path>
+
+    --report ; --quiet ; --debug
+    --dummy ; --dummy-empty ; --dummy-delay <duration>
+
+
+
+
+Flags
+.....
+
+
+``--bind <ip:port>``, ``--bind-tls <ip:port>``, ``--bind-2 <ip:port>``, ``--bind-tls-2 <ip:port>``, and ``--bind-quic <ip:port>``
+
+    The IP and port to listen for requests with:
+
+    * (insecure) HTTP/1.1 for ``--bind``, leveraging ``fasthttp`` library;
+    * (secure) HTTP/1.1 over TLS for ``--bind-tls``, leveraging ``fasthttp`` library;
+    * (insecure) HTTP/1.1 for `--bind-2``, leveraging Go's ``net/http`` library; (not as performant as the ``fasthttp`` powered endpoint;)
+    * (secure) H2 or HTTP/1.1 over TLS for ``--bind-tls-2``, leveraging Go's ``net/http``;  (not as performant as the ``fasthttp`` powered endpoint;)
+    * (secure) H3 over QUIC for ``--bind-quic``, leveraging ``github.com/lucas-clemente/quic-go`` library;  (given that H3 is still a new protocol, this must be used with caution;  also one should use the ``--http3-alt-svc <ip:port>``;)
+
+    * if one uses just ``--bind-tls`` (without ``--bind-tls-2``, and without ``--http2-disabled``), then the TLS endpoint is split between ``fasthttp`` for HTTP/1.1 and Go's ``net/http`` for H2;
+
+``--tls-bundle <path>``, ``--tls-public <path>``, and ``--tls-private <path>`` (optional)
+
+    If TLS is enabled, these options allows one to specify the certificate to use, either as a single file (a bundle) or separate files (the actual public certificate and the private key).
+
+    If one doesn't specify any of these options, an embedded self-signed certificate will be used.  In such case, one can choose between RSA (the ``--tls-self-rsa`` flag) or Ed25519 (the ``--tls-self-ed25519`` flag);
+
+``--http1-disable``, ``--http2-disable``
+
+    Disables that particular protocol.
+    (It can be used only with ``--bind-tls-2``, given that ``fasthttp`` only supports HTTP/1.)
+
+``--processes <count>`` and ``--threads <count>``
+
+    The number of processes and threads per each process to start.  (Given Go's concurrency model, the threads count is somewhat a soft limit, hinting to the runtime the desired parallelism level.)
+
+    It is highly recommended to use one process and as many threads as there are cores.
+
+    Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
+    (However note that if using ``--archive-inmem``, then each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
+
+``--archive <path>``
+
+    The path of the CDB file that contains the archived static content.
+    (It can be created with the ``kawipiko-archiver`` tool.)
+
+``--archive-inmem``
+
+    Reads the CDB file in RAM, and thus all requests are served from RAM without touching the file-system.
+    (The memory impact is equal to the size of the CDB archive.  This can be used if enough RAM is available to avoid swapping.)
+
+``--archive-mmap``
+
+    (**recommended**) The CDB file is `memory mapped <#mmap>`__, thus reading its data uses the kernel's file-system cache, as opposed to issuing ``read`` syscalls.
+
+``--archive-preload``
+
+    Before starting to serve requests, read the CDB file so that its data is buffered in the kernel's file-system cache.  (This option can be used with or without ``--archive-mmap``.)
+
+``--index-all``, ``--index-paths``, ``--index-data-meta``,  and ``--index-data-content``
+
+    In order to serve a request ``kawipiko`` does the following:
+
+    * given the request's path, it is used to locate the corresponding resource's metadata (i.e. response headers) and data (i.e. response body) references;
+      by using ``--index-paths`` a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource paths combined;  given that the number of resources is acceptable, say up to a couple hundred thousand, one could safely use this option;)
+
+    * based on the resource's metadata reference, the actual metadata (i.e. the response headers) is located;
+      by using ``--index-data-meta`` a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource metadata blocks combined;  given that the metadata blocks are deduplicated, one could safely use this option;  if one also uses ``--archive-mmap`` or ``--archive-inmem``, then the memory impact is only proportional to the number of resource metadata blocks;)
+
+    * based on the resource's data reference, the actual data (i.e. the response body) is located;
+      by using ``--index-data-content`` a RAM-based lookup table is created to eliminate a CDB operation operation for this purpose;  (the memory impact is proportional to the size of all resource data blocks combined;  one can use this option to obtain the best performance;  if one also uses ``--archive-mmap`` or ``--archive-inmem``, then the memory impact is only proportional to the number of resource data blocks;)
+
+    * ``--index-all`` enables all the options above;
+
+    * (depending on the use-case) it is recommended to use ``--index-paths``;  if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
+
+    * it is recommended to use either ``--archive-mmap`` or  ``--archive-inmem``, else (especially if data is indexed) the resulting effect is that of loading everything in RAM;
+
+``--security-headers-tls``
+
+    Enables adding the following TLS related headers to the response: ::
+
+      Strict-Transport-Security: max-age=31536000
+      Content-Security-Policy: upgrade-insecure-requests
+
+    These instruct the browser to always use HTTPS for the served domain.
+    (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)
+
+``--security-headers-disable``
+
+    Disables adding a few security related headers: ::
+
+      Referrer-Policy: strict-origin-when-cross-origin
+      X-Content-Type-Options: nosniff
+      X-XSS-Protection: 1; mode=block
+      X-Frame-Options: sameorigin
+
+``--report``
+
+    Enables periodic reporting of various metrics.
+    Also enables reporting a selection of metrics if certain thresholds are matched (which most likely is a sign of high-load).
+
+``--quiet``
+
+    Disables most logging messages.
+
+``--debug``
+
+    Enables all logging messages.
+
+``--dummy``, ``--dummy-empty``
+
+    It starts the server in a "dummy" mode, ignoring all archive related arguments and always responding with ``hello world!\n`` (unless ``--dummy-empty`` was used) and without additional headers except the HTTP status line and ``Content-Length``.
+
+    This argument can be used to benchmark the raw performance of the underlying ``fasthttp``, Go's ``net/http``, or QUIC performance;  this is the upper limit of the achievable performance given the underlying technologies.
+    (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
+
+``--delay <duration>``
+
+    Enables delaying each response with a certain amount (for example ``1s``, ``1ms``, etc.)
+
+    It can be used to simulate the real-world network latencies, perhaps to see how a site with many resources loads in various conditions.
+    (For example, see `an experiment <https://notes.volution.ro/v1/2019/08/notes/e8700e9a/>`__ I made with an image made out of 1425 tiles.)
+
+``--profile-cpu <path>`` and ``--profile-mem <path>``
+
+    Enables CPU and memory profiling using Go's profiling infrastructure.
+

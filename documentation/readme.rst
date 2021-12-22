@@ -7,18 +7,15 @@ kawipiko -- blazingly fast static HTTP server
 
 
 
-About
-=====
-
 ``kawipiko`` is a **super-lightweight static HTTP (and HTTPS, H2, H3) server** written in Go, whose main purpose is to serve static content as fast as possible, and with the lowest resource consumption (CPU and RAM) as possible.
 
 However "simple" doesn't imply "dumb" or "limited", instead it implies "efficient" through the removal of superfluous features, thus being inline with UNIX's old philosophy of `"do one thing and do it well" <https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well>`__.
 As such ``kawipiko`` basically supports only ``GET`` requests, and does not provide features like dynamic content generation, authentication, reverse proxying, etc.;  while still providing compression (``gzip``, ``zopfli``, ``brotli``), plus HTML-CSS-JS minification (TODO), without affecting its performance (due to its unique architecture as seen below).
 
-What ``kawipiko`` does provide is something very unique, that no other HTTP server offers:  the static content is served from a CDB_ database with almost no latency (as compared to classical static servers that still have to pass through the OS via the ``open-read-close`` syscalls).
+What ``kawipiko`` does provide is something very unique, that no other HTTP server offers:  the static content is served from a `CDB database <#why-cdb>`__ with almost no latency (as compared to classical static servers that still have to pass through the OS via the ``open-read-close`` syscalls).
 Moreover as noted earlier, the static content can be compressed (with either ``gzip``, ``zopfli`` or ``brotli``) or minified ahead of time, thus reducing not only CPU but also bandwidth and latency.
 
-CDB_ databases are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
+`CDB databases <#why-cdb>`__ are binary files that provide efficient read-only key-value lookup tables, initially used in some DNS and SMTP servers, mainly for their low overhead lookup operations, zero locking in multi-threaded / multi-process scenarios, and "atomic" multi-record updates.
 This also makes them suitable for low-latency static website content serving over HTTP, which this project provides.
 
 For those familiar with Netlify (or competitors like CloudFlare Pages, GitHub Pages, etc.), ``kawipiko`` is a "host-it-yourself" alternative featuring:
@@ -37,9 +34,19 @@ However the main advantage over NGinx is not raw performance, but deployment and
 
 
 
+--------
+
+
+
+
 .. contents::
     :depth: 1
     :backlinks: none
+
+
+
+
+--------
 
 
 
@@ -68,11 +75,15 @@ However the main advantage over NGinx is not raw performance, but deployment and
 
 
 
-Documentation
-=============
+--------
+
+
+
+
+Manual
+======
 
 .. contents::
-    :depth: 2
     :local:
     :backlinks: none
 
@@ -105,332 +116,29 @@ This two step phase also presents a few opportunities:
 
 
 
-``kawipiko``
-------------
+kawipiko-server
+---------------
 
-::
+See `dedicated manual <./documentation/manual-server.rst>`__.
 
-  >> kawipiko server ...
 
-  >> kawipiko archiver ...
 
 
+kawipiko-archiver
+-----------------
 
+See `dedicated manual <./documentation/manual-archiver.rst>`__.
 
-``kawipiko-server``
--------------------
 
-::
 
-    >> kawipiko-server --help
 
-::
-
-    --archive <path>
-    --archive-inmem           (memory-loaded archive file)
-    --archive-mmap            (memory-mapped archive file)
-    --archive-preload         (preload archive in OS cache)
-
-    --bind <ip>:<port>        (HTTP, only HTTP/1.1, FastHTTP)
-    --bind-2 <ip>:<port>      (HTTP, only HTTP/1.1, Go net/http)
-    --bind-tls <ip>:<port>    (HTTPS, only HTTP/1.1, FastHTTP)
-    --bind-tls-2 <ip>:<port>  (HTTPS, with HTTP/2, Go net/http)
-    --bind-quic <ip>:<port>   (HTTPS, with HTTP/3)
-
-    --http1-disable
-    --http2-disable
-    --http3-alt-svc <ip>:<port>
-
-    --tls-bundle <path>       (TLS certificate bundle)
-    --tls-public <path>       (TLS certificate public)
-    --tls-private <path>      (TLS certificate private)
-    --tls-self-rsa            (use self-signed RSA)
-    --tls-self-ed25519        (use self-signed Ed25519)
-
-    --processes <count>       (of slave processes)
-    --threads <count>         (of threads per process)
-    --index-all
-    --index-paths
-    --index-data-meta
-    --index-data-content
-
-    --security-headers-tls
-    --security-headers-disable
-
-    --limit-memory <MiB>
-    --timeout-disable
-    --profile-cpu <path> ; --profile-mem <path>
-
-    --report ; --quiet ; --debug
-    --dummy ; --dummy-empty ; --dummy-delay <duration>
-
-
-Flags
-.....
-
-
-``--bind <ip:port>``, ``--bind-tls <ip:port>``, ``--bind-2 <ip:port>``, ``--bind-tls-2 <ip:port>``, and ``--bind-quic <ip:port>``
-
-    The IP and port to listen for requests with:
-
-    * (insecure) HTTP/1.1 for ``--bind``, leveraging ``fasthttp`` library;
-    * (secure) HTTP/1.1 over TLS for ``--bind-tls``, leveraging ``fasthttp`` library;
-    * (insecure) HTTP/1.1 for `--bind-2``, leveraging Go's ``net/http`` library; (not as performant as the ``fasthttp`` powered endpoint;)
-    * (secure) H2 or HTTP/1.1 over TLS for ``--bind-tls-2``, leveraging Go's ``net/http``;  (not as performant as the ``fasthttp`` powered endpoint;)
-    * (secure) H3 over QUIC for ``--bind-quic``, leveraging ``github.com/lucas-clemente/quic-go`` library;  (given that H3 is still a new protocol, this must be used with caution;  also one should use the ``--http3-alt-svc <ip:port>``;)
-
-    * if one uses just ``--bind-tls`` (without ``--bind-tls-2``, and without ``--http2-disabled``), then the TLS endpoint is split between ``fasthttp`` for HTTP/1.1 and Go's ``net/http`` for H2;
-
-``--tls-bundle <path>``, ``--tls-public <path>``, and ``--tls-private <path>`` (optional)
-
-    If TLS is enabled, these options allows one to specify the certificate to use, either as a single file (a bundle) or separate files (the actual public certificate and the private key).
-
-    If one doesn't specify any of these options, an embedded self-signed certificate will be used.  In such case, one can choose between RSA (the ``--tls-self-rsa`` flag) or Ed25519 (the ``--tls-self-ed25519`` flag);
-
-``--http1-disable``, ``--http2-disable``
-
-    Disables that particular protocol.
-    (It can be used only with ``--bind-tls-2``, given that ``fasthttp`` only supports HTTP/1.)
-
-``--processes <count>`` and ``--threads <count>``
-
-    The number of processes and threads per each process to start.  (Given Go's concurrency model, the threads count is somewhat a soft limit, hinting to the runtime the desired parallelism level.)
-
-    It is highly recommended to use one process and as many threads as there are cores.
-
-    Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
-    (However note that if using ``--archive-inmem``, then each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use ``--archive-mmap``.)
-
-``--archive <path>``
-
-    The path of the CDB file that contains the archived static content.
-    (It can be created with the ``kawipiko-archiver`` tool.)
-
-``--archive-inmem``
-
-    Reads the CDB file in RAM, and thus all requests are served from RAM without touching the file-system.
-    (The memory impact is equal to the size of the CDB archive.  This can be used if enough RAM is available to avoid swapping.)
-
-``--archive-mmap``
-
-    (**recommended**) The CDB file is `memory mapped <#mmap>`__, thus reading its data uses the kernel's file-system cache, as opposed to issuing ``read`` syscalls.
-
-``--archive-preload``
-
-    Before starting to serve requests, read the CDB file so that its data is buffered in the kernel's file-system cache.  (This option can be used with or without ``--archive-mmap``.)
-
-``--index-all``, ``--index-paths``, ``--index-data-meta``,  and ``--index-data-content``
-
-    In order to serve a request ``kawipiko`` does the following:
-
-    * given the request's path, it is used to locate the corresponding resource's metadata (i.e. response headers) and data (i.e. response body) references;
-      by using ``--index-paths`` a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource paths combined;  given that the number of resources is acceptable, say up to a couple hundred thousand, one could safely use this option;)
-
-    * based on the resource's metadata reference, the actual metadata (i.e. the response headers) is located;
-      by using ``--index-data-meta`` a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource metadata blocks combined;  given that the metadata blocks are deduplicated, one could safely use this option;  if one also uses ``--archive-mmap`` or ``--archive-inmem``, then the memory impact is only proportional to the number of resource metadata blocks;)
-
-    * based on the resource's data reference, the actual data (i.e. the response body) is located;
-      by using ``--index-data-content`` a RAM-based lookup table is created to eliminate a CDB operation operation for this purpose;  (the memory impact is proportional to the size of all resource data blocks combined;  one can use this option to obtain the best performance;  if one also uses ``--archive-mmap`` or ``--archive-inmem``, then the memory impact is only proportional to the number of resource data blocks;)
-
-    * ``--index-all`` enables all the options above;
-
-    * (depending on the use-case) it is recommended to use ``--index-paths``;  if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
-
-    * it is recommended to use either ``--archive-mmap`` or  ``--archive-inmem``, else (especially if data is indexed) the resulting effect is that of loading everything in RAM;
-
-``--security-headers-tls``
-
-    Enables adding the following TLS related headers to the response: ::
-
-      Strict-Transport-Security: max-age=31536000
-      Content-Security-Policy: upgrade-insecure-requests
-
-    These instruct the browser to always use HTTPS for the served domain.
-    (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)
-
-``--security-headers-disable``
-
-    Disables adding a few security related headers: ::
-
-      Referrer-Policy: strict-origin-when-cross-origin
-      X-Content-Type-Options: nosniff
-      X-XSS-Protection: 1; mode=block
-      X-Frame-Options: sameorigin
-
-``--report``
-
-    Enables periodic reporting of various metrics.
-    Also enables reporting a selection of metrics if certain thresholds are matched (which most likely is a sign of high-load).
-
-``--quiet``
-
-    Disables most logging messages.
-
-``--debug``
-
-    Enables all logging messages.
-
-``--dummy``, ``--dummy-empty``
-
-    It starts the server in a "dummy" mode, ignoring all archive related arguments and always responding with ``hello world!\n`` (unless ``--dummy-empty`` was used) and without additional headers except the HTTP status line and ``Content-Length``.
-
-    This argument can be used to benchmark the raw performance of the underlying ``fasthttp``, Go's ``net/http``, or QUIC performance;  this is the upper limit of the achievable performance given the underlying technologies.
-    (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
-
-``--delay <duration>``
-
-    Enables delaying each response with a certain amount (for example ``1s``, ``1ms``, etc.)
-
-    It can be used to simulate the real-world network latencies, perhaps to see how a site with many resources loads in various conditions.
-    (For example, see `an experiment <https://notes.volution.ro/v1/2019/08/notes/e8700e9a/>`__ I made with an image made out of 1425 tiles.)
-
-``--profile-cpu <path>`` and ``--profile-mem <path>``
-
-    Enables CPU and memory profiling using Go's profiling infrastructure.
-
-
-
-
-``kawipiko-archiver``
----------------------
-
-
-::
-
-    >> kawipiko-archiver --help
-
-::
-
-    --sources <path>
-
-    --archive <path>
-
-    --compress <gzip | zopfli | brotli | identity>
-    --compress-level <number>
-    --compress-cache <path>
-
-    --exclude-index
-    --exclude-strip
-    --exclude-cache
-    --include-etag
-
-    --exclude-file-listing
-    --include-folder-listing
-
-    --progress
-    --debug
-
-
-Flags
-.....
-
-``--sources``
-
-    The path to the source folder that is the root of the static website content.
-
-``--archive``
-
-    The path to the target CDB file that contains the archived static content.
-
-``--compress``, and ``--compress-level``
-
-    Each individual file (and consequently of the corresponding HTTP response body) is compressed with either ``gzip``, ``zopfli`` or ``brotli``;  by default (or alternatively with ``identity``) no compression is used.
-
-    Even if compression is explicitly requested, if the compression ratio is bellow a certain threshold (depending on the uncompressed size), the file is stored without any compression.
-    (It's senseless to force the client to spend time and decompress the response body if that time is not recovered during network transmission.)
-
-    The compression level can be chosen, the value depending on the algorithm:
-
-    * ``gzip`` -- ``-1`` for algorithm default, ``-2`` for Huffman only, ``0`` to ``9`` for fast to slow;
-    * ``zopfli`` -- ``-1`` for algorithm default, ``0`` to ``30`` iterations for fast to slow;
-    * ``brotli`` -- ``-1`` for algorithm default, ``0`` to ``9`` for fast to slow, ``-2`` for extreme;
-    * (by "algorithm default", it is meant "what that algorithm considers the recommended default compression level";)
-    * ``kawipiko`` by default uses the maximum compression level for each algorithm;  (i.e. ``9`` for ``gzip``, ``30`` for ``zopfli``, and ``-2`` for ``brotli``;)
-
-``--sources-cache <path>``, and ``--compress-cache <path>``
-
-    At the given path a single file is created (that is an BBolt database), that will be used to cache the following information:
-
-    * in case of ``--sources-cache``, the fingerprint of each file contents is stored, so that if the file was not changed, re-reading it shouldn't be attempted unless it is absolutely necessary;  also if the file is small enough, its contents is stored in this database (deduplicated by its fingerprint);
-    * in case of ``--compress-cache`` the compression outcome of each file contents is stored (deduplicated by its fingerprint), so that compression is done only once over multiple runs;
-
-    Each of these caches can be safely reused between multiple related archives, especially when they have many files in common.
-    Each of these caches can be independently used (or shared).
-
-    Using these caches allows one to very quickly rebuild an archive when only a couple of files have been changed, without even touching the file-system for the unchanged ones.
-
-``--exclude-index``
-
-    Disables using ``index.*`` files (where ``.*`` is one of ``.html``, ``.htm``, ``.xhtml``, ``.xht``, ``.txt``, ``.json``, and ``.xml``) to respond to a request whose URL path ends in ``/`` (corresponding to the folder wherein ``index.*`` file is located).
-    (This can be used to implement "slash" blog style URL's like ``/blog/whatever/`` which maps to ``/blog/whatever/index.html``.)
-
-``--exclude-strip``
-
-    Disables using a file with the suffix ``.html``, ``.htm``, ``.xhtml``, ``.xht``, and ``.txt`` to respond to a request whose URL does not exactly match an existing file.
-    (This can be used to implement "suffix-less" blog style URL's like ``/blog/whatever`` which maps to ``/blog/whatever.html``.)
-
-``--exclude-cache``
-
-    Disables adding an ``Cache-Control: public, immutable, max-age=3600`` header that forces the browser (and other intermediary proxies) to cache the response for an hour (the ``public`` and ``max-age=3600`` arguments), and furthermore not request it even on reloads (the ``immutable`` argument).
-
-``--include-etag``
-
-    Enables adding an ``ETag`` response header that contains the SHA256 of the response body.
-
-    By not including the ``ETag`` header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without ``ETag`` generates the same headers), this can lead to significant reduction in stored headers blocks, including reducing RAM usage.
-    (At this moment it does not support HTTP conditional requests, i.e. the ``If-None-Match``, ``If-Modified-Since`` and their counterparts;  however this ``ETag`` header might be used in conjuction with ``HEAD`` requests to see if the resource has changed.)
-
-``--exclude-file-listing``
-
-    Disables the creation of an internal list of files that can be used in conjunction with the ``--index-all`` flag of the ``kawipiko-server``.
-
-``--include-folder-listing``
-
-    Enables the creation of an internal list of folders.  (Currently not used by the ``kawipiko-server`` tool.)
-
-``--progress``
-
-    Enables periodic reporting of various metrics.
-
-``--debug``
-
-    Enables verbose logging.
-    It will log various information about the archived files (including compression statistics).
-
-
-Ignored files
-.............
-
-* any file with the following prefixes: ``.``, ``#``;
-* any file with the following suffixes: ``~``, ``#``, ``.log``, ``.tmp``, ``.temp``, ``.lock``;
-* any file that contains the following: ``#``;
-* any file that exactly matches the following: ``Thumbs.db``, ``.DS_Store``;
-* (at the moment these rules are not configurable through flags;)
-
-
-``_wildcard.*`` files
-.....................
-
-
-By placing a file whose name matches ``_wildcard.*`` (i.e. with the prefix ``_wildcard.`` and any other suffix), it will be used to respond to any request whose URL fails to find a "better" match.
-
-These wildcard files respect the folder hierarchy, in that wildcard files in (direct or transitive) subfolders override the wildcard file in their parents (direct or transitive).
-
-
-Symlinks, hardlinks, loops, and duplicated files
-................................................
-
-You freely use symlinks (including pointing outside of the content root) and they will be crawled during archival respecting the "logical" hierarchy they introduce.
-(Any loop that you introduce into the hierarchy will be ignored and a warning will be issued.)
-
-You can safely symlink or hardlink the same file (or folder) in multiple places (within the content hierarchy), and its data will be stored only once.
-(The same applies to duplicated files that have exactly the same data.)
+--------
 
 
 
 
 Examples
---------
+========
 
 * fetch and extract the Python 3.7 documentation HTML archive: ::
 
@@ -515,185 +223,20 @@ Examples
 
 
 
+--------
+
+
+
+
 Installation
 ============
 
-.. contents::
-    :depth: 2
-    :local:
-    :backlinks: none
+See `dedicated installation document <./documentation/installation.rst>`__.
 
 
 
 
-Download prebuilt executables
------------------------------
-
-.. warning ::
-
-  No executables are currently available for download!
-  Please consult the `build from sources section <#build-from-sources>`__ for now.
-
-
-
-
-Build from sources
-------------------
-
-
-Install the prerequisites
-.........................
-
-* Ubuntu / Debian: ::
-
-    apt-get install git-core
-    apt-get install golang
-
-* OpenSUSE: ::
-
-    zypper install git-core
-    zypper install go
-
-* other Linux / FreeBSD / OpenBSD / OSX:
-
-  * fetch and install Go from: https://golang.org/dl
-  * add ``/usr/local/go/bin`` to your ``PATH``;
-  * install Git;
-
-
-Prepare the environment
-.......................
-
-::
-
-    mkdir -- \
-            /tmp/kawipiko \
-            /tmp/kawipiko/bin \
-            /tmp/kawipiko/src \
-            /tmp/kawipiko/go \
-    #
-
-
-Fetch the sources
-.................
-
-Either clone the full Git repository: ::
-
-    git clone \
-            -b development \
-            git://github.com/volution/kawipiko.git \
-            /tmp/kawipiko/src \
-    #
-
-Either fetch and extract the latest sources bundle: ::
-
-    curl \
-            -s -S -f \
-            -o /tmp/kawipiko/src.tar.gz \
-            https://codeload.github.com/volution/kawipiko/tar.gz/development \
-    #
-
-    tar \
-            -x -z -v \
-            -f /tmp/kawipiko/src.tar.gz \
-            -C /tmp/kawipiko/src \
-            --strip-components 1 \
-    #
-
-
-Build the dynamic executables
-.............................
-
-Compile the (dynamic) executables: ::
-
-    cd /tmp/kawipiko/src/sources
-
-    #### build `kawipiko` dynamic all-in-one executable
-    env \
-            GOPATH=/tmp/kawipiko/go \
-    go build \
-            -ldflags 'all=-s' \
-            -gcflags 'all=-l=4' \
-            -o /tmp/kawipiko/bin/kawipiko \
-            ./cmd/wrapper.go \
-    #
-
-    #### build `kawipiko-server` dynamic executable
-    env \
-            GOPATH=/tmp/kawipiko/go \
-    go build \
-            -ldflags 'all=-s' \
-            -gcflags 'all=-l=4' \
-            -o /tmp/kawipiko/bin/kawipiko-server \
-            ./cmd/server.go \
-    #
-
-    #### build `kawipiko-archiver` dynamic executable
-    env \
-            GOPATH=/tmp/kawipiko/go \
-    go build \
-            -ldflags 'all=-s' \
-            -gcflags 'all=-l=4' \
-            -o /tmp/kawipiko/bin/kawipiko-archiver \
-            ./cmd/archiver.go \
-    #
-
-
-Build the static executables
-............................
-
-Compile the (static) executables: ::
-
-    cd /tmp/kawipiko/src/sources
-
-    #### build `kawipiko` static all-in-one executable
-    env \
-            GOPATH=/tmp/kawipiko/go \
-    go build \
-            -tags 'netgo' \
-            -gcflags 'all=-l=4' \
-            -ldflags 'all=-s' \
-            -trimpath \
-            -o /tmp/kawipiko/bin/kawipiko \
-            ./cmd/wrapper.go \
-    #
-
-    #### build `kawipiko-server` static executable
-    env \
-            GOPATH=/tmp/kawipiko/go \
-    go build \
-            -tags 'netgo' \
-            -gcflags 'all=-l=4' \
-            -ldflags 'all=-s' \
-            -trimpath \
-            -o /tmp/kawipiko/bin/kawipiko-server \
-            ./cmd/server.go \
-    #
-
-    #### build `kawipiko-archiver` static executable
-    env \
-            GOPATH=/tmp/kawipiko/go \
-    go build \
-            -tags 'netgo' \
-            -gcflags 'all=-l=4' \
-            -ldflags 'all=-s' \
-            -trimpath \
-            ./cmd/archiver.go \
-    #
-
-
-Deploy the executables
-......................
-
-(Basically just copy the two executables anywhere on the system, or any compatible remote system.)
-
-::
-
-    cp \
-            -t /usr/local/bin \
-            /tmp/kawipiko/bin/kawipiko-server \
-            /tmp/kawipiko/bin/kawipiko-archiver \
-    #
+--------
 
 
 
@@ -702,7 +245,6 @@ Features
 ========
 
 .. contents::
-    :depth: 2
     :local:
     :backlinks: none
 
@@ -765,512 +307,67 @@ As stated in the `about section <#about>`__, nothing comes for free, and in orde
 
 
 
+--------
+
+
+
+
 Benchmarks
 ==========
 
-.. contents::
-    :depth: 2
-    :local:
-    :backlinks: none
+See `dedicated benchmarks document <./documentation/benchmarks.rst>`__.
 
 
 
 
-Summary
--------
+--------
 
-Bottom line (**even on my 6 years old laptop**):
 
-* under normal conditions (16 concurrent connections), you get around 111k requests / second, at about 0.25ms latency for 99% of the requests;
-* under light stress conditions (128 concurrent connections), you get around 118k requests / second, at about 2.5ms latency for 99% of the requests;
-* under medium stress conditions (512 concurrent connections), you get around 106k requests / second, at about 10ms latency for 99% of the requests (meanwhile the average is 4.5ms);
-* **under high stress conditions (2048 concurrent connections), you get around 100k requests / second, at about 400ms latency for 99% of the requests (meanwhile the average is 45ms);**
-* under extreme stress conditions (16384 concurrent connections) (i.e. someone tries to DDOS the server), you get around 53k requests / second, at about 2.8s latency for 99% of the requests (meanwhile the average is 200ms);
-* (the timeout errors are due to the fact that ``wrk`` is configured to timeout after only 1 second of waiting while connecting or receiving the full response;)
-* (the read errors are due to the fact that the server closes a keep-alive connection after serving 256k requests;)
-* **the raw performance is at least on-par with NGinx**;  (from my measurements ``kawipiko`` serves in fact 30% more requests / second than NGinx, at least for my "synthetic" benchmark;)  however, especially for a "real world" scenarios (i.e. thousand of small files, accessed in a random patterns), I think ``kawipiko`` fares better;  (not to mention how simple it is to configure and deploy ``kawipiko`` as compared to NGinx;)
 
 
+FAQ
+===
 
 
-Results
--------
 
 
-Results values
-..............
+Is it production ready?
+-----------------------
 
+Yes, it currently is serving ~600K HTML pages.
 
-.. note ::
-
-  Please note that the values under *Thread Stats* are reported per thread.
-  Therefore it is best to look at the first two values, i.e. *Requests/sec*.
-
-* 16 connections / 2 server threads / 2 wrk threads: ::
-
-    Requests/sec: 111720.73
-    Transfer/sec:     18.01MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      2 threads and 16 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   139.36us   60.27us   1.88ms   64.91%
-        Req/Sec    56.14k   713.04    57.60k    91.36%
-      Latency Distribution
-         50%  143.00us      75%  184.00us
-         90%  212.00us      99%  261.00us
-      3362742 requests in 30.10s, 541.98MB read
-
-* 128 connections / 2 server threads / 2 wrk threads: ::
-
-    Requests/sec: 118811.41
-    Transfer/sec:     19.15MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      2 threads and 128 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency     1.03ms  705.69us  19.53ms   63.54%
-        Req/Sec    59.71k     1.69k   61.70k    96.67%
-      Latency Distribution
-         50%    0.99ms      75%    1.58ms
-         90%    1.89ms      99%    2.42ms
-      3564527 requests in 30.00s, 574.50MB read
-
-* 512 connections / 2 server threads / 2 wrk threads: ::
-
-    Requests/sec: 106698.89
-    Transfer/sec:     17.20MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      2 threads and 512 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency     4.73ms    3.89ms  39.32ms   39.74%
-        Req/Sec    53.71k     1.73k   69.18k    84.33%
-      Latency Distribution
-         50%    4.96ms      75%    8.63ms
-         90%    9.19ms      99%   10.30ms
-      3206540 requests in 30.05s, 516.80MB read
-      Socket errors: connect 0, read 105, write 0, timeout 0
-
-* 2048 connections / 2 server threads / 2 wrk threads: ::
-
-    Requests/sec: 100296.65
-    Transfer/sec:     16.16MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      2 threads and 2048 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    45.42ms   85.14ms 987.70ms   88.62%
-        Req/Sec    50.61k     5.59k   70.14k    71.74%
-      Latency Distribution
-         50%   16.30ms      75%   28.44ms
-         90%  147.60ms      99%  417.40ms
-      3015868 requests in 30.07s, 486.07MB read
-      Socket errors: connect 0, read 128, write 0, timeout 86
-
-* 4096 connections / 2 server threads / 2 wrk threads: ::
-
-    Requests/sec:  95628.34
-    Transfer/sec:     15.41MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      2 threads and 4096 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    90.50ms  146.08ms 999.65ms   88.49%
-        Req/Sec    48.27k     6.09k   66.05k    76.34%
-      Latency Distribution
-         50%   23.31ms      75%  112.06ms
-         90%  249.41ms      99%  745.94ms
-      2871404 requests in 30.03s, 462.79MB read
-      Socket errors: connect 0, read 27, write 0, timeout 4449
-
-* 16384 connections / 2 server threads / 2 wrk threads: ::
-
-    Requests/sec:  53548.52
-    Transfer/sec:      8.63MB
-
-    Running 30s test @ http://127.0.0.1:8080/
-      2 threads and 16384 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   206.21ms  513.75ms   6.00s    92.56%
-        Req/Sec    31.37k     5.68k   44.44k    76.13%
-      Latency Distribution
-         50%   35.38ms      75%   62.78ms
-         90%  551.33ms      99%    2.82s
-      1611294 requests in 30.09s, 259.69MB read
-      Socket errors: connect 0, read 115, write 0, timeout 2288
-
-
-Results notes
-.............
-
-* the machine was my personal laptop:  6 years old with an Intel Core i7 3667U (2 cores with 2 threads each);
-* the ``kawipiko-server`` was started with ``--processes 1 --threads 2``;  (i.e. 2 threads handling the requests;)
-* the ``kawipiko-server`` was started with ``--archive-inmem``;  (i.e. the CDB database file was preloaded into memory, thus no disk I/O;)
-* the ``kawipiko-server`` was started with ``--security-headers-disable``;  (because these headers are not set by default by other HTTP servers;)
-* the ``kawipiko-server`` was started with ``--timeout-disable``;  (because, due to a known Go issue, using ``net.Conn.SetDeadline`` has an impact of about 20% of the raw performance;  thus the reported values above might be about 10%-15% smaller when used with timeouts;)
-* the benchmarking tool was wrk_;
-* both ``kawipiko-server`` and ``wrk`` tools were run on the same machine;
-* both ``kawipiko-server`` and ``wrk`` tools were pinned on different physical cores;
-* the benchmark was run over loopback networking (i.e. ``127.0.0.1``);
-* the served file contains ``Hello World!``;
-* the protocol was HTTP (i.e. no TLS), with keep-alive;
-* both the CDB and the NGinx folder were put on ``tmpfs`` (which implies that the disk is not a limiting factor);  (in fact ``kawipiko`` performs quite well even on spinning disks due to careful storage management;)
-* see the `methodology section <#methodology>`__ for details;
-
-
-
-
-Comparisons
------------
-
-
-Comparisons with NGinx
-......................
-
-* NGinx 512 connections / 2 server workers / 2 wrk thread: ::
-
-    Requests/sec:  79816.08
-    Transfer/sec:     20.02MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      2 threads and 512 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency     6.07ms    1.90ms  19.83ms   71.67%
-        Req/Sec    40.17k     1.16k   43.35k    69.83%
-      Latency Distribution
-         50%    6.13ms      75%    6.99ms
-         90%    8.51ms      99%   11.10ms
-      2399069 requests in 30.06s, 601.73MB read
-
-* NGinx 2048 connections / 2 server workers / 2 wrk thread: ::
-
-    Requests/sec:  78211.46
-    Transfer/sec:     19.62MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      2 threads and 2048 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    27.11ms   20.27ms 490.12ms   97.76%
-        Req/Sec    39.45k     2.45k   49.98k    70.74%
-      Latency Distribution
-         50%   24.80ms      75%   29.67ms
-         90%   34.99ms      99%  126.97ms
-      2351933 requests in 30.07s, 589.90MB read
-      Socket errors: connect 0, read 0, write 0, timeout 11
-
-* NGinx 4096 connections / 2 server workers / 2 wrk thread: ::
-
-    Requests/sec:  75970.82
-    Transfer/sec:     19.05MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      2 threads and 4096 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    70.25ms   73.68ms 943.82ms   87.21%
-        Req/Sec    38.37k     3.79k   49.06k    70.30%
-      Latency Distribution
-         50%   46.37ms      75%   58.28ms
-         90%  179.08ms      99%  339.05ms
-      2282223 requests in 30.04s, 572.42MB read
-      Socket errors: connect 0, read 0, write 0, timeout 187
-
-* NGinx 16384 connections / 2 server workers / 2 wrk thread: ::
-
-    Requests/sec:  43909.67
-    Transfer/sec:     11.01MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      2 threads and 16384 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   223.87ms  551.14ms   5.94s    92.92%
-        Req/Sec    32.95k    13.35k   51.56k    76.71%
-      Latency Distribution
-         50%   32.62ms      75%  222.93ms
-         90%  558.04ms      99%    3.17s
-      1320562 requests in 30.07s, 331.22MB read
-      Socket errors: connect 0, read 12596, write 34, timeout 1121
-
-* the NGinx configuration file can be found in the `examples folder <./examples>`__;  the configuration was obtained after many experiments to squeeze out of NGinx as much performance as possible, given the targeted use-case, namely many small files;
-
-* moreover NGinx seems to be quite sensitive to the actual path requested:
-
-    * if one requests ``http://127.0.0.1:8080/``, and one has configured NGinx to look for ``index.txt``, and that file actually exists, the performance is quite a bit lower than just asking for that file;  (perhaps it issues more syscalls, searching for the index file;)
-    * if one requests ``http://127.0.0.1:8080/index.txt``, as mentioned above, it achieves the higher performance;  (perhaps it issues fewer syscalls;)
-    * if one requests ``http://127.0.0.1:8080/does-not-exist``, it seems to achieve the "best" performance;  (perhaps it issues the least amount of syscalls;)  (however this is not an actual "use-ful" corner-case;)
-    * it must be noted that ``kawipiko`` doesn't exhibit this behaviour, the same performance is achieved regardless of the path variant;
-    * therefore the benchmarks above use ``/index.txt`` as opposed to ``/``;
-
-
-Comparisons with others
-.......................
-
-* darkhttpd_ 512 connections / 1 server process / 2 wrk threads: ::
-
-    Requests/sec:  38191.65
-    Transfer/sec:      8.74MB
-
-    Running 30s test @ http://127.0.0.1:8080/index.txt
-      2 threads and 512 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency    17.51ms   17.30ms 223.22ms   78.55%
-        Req/Sec     9.62k     1.94k   17.01k    72.98%
-      Latency Distribution
-         50%    7.51ms      75%   32.51ms
-         90%   45.69ms      99%   53.00ms
-      1148067 requests in 30.06s, 262.85MB read
-
-
-
-
-Methodology
------------
-
-
-* get the executables (either `download <#download-prebuilt-executables>`__ or `build <#build-from-sources>`__ them);
-* get the ``hello-world.cdb`` (from the `examples <./examples>`__ folder inside the repository);
-
-
-Single process / single threaded
-................................
-
-* this scenario will yield a "base-line performance" per core;
-
-* execute the server (in-memory and indexed) (i.e. the "best case scenario"): ::
-
-    kawipiko-server \
-            --bind 127.0.0.1:8080 \
-            --archive ./hello-world.cdb \
-            --archive-inmem \
-            --index-all \
-            --processes 1 \
-            --threads 1 \
-    #
-
-* execute the server (memory mapped) (i.e. the "the recommended scenario"): ::
-
-    kawipiko-server \
-            --bind 127.0.0.1:8080 \
-            --archive ./hello-world.cdb \
-            --archive-mmap \
-            --processes 1 \
-            --threads 1 \
-    #
-
-
-Single process / two threads
-............................
-
-* this scenario is the usual setup;  configure ``--threads`` to equal the number of cores;
-
-* execute the server (memory mapped): ::
-
-    kawipiko-server \
-            --bind 127.0.0.1:8080 \
-            --archive ./hello-world.cdb \
-            --archive-mmap \
-            --processes 1 \
-            --threads 2 \
-    #
-
-
-Load generators
-...............
-
-* 512 concurrent connections (handled by 2 threads): ::
-
-    wrk \
-            --threads 2 \
-            --connections 512 \
-            --timeout 1s \
-            --duration 30s \
-            --latency \
-            http://127.0.0.1:8080/index.txt \
-    #
-
-* 4096 concurrent connections (handled by 2 threads): ::
-
-    wrk \
-            --threads 2 \
-            --connections 4096 \
-            --timeout 1s \
-            --duration 30s \
-            --latency \
-            http://127.0.0.1:8080/index.txt \
-    #
-
-
-Methodology notes
-.................
-
-* the number of threads for the server plus for ``wkr`` shouldn't be larger than the number of available cores;  (or use different machines for the server and the client;)
-
-* also take into account that by default the number of "file descriptors" on most UNIX/Linux machines is 1024, therefore if you want to try with more connections than 1000, you need to raise this limit;  (see bellow;)
-
-* additionally, you can try to pin the server and ``wrk`` to specific cores, increase various priorities (scheduling, IO, etc.);  (given that Intel processors have HyperThreading which appear to the OS as individual cores, you should make sure that you pin each process on cores part of the same physical processor / core;)
-
-* pinning the server (cores ``0`` and ``1`` are mapped on physical core ``1``): ::
-
-    sudo -u root -n -E -P -- \
-    \
-        taskset -c 0,1 \
-        nice -n -19 -- \
-        ionice -c 2 -n 0 -- \
-        chrt -r 10 \
-        prlimit -n262144 -- \
-    \
-    sudo -u "${USER}" -n -E -P -- \
-    \
-    kawipiko-server \
-        ... \
-    #
-
-* pinning the client (cores ``2`` and ``3`` are mapped on physical core ``2``): ::
-
-    sudo -u root -n -E -P -- \
-    \
-        taskset -c 2,3 \
-        nice -n -19 -- \
-        ionice -c 2 -n 0 -- \
-        chrt -r 10 \
-        prlimit -n262144 -- \
-    \
-    sudo -u "${USER}" -n -E -P -- \
-    \
-    wrk \
-        ... \
-    #
-
-
-
-
-OpenStreetMap tiles
--------------------
-
-
-Scenario notes
-..............
-
-As a benchmark much closer to the "real world" use-cases for ``kawipiko`` I've done the following:
-
-* downloaded from OpenStreetMap servers all tiles for my home town (from zoom level 0 to zoom level 19), which resulted in:
-
-  * around ~250K PNG files totaling ~330 MiB;
-  * with an average of 1.3 KiB and a median of 103B;  (i.e. lots of extreemly small files;)
-  * occupying actualy around 1.1 GiB of storage (on Ext4) due to file-system overheads;
-
-* created a CDB archive, which resulted in:
-
-  * a single file totaling ~376 MiB (both "apparent" and "occupied" storage);  (i.e. no storage space wasted;)
-  * which contains only ~100K PNG files, due to elimination of duplicate PNG files;  (i.e. at higher zoom levels, the tiles start to repeat;)
-
-* listed all the available tiles, and benchmarked both ``kawipiko`` and NGinx, with 16K concurrent connections;
-* the methodology is the same one described above, with the following changes:
-
-  * the host used in benchmarks has a desktop-grade Intel Core i7 4770 (i.e. 4th generation, about 6 years old) with 4 physical cores and 32 GiB of RAM;
-  * the files (both CDB and tiles folder) were put in ``tmpfs``;
-  * both ``kawipiko``, NGinx and ``wrk`` were configured to use 8 threads / processes, and were pinned on two separate physical cores each;
-  * (the host had almost nothing running on it except the minimal required services;)
-
-
-Results notes
-.............
-
-Based on my benchmark the following are my findings:
-
-* ``kawipiko`` outperformed NGinx by ~25% in requests / second;
-* ``kawipiko`` outperformed NGinx by ~29% in average response latency;
-* ``kawipiko`` outperformed NGinx by ~40% in 90-percentile response latency;
-* ``kawipiko`` used ~6% less CPU while serving requests for 2 minutes;
-* ``kawipiko`` used ~25% less CPU per request;
-* NGinx used the least amount of RAM, meanwhile ``kawipiko`` (due to either in RAM loading or ``mmap`` usage) used around 1GiB of RAM;
-
-
-Results values
-..............
-
-* ``kawipiko`` with ``--archive-inmem`` and ``--index-all`` (1 process, 8 threads): ::
-
-    Requests/sec: 238499.86
-    Transfer/sec:    383.59MB
-
-    Running 2m test @ http://127.9.185.194:8080/
-      8 threads and 16384 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   195.39ms  412.84ms   5.99s    92.33%
-        Req/Sec    30.65k    10.20k  213.08k    79.41%
-      Latency Distribution
-         50%   28.02ms      75%  221.17ms
-         90%  472.41ms      99%    2.19s
-      28640139 requests in 2.00m, 44.98GB read
-      Socket errors: connect 0, read 0, write 0, timeout 7032
-
-* ``kawipiko`` with ``--archive-mmap`` (1 process, 8 threads): ::
-
-    Requests/sec: 237239.35
-    Transfer/sec:    381.72MB
-
-    Running 2m test @ http://127.9.185.194:8080/
-      8 threads and 16384 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   210.44ms  467.84ms   6.00s    92.57%
-        Req/Sec    30.77k    12.29k  210.17k    86.67%
-      Latency Distribution
-         50%   26.51ms      75%  221.63ms
-         90%  494.93ms      99%    2.67s
-      28489533 requests in 2.00m, 44.77GB read
-      Socket errors: connect 0, read 0, write 0, timeout 10730
-
-* ``kawipiko`` with ``--archive-mmap`` (8 processes, 1 thread): ::
-
-    Requests/sec: 248266.83
-    Transfer/sec:    399.29MB
-
-    Running 2m test @ http://127.9.185.194:8080/
-      8 threads and 16384 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   209.30ms  469.05ms   5.98s    92.25%
-        Req/Sec    31.86k     8.58k   83.99k    69.93%
-      Latency Distribution
-         50%   23.08ms      75%  215.28ms
-         90%  502.80ms      99%    2.64s
-      29816650 requests in 2.00m, 46.83GB read
-      Socket errors: connect 0, read 0, write 0, timeout 15244
-
-* NGinx (8 workers): ::
-
-    Requests/sec: 188255.32
-    Transfer/sec:    302.88MB
-
-    Running 2m test @ http://127.9.185.194:8080/
-      8 threads and 16384 connections
-      Thread Stats   Avg      Stdev     Max   +/- Stdev
-        Latency   266.18ms  538.72ms   5.93s    90.78%
-        Req/Sec    24.15k     8.34k  106.48k    74.56%
-      Latency Distribution
-         50%   34.34ms      75%  253.57ms
-         90%  750.29ms      99%    2.97s
-      22607727 requests in 2.00m, 35.52GB read
-      Socket errors: connect 0, read 109, write 0, timeout 16833
+Although, being open source, you are responsible for making sure it works within your requirements!
 
 
 
 
 Why CDB?
-========
+--------
 
 Until I expand upon why I have chosen to use CDB for service static website content, you can read about the `sparkey <https://github.com/spotify/sparkey>`__ from Spotify.
 
 
 
 
-Authors
-=======
+Why Go?
+-------
 
-Ciprian Dorin Craciun
-  * `ciprian@volution.ro <mailto:ciprian@volution.ro>`__ or `ciprian.craciun@gmail.com <mailto:ciprian.craciun@gmail.com>`__
-  * `<https://volution.ro/ciprian>`__
-  * `<https://github.com/cipriancraciun>`__
+Because Go is highly portable, highly stable, and especially because it can easily support cross-compiling statically linked binaries to any platform it supports.
+
+
+
+
+Why not Rust?
+-------------
+
+Because Rust fails to easily support cross-compiling (statically or dynamically linked) executables to any platform it supports.
+
+Because Rust is less portable than Go;  for example Rust doesn't consider OpenBSD as a "tier-1" platform.
+
+
+
+
+--------
 
 
 
@@ -1279,9 +376,19 @@ Notice (copyright and licensing)
 ================================
 
 .. contents::
-    :depth: 2
     :local:
     :backlinks: none
+
+
+
+
+Authors
+-------
+
+Ciprian Dorin Craciun
+  * `ciprian@volution.ro <mailto:ciprian@volution.ro>`__ or `ciprian.craciun@gmail.com <mailto:ciprian.craciun@gmail.com>`__
+  * `<https://volution.ro/ciprian>`__
+  * `<https://github.com/cipriancraciun>`__
 
 
 
@@ -1314,14 +421,11 @@ References
 ==========
 
 
-.. [Go]
-    * `Go <https://en.wikipedia.org/wiki/Go_(programming_language)>`__ (@WikiPedia);
-    * `Go <https://golang.com/>`__ (project);
-
 .. [CDB]
-    * `CDB <https://en.wikipedia.org/wiki/Cdb_(software)>`__ (@WikiPedia);
-    * `cdb <http://cr.yp.to/cdb.html>`__ (project);
-    * `cdb internals <http://www.unixuser.org/~euske/doc/cdbinternals/index.html>`__ (article);
+    * `CDB <https://en.wikipedia.org/wiki/Cdb_(software)>`__ (@Wikipedia);
+    * `cdb <http://cr.yp.to/cdb.html>`__ (project website, reference implementation by DJB);
+    * `cdb <https://github.com/colinmarc/cdb>`__ (project @GitHub, pure Go implementation, used by ``kawipiko`` with patches;)
+    * `Constant Database Internals <http://www.unixuser.org/~euske/doc/cdbinternals/index.html>`__ (article);
     * `Benchmarking LevelDB vs. RocksDB vs. HyperLevelDB vs. LMDB Performance for InfluxDB <https://www.influxdata.com/blog/benchmarking-leveldb-vs-rocksdb-vs-hyperleveldb-vs-lmdb-performance-for-influxdb/>`__ (article);
     * `Badger vs LMDB vs BoltDB: Benchmarking key-value databases in Go <https://blog.dgraph.io/post/badger-lmdb-boltdb/>`__ (article);
     * `Benchmarking BDB, CDB and Tokyo Cabinet on large datasets <https://www.dmo.ca/blog/benchmarking-hash-databases-on-large-data/>`__ (article);
@@ -1329,35 +433,75 @@ References
     * `tinydns <https://cr.yp.to/djbdns/tinydns.html>`__ (DNS server using CDB);
     * `qmail <https://cr.yp.to/qmail.html>`__ (SMTP server using CDB);
 
-.. [wrk]
-    * `wrk <https://github.com/wg/wrk>`__ (project);
-    * modern HTTP benchmarking tool;
-    * multi threaded, with event loop and Lua support;
+.. [Go]
+    * `Go <https://en.wikipedia.org/wiki/Go_(programming_language)>`__ (@Wikipedia);
+    * `Go <https://golang.com/>`__ (project website);
+
+.. [fasthttp]
+    * `fasthttp <https://github.com/valyala/fasthttp>`__ (project @GitHub);
+    * high performance HTTP server implementation;  (alternative to Go's ``net/http`` implementation;)
+    * supports HTTP/1 with or without TLS;
+    * used by ``kawipiko``;
+
+.. [quic-go]
+    * `quic-go <https://github.com/lucas-clemente/quic-go>`__ (project @GitHub);
+    * supports H3 over QUIC;
+    * used by ``kawipiko``;
+
+.. [Zopfli]
+    * `Zopfli <https://en.wikipedia.org/wiki/Zopfli>`__ (@Wikipedia);
+    * `Zopfli <https://github.com/google/zopfli>`__ (project @GitHub, reference implementation by Google);
+    * `Zopfli <https://github.com/foobaz/go-zopfli>`__ (project @GitHub, pure Go implementation, used by ``kawipiko``);
 
 .. [Brotli]
-    * `Brotli <https://en.wikipedia.org/wiki/Brotli>`__ (@WikiPedia);
-    * `Brotli <https://github.com/google/brotli>`__ (project);
+    * `Brotli <https://en.wikipedia.org/wiki/Brotli>`__ (@Wikipedia);
+    * `Brotli <https://github.com/google/brotli>`__ (project @GitHub, reference implementation by Google);
+    * `Brotli <https://github.com/andybalholm/brotli>`__ (project @GitHub, pure Go implementation, used by ``kawipiko``);
     * `Results of experimenting with Brotli for dynamic web content <https://blog.cloudflare.com/results-experimenting-brotli/>`__ (article);
+
+.. [Blake3]
+    * `Blake3 <https://en.wikipedia.org/wiki/BLAKE_(hash_function)>`__ (@Wikipedia);
+    * `Blake3 <https://github.com/BLAKE3-team/BLAKE3>`__ (project @GitHub, reference implementation);
+    * `Blake3 <https://github.com/zeebo/blake3>`__ (project @GitHub, pure Go implementation, used by ``kawipiko``);
+
+.. [Bolt]
+    * `bolt <https://github.com/boltdb/bolt>`__ (project @GitHub, original pure Go implementation);
+    * `bbolt <https://github.com/etcd-io/bbolt>`__ (project @GitHub, forked pure Go implementation, used by ``kawipiko``);
+
+.. [wrk]
+    * `wrk <https://github.com/wg/wrk>`__ (project @GitHub);
+    * modern HTTP benchmarking tool;
+    * multi threaded, implemented in C, with event loop and Lua support;
+    * supports HTTP/1 with and without TLS;
+
+.. [h2load]
+    * part of the ``nghttp2`` project;
+    * `nghttp2 <https://github.com/nghttp2/nghttp2>`__ (project @GitHub);
+    * modern HTTP benchmarking tool;
+    * multi threaded, implemented in C, with event loop;
+    * supports HTTP/1 with TLS, H2, and H3;
 
 .. [Netlify]
     * `Netlify <https://www.netlify.com/>`__ (cloud provider);
 
 .. [HAProxy]
-    * `HAProxy <https://en.wikipedia.org/wiki/HAProxy>`__ (@WikiPedia);
-    * `HAProxy <https://www.haproxy.org/>`__ (project);
+    * `HAProxy <https://en.wikipedia.org/wiki/HAProxy>`__ (@Wikipedia);
+    * `HAProxy <https://www.haproxy.org/>`__ (project website);
     * reliable high performance TCP/HTTP load-balancer;
-    * multi threaded, with event loop and Lua support;
+    * multi threaded, implemented in C, with event loop and Lua support;
 
 .. [NGinx]
-    * `NGinx <https://en.wikipedia.org/wiki/Nginx>`__ (@WikiPedia);
-    * `NGinx <https://nginx.org/>`__ (project);
+    * `NGinx <https://en.wikipedia.org/wiki/Nginx>`__ (@Wikipedia);
+    * `NGinx <https://nginx.org/>`__ (project website);
+    * reliable high performance HTTP server;
+    * multi threaded, implemented in C, with event loop;
 
 .. [darkhttpd]
-    * `darkhttpd <https://unix4lyfe.org/darkhttpd/>`__ (project);
+    * `darkhttpd <https://unix4lyfe.org/darkhttpd/>`__ (project website);
     * simple static HTTP server;
-    * single threaded, with event loop and ``sendfile`` support;
+    * single threaded, implemented in C, with event loop and ``sendfile`` support;
 
 .. [mmap]
-    * `Memory mapping <https://en.wikipedia.org/wiki/Memory-mapped_file>`__ (@WikiPedia);
+    * `Memory mapping <https://en.wikipedia.org/wiki/Memory-mapped_file>`__ (@Wikipedia);
     * `mmap(2) <http://man7.org/linux/man-pages/man2/mmap.2.html>`__ (Linux man page);
 
