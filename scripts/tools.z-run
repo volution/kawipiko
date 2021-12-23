@@ -24,6 +24,26 @@
 
 
 
+<< tools / h1load
+	test -f ./.bin/h1load
+	test -x ./.bin/h1load
+	test "${#}" -ge 1
+	exec -- \
+		env -i -- \
+		./.bin/nodaemon \
+	./.bin/h1load \
+			-t 1 \
+			-c 1 \
+			-w 1000 \
+			-d 30 \
+			-s 1 \
+			"${@}" \
+	#
+!!
+
+
+
+
 << tools / h2load
 	test -f ./.bin/h2load
 	test -x ./.bin/h2load

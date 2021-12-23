@@ -76,6 +76,37 @@
 :: benchmark / wrk / https / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 1
 
 
+:: benchmark / h1load / http / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 16384 -w 6000
+:: benchmark / h1load / http / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 4096
+:: benchmark / h1load / http / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 2048
+:: benchmark / h1load / http / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 1024
+:: benchmark / h1load / http / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 512
+:: benchmark / h1load / http / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 256
+:: benchmark / h1load / http / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 128
+:: benchmark / h1load / http / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 64
+:: benchmark / h1load / http / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 32
+:: benchmark / h1load / http / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 16
+:: benchmark / h1load / http / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 8
+:: benchmark / h1load / http / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 4
+:: benchmark / h1load / http / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 2
+:: benchmark / h1load / http / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 1
+
+:: benchmark / h1load / https / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 16384 -w 6000
+:: benchmark / h1load / https / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 4096
+:: benchmark / h1load / https / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 2048
+:: benchmark / h1load / https / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 1024
+:: benchmark / h1load / https / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 512
+:: benchmark / h1load / https / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 256
+:: benchmark / h1load / https / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 128
+:: benchmark / h1load / https / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 64
+:: benchmark / h1load / https / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 32
+:: benchmark / h1load / https / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 16
+:: benchmark / h1load / https / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 8
+:: benchmark / h1load / https / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 4
+:: benchmark / h1load / https / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 2
+:: benchmark / h1load / https / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 1
+
+
 :: benchmark / h2load / https / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 16384 --h1 --connection-inactivity-timeout 6s
 :: benchmark / h2load / https / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 4096 --h1
 :: benchmark / h2load / https / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 2048 --h1
@@ -385,6 +416,38 @@
 !!
 
 
+<< benchmark / dummy / httpterm / 1x2
+	_nodaemon="$( exec -- readlink -e -- "$( type -P -- nodaemon )" )"
+	if test ! "/proc/${PPID}/exe" -ef "${_nodaemon}" ; then
+		exec -- nodaemon "${ZRUN[@]}" ':: benchmark / dummy / httpterm / 1x2' "${@}"
+	fi
+	_pids=()
+	"${ZRUN[@]}" ':: benchmark / dummy / httpterm / 1x1' "${@}" & _pids+=( "${!}" )
+	"${ZRUN[@]}" ':: benchmark / dummy / httpterm / 1x1' "${@}" & _pids+=( "${!}" )
+	trap 'kill -- "${_pids[@]}" 2> /dev/null || true' SIGINT SIGTERM SIGQUIT
+	wait -- "${_pids[@]}" || true
+	kill -- "${_pids[@]}" 2> /dev/null || true
+	exit -- 0
+!!
+
+<< benchmark / dummy / httpterm / 1x1
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 0,1 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.bin/httpterm \
+			-db \
+			-L 127.9.185.194:8080 \
+			"${@}" \
+	#
+!!
+
+
 
 
 
@@ -461,6 +524,46 @@
 			-- \
 			"${_url_base}" \
 			"${_paths}" \
+	#
+!!
+
+
+
+
+<< benchmark / h1load / http
+	exec -- "${ZRUN[@]}" ':: benchmark / h1load' http 127.9.185.194:8080 "${@}"
+!!
+
+<< benchmark / h1load / https
+	exec -- "${ZRUN[@]}" ':: benchmark / h1load' https 127.9.185.194:8443 "${@}"
+!!
+
+--<< benchmark / h1load
+	test "${#}" -ge 2
+	_url_base="${1}://${2}"
+	shift -- 2
+	if test "${#}" -ge 1 ; then
+		if test "${1:0:1}" != '-' ; then
+			_path="${1}"
+			_path="${_path#/}"
+			shift -- 1
+		else
+			_path=''
+		fi
+	else
+		_path=''
+	fi
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 2,3 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+	"${ZRUN[@]}" ':: tools / h1load' \
+			"${@}" \
+			"${_url_base}/${_path}" \
 	#
 !!
 
