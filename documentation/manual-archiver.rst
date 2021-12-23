@@ -39,6 +39,11 @@ kawipiko -- blazingly fast static HTTP server
 
 
 
+--------
+
+
+
+
 Flags
 .....
 
@@ -130,8 +135,8 @@ Ignored files
 
 
 
-``_wildcard.*`` files
-.....................
+Wildcard files
+..............
 
 
 By placing a file whose name matches ``_wildcard.*`` (i.e. with the prefix ``_wildcard.`` and any other suffix), it will be used to respond to any request whose URL fails to find a "better" match.

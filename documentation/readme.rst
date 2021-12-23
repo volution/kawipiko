@@ -14,8 +14,8 @@ supporting both **HTTP/1 (with or without TLS), HTTP/2 and HTTP/3 (over QUIC)**;
 available as a **single statically linked executable** without any other dependencies.
 
 
-However, `simple` doesn't imply `dumb` or `limited`,
-instead it implies `efficient` through the removal of superfluous features,
+However, *simple* doesn't imply *dumb* or *limited*,
+instead it implies *efficient* through the removal of superfluous features,
 thus being inline with UNIX's old philosophy of
 "`do one thing and do it well <https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well>`__".
 Therefore, it supports only ``GET`` requests,
@@ -43,7 +43,7 @@ which is what this project provides.
 
 
 For those familiar with Netlify (or competitors like CloudFlare Pages, GitHub Pages, etc.),
-``kawipiko`` is a `host-it-yourself` alternative featuring:
+``kawipiko`` is a *host-it-yourself* alternative featuring:
 
 * self-contained deployment with simple configuration;
   (i.e. just `fetch the executable <#installation>`__ and use the `proper flags <#kawipiko-server>`__;)
@@ -130,8 +130,8 @@ Unlike most (if not all) other servers out-there,
 in which you just point your web server to the folder holding the static website content root,
 ``kawipiko`` takes a radically different approach:
 in order to serve the static content,
-one has to first `archive` the content into the CDB archive through ``kawipiko-archiver``,
-and then one can `serve` it from the CDB archive through ``kawipiko-server``.
+one has to first *archive* the content into the CDB archive through ``kawipiko-archiver``,
+and then one can *serve* it from the CDB archive through ``kawipiko-server``.
 
 
 This two step phase also presents a few opportunities:

@@ -66,6 +66,11 @@ References
     * `bbolt <https://github.com/etcd-io/bbolt>`__ (project @GitHub, forked pure Go implementation, used by ``kawipiko``);
 
 
+.. [dpbench]
+    * `dpbench <https://github.com/dpbench/dpbench>`__ (project @GitHub);
+    * describes a standard methodology for testing HTTP proxies;  (it can also be applied to ``kawipiko``;)
+    * `HAProxy Forwards Over 2 Million HTTP Requests per Second <https://www.haproxy.com/blog/haproxy-forwards-over-2-million-http-requests-per-second-on-a-single-aws-arm-instance/>`__ (article);
+
 .. [wrk]
     * `wrk <https://github.com/wg/wrk>`__ (project @GitHub);
     * modern HTTP benchmarking tool;

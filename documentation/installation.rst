@@ -18,6 +18,11 @@ Installation
 
 
 
+--------
+
+
+
+
 Download prebuilt executables
 -----------------------------
 
@@ -27,6 +32,11 @@ Download prebuilt executables
   No executables are currently available for download!
 
   Please consult the `build from sources section <#build-from-sources>`__ for now.
+
+
+
+
+--------
 
 
 
@@ -55,7 +65,7 @@ Install the prerequisites
 
 * other Linux / FreeBSD / OpenBSD / OSX:
 
-  * fetch and install Go from: https://golang.org/dl
+  * fetch and install Go from: `<https://golang.org/dl>`__
   * add ``/usr/local/go/bin`` to your ``PATH``;
   * install Git;
 
