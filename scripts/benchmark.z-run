@@ -329,8 +329,6 @@
 !!
 
 
-
-
 << benchmark / alternatives / haproxy-dummy
 	exec -- \
 		sudo -u root -n -E -P -- \
@@ -349,8 +347,6 @@
 !!
 
 
-
-
 << benchmark / alternatives / nginx-dummy
 	exec -- \
 		sudo -u root -n -E -P -- \
@@ -365,6 +361,25 @@
 			-c ./examples/nginx-dummy.conf \
 			-e /dev/stderr \
 			-p . \
+			"${@}" \
+	#
+!!
+
+
+<< benchmark / alternatives / nodejs-dummy
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 0,1 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.bin/node16 \
+			-- \
+			./examples/nodejs-dummy.js \
+			127.9.185.194 8080 \
 			"${@}" \
 	#
 !!
