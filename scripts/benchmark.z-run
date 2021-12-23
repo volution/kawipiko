@@ -176,19 +176,7 @@
 	test "${#}" -ge 1
 	_mode="${1}"
 	shift -- 1
-	if test "${#}" -ge 1 ; then
-		if test "${1:0:1}" != '-' ; then
-			_archive="${1}"
-			shift -- 1
-		else
-			_archive=''
-		fi
-	else
-		_archive=''
-	fi
-	if test -z "${_archive}" ; then
-		_archive=./examples/hello-world.cdb
-	fi
+	_archive=./examples/hello-world.cdb
 	_arguments=()
 	case "${_mode}" in
 		( http-all )
@@ -348,6 +336,49 @@
 	test "${#}" -eq 0
 	exec -- x-www 'guest:*' open http://127.226.119.8:8080/
 !!
+
+
+
+
+
+
+
+
+:: benchmark / nginx / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / nginx' 1 "${@}"
+:: benchmark / nginx / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / nginx' 2 "${@}"
+
+<< benchmark / nginx
+	test "${#}" -ge 1
+	_count="${1}"
+	shift -- 1
+	_archive=./examples/hello-world
+	sed \
+			-r \
+			-e 's#@\{nginx_root\}#'"${_archive}"'#g' \
+			-e 's#@\{nginx_bind_http\}#127.9.185.194:8080#g' \
+			-e 's#@\{nginx_empty\}#/var/lib/empty#g' \
+			-e 's#@\{nginx_pid\}#/tmp/nginx.pid#g' \
+		< ./examples/nginx/nginx.conf \
+		>| ./examples/nginx/nginx.conf.tmp \
+	#
+	_arguments=(
+			-c ./examples/nginx/nginx.conf.tmp
+			-e /dev/stderr
+			-p .
+		)
+	exec -- \
+		"${ZRUN[@]}" ':: benchmark / execute / multiple' "${_count}" \
+		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		noenvironment \
+	./.bin/nginx \
+			"${_arguments[@]}" \
+			"${@}" \
+	#
+!!
+
+
+
+
 
 
 
