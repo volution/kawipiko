@@ -1,15 +1,4 @@
 
-  ====  kawipiko -- blazingly fast static HTTP server  ====
-
-  |  Documentation, issues and sources:
-  |      * https://github.com/volution/kawipiko
-  |  Authors:
-  |      * Ciprian Dorin Craciun
-  |          ciprian@volution.ro
-  |          ciprian.craciun@gmail.com
-  |          https://volution.ro/ciprian
-  -----------------------------------------------------------
-
   kawipiko-archiver
 
     --sources <path>
@@ -30,11 +19,13 @@
     --exclude-file-listing
     --include-folder-listing
 
-    --progress
-    --debug
+    --progress  --debug
+
+    --help       (show this short help)
+    --man        (show the full manual)
 
   ** supported archive version:  @{SCHEMA}
 
-  ** for details see:
-     https://github.com/volution/kawipiko/blob/development/documentation/manual-archiver.rst
+  || kawipiko, <https://github.com/volution/kawipiko>
+  || Ciprian Dorin Craciun, <https://volution.ro/ciprian>
 

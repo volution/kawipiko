@@ -1,15 +1,4 @@
 
-  ====  kawipiko -- blazingly fast static HTTP server  ====
-
-  |  Documentation, issues and sources:
-  |      * https://github.com/volution/kawipiko
-  |  Authors:
-  |      * Ciprian Dorin Craciun
-  |          ciprian@volution.ro
-  |          ciprian.craciun@gmail.com
-  |          https://volution.ro/ciprian
-  -----------------------------------------------------------
-
   kawipiko-server
 
     --archive <path>
@@ -46,13 +35,16 @@
 
     --limit-memory <MiB>
     --timeout-disable
-    --profile-cpu <path> ; --profile-mem <path>
+    --profile-cpu <path>
+    --profile-mem <path>
 
-    --report ; --quiet ; --debug
-    --dummy ; --dummy-empty ; --dummy-delay <duration>
+    --report  --quiet  --debug
+
+    --help       (show this short help)
+    --man        (show the full manual)
 
   ** supported archive version:  @{SCHEMA}
 
-  ** for details see:
-     https://github.com/volution/kawipiko/blob/development/documentation/manual-server.rst
+  || kawipiko, <https://github.com/volution/kawipiko>
+  || Ciprian Dorin Craciun, <https://volution.ro/ciprian>
 

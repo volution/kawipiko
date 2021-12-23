@@ -623,6 +623,17 @@ func (_server *server) Printf (_format string, _arguments ... interface{}) () {
 
 func Main () () {
 	
+	if len (os.Args) == 2 {
+		switch os.Args[1] {
+			case "--help", "-h" :
+				os.Stderr.WriteString (usageText)
+				return
+			case "--man" :
+				os.Stderr.WriteString (manualText)
+				return
+		}
+	}
+	
 	log.SetPrefix (fmt.Sprintf ("[%8d] ", os.Getpid ()))
 	
 	Main_0 (main_0)
@@ -2441,6 +2452,9 @@ var _reportUsageIoWrites = & StatMetric {
 
 //go:embed usage.txt
 var usageText string
+
+//go:embed manual.txt
+var manualText string
 
 func init () {
 	usageText = strings.ReplaceAll (usageText, "@{SCHEMA}", CurrentSchemaVersion)

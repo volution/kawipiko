@@ -1014,6 +1014,17 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 
 func Main () () {
 	
+	if len (os.Args) == 2 {
+		switch os.Args[1] {
+			case "--help", "-h" :
+				os.Stderr.WriteString (usageText)
+				return
+			case "--man" :
+				os.Stderr.WriteString (manualText)
+				return
+		}
+	}
+	
 	runtime.GOMAXPROCS (2)
 	debug.SetGCPercent (75)
 	debug.SetMaxThreads (8)
@@ -1256,6 +1267,9 @@ func gobUnmarshal (_data []byte, _object interface{}) (error) {
 
 //go:embed usage.txt
 var usageText string
+
+//go:embed manual.txt
+var manualText string
 
 func init () {
 	usageText = strings.ReplaceAll (usageText, "@{SCHEMA}", CurrentSchemaVersion)

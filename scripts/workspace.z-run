@@ -212,6 +212,11 @@
 				"./documentation/manuals/${_manual}.txt" \
 		#
 		
+		cp -T -- \
+				"./documentation/manuals/${_manual}.txt" \
+				"./sources/cmd/${_manual}/manual.txt" \
+		#
+		
 	done
 !!
 
