@@ -44,10 +44,6 @@
 :: benchmark / server / http-all / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-all "${@}" --processes 1 --threads 1
 :: benchmark / server / http-all / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-all "${@}" --processes 1 --threads 2
 
-:: benchmark / server-dummy / http-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server-dummy / http-fast' 1 "${@}"
-:: benchmark / server-dummy / http-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server-dummy / http-fast' 2 "${@}"
-:: benchmark / server-dummy / http-fast / 1x4 :: exec -- "${ZRUN[@]}" ':: benchmark / server-dummy / http-fast' 4 "${@}"
-
 
 :: benchmark / wrk / http / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 16384 --timeout 6s
 :: benchmark / wrk / http / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 4096
@@ -311,7 +307,11 @@
 
 
 
-<< benchmark / server-dummy / http-fast
+:: benchmark / dummy / fasthttp / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 1 "${@}"
+:: benchmark / dummy / fasthttp / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 2 "${@}"
+:: benchmark / dummy / fasthttp / 1x4 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 4 "${@}"
+
+--<< benchmark / dummy / fasthttp
 	"${ZRUN[@]}" ':: go / build / server-dummy / release / quick'
 	exec -- \
 		sudo -u root -n -E -P -- \
@@ -329,7 +329,7 @@
 !!
 
 
-<< benchmark / alternatives / haproxy-dummy
+<< benchmark / dummy / haproxy / 1x2
 	exec -- \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
@@ -347,7 +347,7 @@
 !!
 
 
-<< benchmark / alternatives / nginx-dummy
+<< benchmark / dummy / nginx / 1x2
 	exec -- \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
@@ -366,7 +366,7 @@
 !!
 
 
-<< benchmark / alternatives / nodejs-dummy
+<< benchmark / dummy / nodejs / 1x1
 	exec -- \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
