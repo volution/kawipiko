@@ -113,3 +113,16 @@
 	#
 !!
 
+
+
+
+<< tools / vmstat / 1s
+	test "${#}" -eq 0
+	exec -- vmstat -S M -w 1
+!!
+
+<< tools / vmstat / 6s
+	test "${#}" -eq 0
+	exec -- vmstat -S M -w 6
+!!
+

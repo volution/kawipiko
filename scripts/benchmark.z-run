@@ -5,8 +5,10 @@
 
 :: benchmark / server / http-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 1 --threads 1
 :: benchmark / server / http-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 2 --threads 1
+:: benchmark / server / http-fast / 4x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 4 --threads 1
 :: benchmark / server / http-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 1 --threads 2
 :: benchmark / server / http-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 2 --threads 2
+:: benchmark / server / http-fast / 1x4 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 1 --threads 4
 
 :: benchmark / server / http-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 1 --threads 1
 :: benchmark / server / http-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 2 --threads 1
@@ -250,6 +252,7 @@
 		;;
 	esac
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
 		nice -n -19 -- \
@@ -345,6 +348,7 @@
 --<< benchmark / dummy / fasthttp
 	"${ZRUN[@]}" ':: go / build / server-dummy / release / quick'
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
 		nice -n -19 -- \
@@ -362,6 +366,7 @@
 
 << benchmark / dummy / haproxy / 1x2
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
 		nice -n -19 -- \
@@ -378,8 +383,9 @@
 !!
 
 
-<< benchmark / dummy / nginx / 1x2
+<< benchmark / dummy / nginx / 2x1
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
 		nice -n -19 -- \
@@ -399,6 +405,7 @@
 
 << benchmark / dummy / nodejs / 1x1
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
 		nice -n -19 -- \
@@ -416,21 +423,27 @@
 !!
 
 
-<< benchmark / dummy / httpterm / 1x2
+<< benchmark / dummy / httpterm / 2x1
 	_nodaemon="$( exec -- readlink -e -- "$( type -P -- nodaemon )" )"
 	if test ! "/proc/${PPID}/exe" -ef "${_nodaemon}" ; then
-		exec -- nodaemon "${ZRUN[@]}" ':: benchmark / dummy / httpterm / 1x2' "${@}"
+		exec -- nodaemon "${ZRUN[@]}" ':: benchmark / dummy / httpterm / 2x1' "${@}"
 	fi
 	_pids=()
 	"${ZRUN[@]}" ':: benchmark / dummy / httpterm / 1x1' "${@}" & _pids+=( "${!}" )
 	"${ZRUN[@]}" ':: benchmark / dummy / httpterm / 1x1' "${@}" & _pids+=( "${!}" )
-	trap 'kill -- "${_pids[@]}" 2> /dev/null || true' SIGINT SIGTERM SIGQUIT
-	wait -- "${_pids[@]}" || true
-	kill -- "${_pids[@]}" 2> /dev/null || true
+	(
+		trap 'kill -- "${_pids[@]}" 2> /dev/null || true' SIGINT SIGTERM SIGQUIT
+		while sleep 1m ; do true ; done || true
+		kill -- "${_pids[@]}" 2> /dev/null || true
+	) &
 	exit -- 0
 !!
 
 << benchmark / dummy / httpterm / 1x1
+	_nodaemon="$( exec -- readlink -e -- "$( type -P -- nodaemon )" )"
+	if test ! "/proc/${PPID}/exe" -ef "${_nodaemon}" ; then
+		exec -- nodaemon "${ZRUN[@]}" ':: benchmark / dummy / httpterm / 1x1' "${@}"
+	fi
 	exec -- \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
@@ -439,7 +452,7 @@
 		chrt -r 10 \
 		prlimit -n262144 -- \
 		sudo -u "${USER}" -n -E -P -- \
-		env -i -- \
+		env -i \
 	./.bin/httpterm \
 			-db \
 			-L 127.9.185.194:8080 \
@@ -478,6 +491,7 @@
 		_path=''
 	fi
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 2,3 \
 		nice -n -19 -- \
@@ -511,6 +525,7 @@
 	_paths="${1}"
 	shift -- 1
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 2,3 \
 		nice -n -19 -- \
@@ -554,6 +569,7 @@
 		_path=''
 	fi
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 2,3 \
 		nice -n -19 -- \
@@ -598,6 +614,7 @@
 		_path=''
 	fi
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 2,3 \
 		nice -n -19 -- \
@@ -639,6 +656,7 @@
 		_path=''
 	fi
 	exec -- \
+		nodaemon \
 		sudo -u root -n -E -P -- \
 		taskset -c 2,3 \
 		nice -n -19 -- \
