@@ -27,11 +27,48 @@ Download prebuilt executables
 -----------------------------
 
 
-.. warning ::
+See the `releases page on GitHub <https://github.com/volution/kawipiko/releases>`__.
 
-  No executables are currently available for download!
+As a shortcut, the following are the self-contained and statically linked
+all-in-one server and archiver executables
+(for x86_64 / amd64 processors):
 
-  Please consult the `build from sources section <#build-from-sources>`__ for now.
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko--linux>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko--freebsd>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko--openbsd>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko--darwin>`__
+
+
+For example, assuming one wants the ``preview`` version,
+one can run the following commands: ::
+
+    curl \
+            -s -S -f -L \
+            -o /tmp/kawipiko-server \
+            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-server--linux \
+    #
+
+    curl \
+            -s -S -f -L \
+            -o /tmp/kawipiko-archiver \
+            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-archiver--linux \
+    #
+
+    curl \
+            -s -S -f -L \
+            -o /tmp/kawipiko \
+            https://github.com/volution/kawipiko/releases/download/preview/kawipiko--linux \
+    #
+
+    chmod a=rx /tmp/kawipiko-server
+    chmod a=rx /tmp/kawipiko-archiver
+    chmod a=rx /tmp/kawipiko
+
+
+One can replace ``preview`` with ``v0.x.y`` (see the releases page).
+
+
+One can replace ``linux`` with ``freebsd``, ``openbsd`` or ``darwin``.
 
 
 
@@ -65,7 +102,7 @@ Install the prerequisites
 
 * other Linux / FreeBSD / OpenBSD / OSX:
 
-  * fetch and install Go from: `<https://golang.org/dl>`__
+  * fetch and install Go from `<https://golang.org/dl>`__;
   * add ``/usr/local/go/bin`` to your ``PATH``;
   * install Git;
 
@@ -127,7 +164,7 @@ Compile the (dynamic) executables: ::
 
     cd /tmp/kawipiko/src/sources
 
-    #### build `kawipiko` dynamic all-in-one executable
+    #### build `kawipiko` all-in-one dynamic executable
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
@@ -171,7 +208,7 @@ Compile the (static) executables: ::
 
     cd /tmp/kawipiko/src/sources
 
-    #### build `kawipiko` static all-in-one executable
+    #### build `kawipiko` all-in-one static executable
     env \
             GOPATH=/tmp/kawipiko/go \
     go build \
