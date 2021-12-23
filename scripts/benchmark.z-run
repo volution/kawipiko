@@ -341,7 +341,7 @@
 		env -i -- \
 	./.bin/haproxy \
 			-db \
-			-f ./examples/haproxy-dummy.conf \
+			-f ./examples/dummy/haproxy-dummy.conf \
 			"${@}" \
 	#
 !!
@@ -358,7 +358,7 @@
 		sudo -u "${USER}" -n -E -P -- \
 		env -i -- \
 	./.bin/nginx \
-			-c ./examples/nginx-dummy.conf \
+			-c ./examples/dummy/nginx-dummy.conf \
 			-e /dev/stderr \
 			-p . \
 			"${@}" \
@@ -378,7 +378,7 @@
 		env -i -- \
 	./.bin/node16 \
 			-- \
-			./examples/nodejs-dummy.js \
+			./examples/dummy/nodejs-dummy.js \
 			127.9.185.194 8080 \
 			"${@}" \
 	#
