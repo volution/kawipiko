@@ -1,0 +1,292 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "KAWIPIKO-SERVER" "1" "2021-12-23" "volution.ro" "kawipiko"
+.SH NAME
+kawipiko -- blazingly fast static HTTP server \- kawipiko-server
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>> kawipiko\-server \-\-help
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+\-\-archive <path>
+\-\-archive\-inmem           (memory\-loaded archive file)
+\-\-archive\-mmap            (memory\-mapped archive file)
+\-\-archive\-preload         (preload archive in OS cache)
+
+\-\-bind <ip>:<port>        (HTTP, only HTTP/1.1, FastHTTP)
+\-\-bind\-2 <ip>:<port>      (HTTP, only HTTP/1.1, Go net/http)
+\-\-bind\-tls <ip>:<port>    (HTTPS, only HTTP/1.1, FastHTTP)
+\-\-bind\-tls\-2 <ip>:<port>  (HTTPS, with HTTP/2, Go net/http)
+\-\-bind\-quic <ip>:<port>   (HTTPS, with HTTP/3)
+
+\-\-http1\-disable
+\-\-http2\-disable
+\-\-http3\-alt\-svc <ip>:<port>
+
+\-\-tls\-bundle <path>       (TLS certificate bundle)
+\-\-tls\-public <path>       (TLS certificate public)
+\-\-tls\-private <path>      (TLS certificate private)
+\-\-tls\-self\-rsa            (use self\-signed RSA)
+\-\-tls\-self\-ed25519        (use self\-signed Ed25519)
+
+\-\-processes <count>       (of slave processes)
+\-\-threads <count>         (of threads per process)
+\-\-index\-all
+\-\-index\-paths
+\-\-index\-data\-meta
+\-\-index\-data\-content
+
+\-\-security\-headers\-tls
+\-\-security\-headers\-disable
+
+\-\-limit\-memory <MiB>
+\-\-timeout\-disable
+\-\-profile\-cpu <path> ; \-\-profile\-mem <path>
+
+\-\-report ; \-\-quiet ; \-\-debug
+\-\-dummy ; \-\-dummy\-empty ; \-\-dummy\-delay <duration>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+
+.sp
+.ce
+----
+
+.ce 0
+.sp
+.SH FLAGS
+.sp
+\fB\-\-bind <ip:port>\fP, \fB\-\-bind\-tls <ip:port>\fP, \fB\-\-bind\-2 <ip:port>\fP, \fB\-\-bind\-tls\-2 <ip:port>\fP, and \fB\-\-bind\-quic <ip:port>\fP
+.INDENT 0.0
+.INDENT 3.5
+The IP and port to listen for requests with:
+.INDENT 0.0
+.IP \(bu 2
+(insecure) HTTP/1.1 for \fB\-\-bind\fP, leveraging \fBfasthttp\fP library;
+.IP \(bu 2
+(secure) HTTP/1.1 over TLS for \fB\-\-bind\-tls\fP, leveraging \fBfasthttp\fP library;
+.IP \(bu 2
+(insecure) HTTP/1.1 for \fI\-\-bind\-2\(ga\fP, leveraging Go\(aqs \fBnet/http\fP library; (not as performant as the \fBfasthttp\fP powered endpoint;)
+.IP \(bu 2
+(secure) H2 or HTTP/1.1 over TLS for \fB\-\-bind\-tls\-2\fP, leveraging Go\(aqs \fBnet/http\fP;  (not as performant as the \fBfasthttp\fP powered endpoint;)
+.IP \(bu 2
+(secure) H3 over QUIC for \fB\-\-bind\-quic\fP, leveraging \fBgithub.com/lucas\-clemente/quic\-go\fP library;  (given that H3 is still a new protocol, this must be used with caution;  also one should use the \fB\-\-http3\-alt\-svc <ip:port>\fP;)
+.IP \(bu 2
+if one uses just \fB\-\-bind\-tls\fP (without \fB\-\-bind\-tls\-2\fP, and without \fB\-\-http2\-disabled\fP), then the TLS endpoint is split between \fBfasthttp\fP for HTTP/1.1 and Go\(aqs \fBnet/http\fP for H2;
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-tls\-bundle <path>\fP, \fB\-\-tls\-public <path>\fP, and \fB\-\-tls\-private <path>\fP (optional)
+.INDENT 0.0
+.INDENT 3.5
+If TLS is enabled, these options allows one to specify the certificate to use, either as a single file (a bundle) or separate files (the actual public certificate and the private key).
+.sp
+If one doesn\(aqt specify any of these options, an embedded self\-signed certificate will be used.  In such case, one can choose between RSA (the \fB\-\-tls\-self\-rsa\fP flag) or Ed25519 (the \fB\-\-tls\-self\-ed25519\fP flag);
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-http1\-disable\fP, \fB\-\-http2\-disable\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables that particular protocol.
+(It can be used only with \fB\-\-bind\-tls\-2\fP, given that \fBfasthttp\fP only supports HTTP/1.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-processes <count>\fP and \fB\-\-threads <count>\fP
+.INDENT 0.0
+.INDENT 3.5
+The number of processes and threads per each process to start.  (Given Go\(aqs concurrency model, the threads count is somewhat a soft limit, hinting to the runtime the desired parallelism level.)
+.sp
+It is highly recommended to use one process and as many threads as there are cores.
+.sp
+Depending on the use\-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
+(However note that if using \fB\-\-archive\-inmem\fP, then each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use \fB\-\-archive\-mmap\fP\&.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-archive <path>\fP
+.INDENT 0.0
+.INDENT 3.5
+The path of the CDB file that contains the archived static content.
+(It can be created with the \fBkawipiko\-archiver\fP tool.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-archive\-inmem\fP
+.INDENT 0.0
+.INDENT 3.5
+Reads the CDB file in RAM, and thus all requests are served from RAM without touching the file\-system.
+(The memory impact is equal to the size of the CDB archive.  This can be used if enough RAM is available to avoid swapping.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-archive\-mmap\fP
+.INDENT 0.0
+.INDENT 3.5
+(\fBrecommended\fP) The CDB file is \fI\%memory mapped\fP, thus reading its data uses the kernel\(aqs file\-system cache, as opposed to issuing \fBread\fP syscalls.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-archive\-preload\fP
+.INDENT 0.0
+.INDENT 3.5
+Before starting to serve requests, read the CDB file so that its data is buffered in the kernel\(aqs file\-system cache.  (This option can be used with or without \fB\-\-archive\-mmap\fP\&.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-index\-all\fP, \fB\-\-index\-paths\fP, \fB\-\-index\-data\-meta\fP,  and \fB\-\-index\-data\-content\fP
+.INDENT 0.0
+.INDENT 3.5
+In order to serve a request \fBkawipiko\fP does the following:
+.INDENT 0.0
+.IP \(bu 2
+given the request\(aqs path, it is used to locate the corresponding resource\(aqs metadata (i.e. response headers) and data (i.e. response body) references;
+by using \fB\-\-index\-paths\fP a RAM\-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource paths combined;  given that the number of resources is acceptable, say up to a couple hundred thousand, one could safely use this option;)
+.IP \(bu 2
+based on the resource\(aqs metadata reference, the actual metadata (i.e. the response headers) is located;
+by using \fB\-\-index\-data\-meta\fP a RAM\-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource metadata blocks combined;  given that the metadata blocks are deduplicated, one could safely use this option;  if one also uses \fB\-\-archive\-mmap\fP or \fB\-\-archive\-inmem\fP, then the memory impact is only proportional to the number of resource metadata blocks;)
+.IP \(bu 2
+based on the resource\(aqs data reference, the actual data (i.e. the response body) is located;
+by using \fB\-\-index\-data\-content\fP a RAM\-based lookup table is created to eliminate a CDB operation operation for this purpose;  (the memory impact is proportional to the size of all resource data blocks combined;  one can use this option to obtain the best performance;  if one also uses \fB\-\-archive\-mmap\fP or \fB\-\-archive\-inmem\fP, then the memory impact is only proportional to the number of resource data blocks;)
+.IP \(bu 2
+\fB\-\-index\-all\fP enables all the options above;
+.IP \(bu 2
+(depending on the use\-case) it is recommended to use \fB\-\-index\-paths\fP;  if \fB\-\-exclude\-etag\fP was used during archival, one can also use \fB\-\-index\-data\-meta\fP;
+.IP \(bu 2
+it is recommended to use either \fB\-\-archive\-mmap\fP or  \fB\-\-archive\-inmem\fP, else (especially if data is indexed) the resulting effect is that of loading everything in RAM;
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-security\-headers\-tls\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables adding the following TLS related headers to the response:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+Strict\-Transport\-Security: max\-age=31536000
+Content\-Security\-Policy: upgrade\-insecure\-requests
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+These instruct the browser to always use HTTPS for the served domain.
+(Useful even without HTTPS, when used behind a TLS terminator, load\-balancer or proxy that do support HTTPS.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-security\-headers\-disable\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables adding a few security related headers:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+Referrer\-Policy: strict\-origin\-when\-cross\-origin
+X\-Content\-Type\-Options: nosniff
+X\-XSS\-Protection: 1; mode=block
+X\-Frame\-Options: sameorigin
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-report\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables periodic reporting of various metrics.
+Also enables reporting a selection of metrics if certain thresholds are matched (which most likely is a sign of high\-load).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-quiet\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables most logging messages.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-debug\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables all logging messages.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-dummy\fP, \fB\-\-dummy\-empty\fP
+.INDENT 0.0
+.INDENT 3.5
+It starts the server in a "dummy" mode, ignoring all archive related arguments and always responding with \fBhello world!\en\fP (unless \fB\-\-dummy\-empty\fP was used) and without additional headers except the HTTP status line and \fBContent\-Length\fP\&.
+.sp
+This argument can be used to benchmark the raw performance of the underlying \fBfasthttp\fP, Go\(aqs \fBnet/http\fP, or QUIC performance;  this is the upper limit of the achievable performance given the underlying technologies.
+(From my own benchmarks \fBkawipiko\fP\(aqs adds only about ~15% overhead when actually serving the \fBhello\-world.cdb\fP archive.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-delay <duration>\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables delaying each response with a certain amount (for example \fB1s\fP, \fB1ms\fP, etc.)
+.sp
+It can be used to simulate the real\-world network latencies, perhaps to see how a site with many resources loads in various conditions.
+(For example, see \fI\%an experiment\fP I made with an image made out of 1425 tiles.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-profile\-cpu <path>\fP and \fB\-\-profile\-mem <path>\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables CPU and memory profiling using Go\(aqs profiling infrastructure.
+.UNINDENT
+.UNINDENT
+.\" Generated by docutils manpage writer.
+.

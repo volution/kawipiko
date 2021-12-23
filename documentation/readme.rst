@@ -151,7 +151,11 @@ kawipiko-server
 ---------------
 
 
-See `dedicated manual <./documentation/manual-server.rst>`__.
+See the `dedicated manual <./documentation/manuals/server.rst>`__.
+
+This document is also available
+in `plain text <./documentation/manuals/server.txt>`__,
+or as a `man page <./documentation/manuals/server.1.man>`__.
 
 
 
@@ -160,7 +164,11 @@ kawipiko-archiver
 -----------------
 
 
-See `dedicated manual <./documentation/manual-archiver.rst>`__.
+See the `dedicated manual <./documentation/manuals/archiver.rst>`__.
+
+This document is also available
+in `plain text <./documentation/manuals/archiver.txt>`__,
+or as a `man page <./documentation/manuals/archiver.1.man>`__.
 
 
 
@@ -272,7 +280,7 @@ Installation
 ============
 
 
-See `dedicated installation document <./documentation/installation.rst>`__.
+See the `dedicated installation document <./documentation/installation.rst>`__.
 
 
 
@@ -402,7 +410,7 @@ Benchmarks
 ==========
 
 
-See `dedicated benchmarks document <./documentation/benchmarks.rst>`__.
+See the `dedicated benchmarks document <./documentation/benchmarks.rst>`__.
 
 
 
@@ -536,5 +544,5 @@ References
 ==========
 
 
-See `dedicated references document <./documentation/references.rst>`__.
+See the `dedicated references document <./documentation/references.rst>`__.
 

@@ -1,0 +1,222 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "KAWIPIKO-ARCHIVER" "1" "2021-12-23" "volution.ro" "kawipiko"
+.SH NAME
+kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>> kawipiko\-archiver \-\-help
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+\-\-sources <path>
+
+\-\-archive <path>
+
+\-\-compress <gzip | zopfli | brotli | identity>
+\-\-compress\-level <number>
+\-\-compress\-cache <path>
+
+\-\-exclude\-index
+\-\-exclude\-strip
+\-\-exclude\-cache
+\-\-include\-etag
+
+\-\-exclude\-file\-listing
+\-\-include\-folder\-listing
+
+\-\-progress
+\-\-debug
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+
+.sp
+.ce
+----
+
+.ce 0
+.sp
+.SH FLAGS
+.sp
+\fB\-\-sources\fP
+.INDENT 0.0
+.INDENT 3.5
+The path to the source folder that is the root of the static website content.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-archive\fP
+.INDENT 0.0
+.INDENT 3.5
+The path to the target CDB file that contains the archived static content.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-compress\fP, and \fB\-\-compress\-level\fP
+.INDENT 0.0
+.INDENT 3.5
+Each individual file (and consequently of the corresponding HTTP response body) is compressed with either \fBgzip\fP, \fBzopfli\fP or \fBbrotli\fP;  by default (or alternatively with \fBidentity\fP) no compression is used.
+.sp
+Even if compression is explicitly requested, if the compression ratio is bellow a certain threshold (depending on the uncompressed size), the file is stored without any compression.
+(It\(aqs senseless to force the client to spend time and decompress the response body if that time is not recovered during network transmission.)
+.sp
+The compression level can be chosen, the value depending on the algorithm:
+.INDENT 0.0
+.IP \(bu 2
+\fBgzip\fP \-\- \fB\-1\fP for algorithm default, \fB\-2\fP for Huffman only, \fB0\fP to \fB9\fP for fast to slow;
+.IP \(bu 2
+\fBzopfli\fP \-\- \fB\-1\fP for algorithm default, \fB0\fP to \fB30\fP iterations for fast to slow;
+.IP \(bu 2
+\fBbrotli\fP \-\- \fB\-1\fP for algorithm default, \fB0\fP to \fB9\fP for fast to slow, \fB\-2\fP for extreme;
+.IP \(bu 2
+(by "algorithm default", it is meant "what that algorithm considers the recommended default compression level";)
+.IP \(bu 2
+\fBkawipiko\fP by default uses the maximum compression level for each algorithm;  (i.e. \fB9\fP for \fBgzip\fP, \fB30\fP for \fBzopfli\fP, and \fB\-2\fP for \fBbrotli\fP;)
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-sources\-cache <path>\fP, and \fB\-\-compress\-cache <path>\fP
+.INDENT 0.0
+.INDENT 3.5
+At the given path a single file is created (that is an BBolt database), that will be used to cache the following information:
+.INDENT 0.0
+.IP \(bu 2
+in case of \fB\-\-sources\-cache\fP, the fingerprint of each file contents is stored, so that if the file was not changed, re\-reading it shouldn\(aqt be attempted unless it is absolutely necessary;  also if the file is small enough, its contents is stored in this database (deduplicated by its fingerprint);
+.IP \(bu 2
+in case of \fB\-\-compress\-cache\fP the compression outcome of each file contents is stored (deduplicated by its fingerprint), so that compression is done only once over multiple runs;
+.UNINDENT
+.sp
+Each of these caches can be safely reused between multiple related archives, especially when they have many files in common.
+Each of these caches can be independently used (or shared).
+.sp
+Using these caches allows one to very quickly rebuild an archive when only a couple of files have been changed, without even touching the file\-system for the unchanged ones.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-exclude\-index\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables using \fBindex.*\fP files (where \fB\&.*\fP is one of \fB\&.html\fP, \fB\&.htm\fP, \fB\&.xhtml\fP, \fB\&.xht\fP, \fB\&.txt\fP, \fB\&.json\fP, and \fB\&.xml\fP) to respond to a request whose URL path ends in \fB/\fP (corresponding to the folder wherein \fBindex.*\fP file is located).
+(This can be used to implement "slash" blog style URL\(aqs like \fB/blog/whatever/\fP which maps to \fB/blog/whatever/index.html\fP\&.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-exclude\-strip\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables using a file with the suffix \fB\&.html\fP, \fB\&.htm\fP, \fB\&.xhtml\fP, \fB\&.xht\fP, and \fB\&.txt\fP to respond to a request whose URL does not exactly match an existing file.
+(This can be used to implement "suffix\-less" blog style URL\(aqs like \fB/blog/whatever\fP which maps to \fB/blog/whatever.html\fP\&.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-exclude\-cache\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables adding an \fBCache\-Control: public, immutable, max\-age=3600\fP header that forces the browser (and other intermediary proxies) to cache the response for an hour (the \fBpublic\fP and \fBmax\-age=3600\fP arguments), and furthermore not request it even on reloads (the \fBimmutable\fP argument).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-include\-etag\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables adding an \fBETag\fP response header that contains the SHA256 of the response body.
+.sp
+By not including the \fBETag\fP header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without \fBETag\fP generates the same headers), this can lead to significant reduction in stored headers blocks, including reducing RAM usage.
+(At this moment it does not support HTTP conditional requests, i.e. the \fBIf\-None\-Match\fP, \fBIf\-Modified\-Since\fP and their counterparts;  however this \fBETag\fP header might be used in conjuction with \fBHEAD\fP requests to see if the resource has changed.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-exclude\-file\-listing\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables the creation of an internal list of files that can be used in conjunction with the \fB\-\-index\-all\fP flag of the \fBkawipiko\-server\fP\&.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-include\-folder\-listing\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables the creation of an internal list of folders.  (Currently not used by the \fBkawipiko\-server\fP tool.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-progress\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables periodic reporting of various metrics.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-debug\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables verbose logging.
+It will log various information about the archived files (including compression statistics).
+.UNINDENT
+.UNINDENT
+.SH IGNORED FILES
+.INDENT 0.0
+.IP \(bu 2
+any file with the following prefixes: \fB\&.\fP, \fB#\fP;
+.IP \(bu 2
+any file with the following suffixes: \fB~\fP, \fB#\fP, \fB\&.log\fP, \fB\&.tmp\fP, \fB\&.temp\fP, \fB\&.lock\fP;
+.IP \(bu 2
+any file that contains the following: \fB#\fP;
+.IP \(bu 2
+any file that exactly matches the following: \fBThumbs.db\fP, \fB\&.DS_Store\fP;
+.IP \(bu 2
+(at the moment these rules are not configurable through flags;)
+.UNINDENT
+.SH WILDCARD FILES
+.sp
+By placing a file whose name matches \fB_wildcard.*\fP (i.e. with the prefix \fB_wildcard.\fP and any other suffix), it will be used to respond to any request whose URL fails to find a "better" match.
+.sp
+These wildcard files respect the folder hierarchy, in that wildcard files in (direct or transitive) subfolders override the wildcard file in their parents (direct or transitive).
+.SH SYMLINKS, HARDLINKS, LOOPS, AND DUPLICATED FILES
+.sp
+You freely use symlinks (including pointing outside of the content root) and they will be crawled during archival respecting the "logical" hierarchy they introduce.
+(Any loop that you introduce into the hierarchy will be ignored and a warning will be issued.)
+.sp
+You can safely symlink or hardlink the same file (or folder) in multiple places (within the content hierarchy), and its data will be stored only once.
+(The same applies to duplicated files that have exactly the same data.)
+.\" Generated by docutils manpage writer.
+.

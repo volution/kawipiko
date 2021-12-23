@@ -172,3 +172,46 @@
 	exec -- env -i -- ./.python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
 !!
 
+
+<< documentation / manuals / render
+	test "${#}" -eq 0
+	
+	_date="$( exec -- date -- '+%Y-%m-%d' )"
+	
+	for _manual in archiver server ; do
+		
+		printf -- '[ii]  rendering `%s`...\n' "${_manual}" >&2
+		
+		rst2man --strict \
+			< "./documentation/manuals/${_manual}.rst" \
+		| sed -r \
+				-e 's#^\.TH .*#.TH "KAWIPIKO\-'"${_manual^^}"'" "1" "'"${_date}"'" "volution.ro" "kawipiko"#' \
+			>| "./documentation/manuals/${_manual}.1.man.tmp" \
+		#
+		
+		mv -T -- \
+				"./documentation/manuals/${_manual}.1.man.tmp" \
+				"./documentation/manuals/${_manual}.1.man" \
+		#
+		
+		mandoc \
+				-c \
+				-man \
+				-T utf8 \
+				-I os=POSIX \
+				-O indent=2 \
+				-O width=78 \
+				-W error \
+			< "./documentation/manuals/${_manual}.1.man" \
+		| col -b -x \
+			>| "./documentation/manuals/${_manual}.txt.tmp" \
+		#
+		
+		mv -T -- \
+				"./documentation/manuals/${_manual}.txt.tmp" \
+				"./documentation/manuals/${_manual}.txt" \
+		#
+		
+	done
+!!
+
