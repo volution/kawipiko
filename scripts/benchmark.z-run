@@ -3,46 +3,46 @@
 
 
 
-:: benchmark / server / http-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 1 --threads 1
-:: benchmark / server / http-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 2 --threads 1
-:: benchmark / server / http-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 1 --threads 2
-:: benchmark / server / http-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-fast "${@}" --processes 2 --threads 2
+:: benchmark / server / http-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 1
+:: benchmark / server / http-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 2 --threads 1
+:: benchmark / server / http-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 2
+:: benchmark / server / http-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 1 --threads 1
-:: benchmark / server / http-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 2 --threads 1
-:: benchmark / server / http-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 1 --threads 2
-:: benchmark / server / http-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-go "${@}" --processes 2 --threads 2
+:: benchmark / server / http-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 1 --threads 1
+:: benchmark / server / http-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 2 --threads 1
+:: benchmark / server / http-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 1 --threads 2
+:: benchmark / server / http-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 2 --threads 2
 
-:: benchmark / server / https-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-fast "${@}" --processes 1 --threads 1
-:: benchmark / server / https-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-fast "${@}" --processes 2 --threads 1
-:: benchmark / server / https-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-fast "${@}" --processes 1 --threads 2
-:: benchmark / server / https-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-fast "${@}" --processes 2 --threads 2
+:: benchmark / server / https-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 1 --threads 1
+:: benchmark / server / https-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 2 --threads 1
+:: benchmark / server / https-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 1 --threads 2
+:: benchmark / server / https-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 2 --threads 2
 
-:: benchmark / server / https-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-go "${@}" --processes 1 --threads 1
-:: benchmark / server / https-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-go "${@}" --processes 2 --threads 1
-:: benchmark / server / https-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-go "${@}" --processes 1 --threads 2
-:: benchmark / server / https-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-go "${@}" --processes 2 --threads 2
+:: benchmark / server / https-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 1 --threads 1
+:: benchmark / server / https-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 2 --threads 1
+:: benchmark / server / https-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 1 --threads 2
+:: benchmark / server / https-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http2-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go "${@}" --processes 1 --threads 1
-:: benchmark / server / http2-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go "${@}" --processes 2 --threads 1
-:: benchmark / server / http2-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go "${@}" --processes 1 --threads 2
-:: benchmark / server / http2-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-go "${@}" --processes 2 --threads 2
+:: benchmark / server / http2-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 1 --threads 1
+:: benchmark / server / http2-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 2 --threads 1
+:: benchmark / server / http2-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 1 --threads 2
+:: benchmark / server / http2-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 2 --threads 2
 
-:: benchmark / server / https-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 1 --threads 1
-:: benchmark / server / https-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 2 --threads 1
-:: benchmark / server / https-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 1 --threads 2
-:: benchmark / server / https-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' https-split "${@}" --processes 2 --threads 2
+:: benchmark / server / https-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 1 --threads 1
+:: benchmark / server / https-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 2 --threads 1
+:: benchmark / server / https-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 1 --threads 2
+:: benchmark / server / https-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http2-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 1 --threads 1
-:: benchmark / server / http2-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 2 --threads 1
-:: benchmark / server / http2-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 1 --threads 2
-:: benchmark / server / http2-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http2-split "${@}" --processes 2 --threads 2
+:: benchmark / server / http2-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 1 --threads 1
+:: benchmark / server / http2-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 2 --threads 1
+:: benchmark / server / http2-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 1 --threads 2
+:: benchmark / server / http2-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http3-quic / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http3-quic "${@}" --processes 1 --threads 1
-:: benchmark / server / http3-quic / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http3-quic "${@}" --processes 1 --threads 2
+:: benchmark / server / http3-quic / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http3-quic "${@}" --processes 1 --threads 1
+:: benchmark / server / http3-quic / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http3-quic "${@}" --processes 1 --threads 2
 
-:: benchmark / server / http-all / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-all "${@}" --processes 1 --threads 1
-:: benchmark / server / http-all / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server / inmem' http-all "${@}" --processes 1 --threads 2
+:: benchmark / server / http-all / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-all "${@}" --processes 1 --threads 1
+:: benchmark / server / http-all / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-all "${@}" --processes 1 --threads 2
 
 
 :: benchmark / wrk / http / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 16384 --timeout 6s
@@ -237,32 +237,22 @@
 			printf -- '[ee]  invalid mode `%s`;  aborting!\n' "${_mode}" >&2
 		;;
 	esac
+	_arguments+=(
+			--archive-mmap
+			--archive-preload
+			--index-paths
+			--index-data-meta
+		#	--index-data-content
+			--security-headers-disable
+		#	--timeout-disable
+		)
 	exec -- \
 		"${ZRUN[@]}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.outputs/binaries/release/kawipiko-server \
-			"${_arguments[@]}" \
 			--archive "${_archive}" \
-			--security-headers-disable \
-			--timeout-disable \
+			"${_arguments[@]}" \
 			"${@}" \
-	#
-!!
-
-
-<< benchmark / server / mmap
-	exec -- "${ZRUN[@]}" ':: benchmark / server' \
-			"${@}" \
-			--archive-mmap \
-			--archive-preload \
-	#
-!!
-
-<< benchmark / server / inmem
-	exec -- "${ZRUN[@]}" ':: benchmark / server' \
-			"${@}" \
-			--archive-inmem \
-			--index-all \
 	#
 !!
 
@@ -271,7 +261,7 @@
 
 << benchmark / server / profile / cpu
 	test "${#}" -ge 1
-	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
+	exec -- "${ZRUN[@]}" ':: benchmark / server' \
 			"${@}" \
 			--profile-cpu ./.outputs/server-cpu.txt \
 	#
@@ -279,7 +269,7 @@
 
 << benchmark / server / profile / mem
 	test "${#}" -ge 1
-	exec -- "${ZRUN[@]}" ':: benchmark / server / mmap' \
+	exec -- "${ZRUN[@]}" ':: benchmark / server' \
 			"${@}" \
 			--profile-mem ./.outputs/server-mem.txt \
 	#
