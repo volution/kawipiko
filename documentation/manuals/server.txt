@@ -6,6 +6,7 @@ NAME
        kawipiko -- blazingly fast static HTTP server - kawipiko-server
 
           >> kawipiko-server --help
+          >> kawipiko-server --man
 
           --archive <path>
           --archive-inmem           (memory-loaded archive file)
@@ -40,10 +41,18 @@ NAME
 
           --limit-memory <MiB>
           --timeout-disable
-          --profile-cpu <path> ; --profile-mem <path>
 
-          --report ; --quiet ; --debug
-          --dummy ; --dummy-empty ; --dummy-delay <duration>
+          --report  --quiet  --debug
+
+          --help       (show this short help)
+          --man        (show the full manual)
+
+          --dummy
+          --dummy-empty
+          --dummy-delay <duration>
+
+          --profile-cpu <path>
+          --profile-mem <path>
 
 
                                         ----
@@ -207,7 +216,7 @@ FLAGS
           technologies.  (From my own benchmarks kawipiko's adds only about
           ~15% overhead when actually serving the hello-world.cdb archive.)
 
-       --delay <duration>
+       --dummy-delay <duration>
           Enables delaying each response with a certain amount (for example
           1s, 1ms, etc.)
 
@@ -216,7 +225,7 @@ FLAGS
           (For example, see an experiment I made with an image made out of
           1425 tiles.)
 
-       --profile-cpu <path> and --profile-mem <path>
+       --profile-cpu <path>, and --profile-mem <path>
           Enables CPU and memory profiling using Go's profiling
           infrastructure.
 

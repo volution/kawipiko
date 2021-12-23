@@ -13,6 +13,7 @@ kawipiko -- blazingly fast static HTTP server
 ::
 
     >> kawipiko-server --help
+    >> kawipiko-server --man
 
 ::
 
@@ -49,10 +50,18 @@ kawipiko -- blazingly fast static HTTP server
 
     --limit-memory <MiB>
     --timeout-disable
-    --profile-cpu <path> ; --profile-mem <path>
 
-    --report ; --quiet ; --debug
-    --dummy ; --dummy-empty ; --dummy-delay <duration>
+    --report  --quiet  --debug
+
+    --help       (show this short help)
+    --man        (show the full manual)
+
+    --dummy
+    --dummy-empty
+    --dummy-delay <duration>
+
+    --profile-cpu <path>
+    --profile-mem <path>
 
 
 
@@ -174,14 +183,14 @@ Flags
     This argument can be used to benchmark the raw performance of the underlying ``fasthttp``, Go's ``net/http``, or QUIC performance;  this is the upper limit of the achievable performance given the underlying technologies.
     (From my own benchmarks ``kawipiko``'s adds only about ~15% overhead when actually serving the ``hello-world.cdb`` archive.)
 
-``--delay <duration>``
+``--dummy-delay <duration>``
 
     Enables delaying each response with a certain amount (for example ``1s``, ``1ms``, etc.)
 
     It can be used to simulate the real-world network latencies, perhaps to see how a site with many resources loads in various conditions.
     (For example, see `an experiment <https://notes.volution.ro/v1/2019/08/notes/e8700e9a/>`__ I made with an image made out of 1425 tiles.)
 
-``--profile-cpu <path>`` and ``--profile-mem <path>``
+``--profile-cpu <path>``, and ``--profile-mem <path>``
 
     Enables CPU and memory profiling using Go's profiling infrastructure.
 

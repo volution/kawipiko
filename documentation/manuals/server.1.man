@@ -36,6 +36,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .nf
 .ft C
 >> kawipiko\-server \-\-help
+>> kawipiko\-server \-\-man
 .ft P
 .fi
 .UNINDENT
@@ -78,10 +79,18 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 
 \-\-limit\-memory <MiB>
 \-\-timeout\-disable
-\-\-profile\-cpu <path> ; \-\-profile\-mem <path>
 
-\-\-report ; \-\-quiet ; \-\-debug
-\-\-dummy ; \-\-dummy\-empty ; \-\-dummy\-delay <duration>
+\-\-report  \-\-quiet  \-\-debug
+
+\-\-help       (show this short help)
+\-\-man        (show the full manual)
+
+\-\-dummy
+\-\-dummy\-empty
+\-\-dummy\-delay <duration>
+
+\-\-profile\-cpu <path>
+\-\-profile\-mem <path>
 .ft P
 .fi
 .UNINDENT
@@ -272,7 +281,7 @@ This argument can be used to benchmark the raw performance of the underlying \fB
 .UNINDENT
 .UNINDENT
 .sp
-\fB\-\-delay <duration>\fP
+\fB\-\-dummy\-delay <duration>\fP
 .INDENT 0.0
 .INDENT 3.5
 Enables delaying each response with a certain amount (for example \fB1s\fP, \fB1ms\fP, etc.)
@@ -282,7 +291,7 @@ It can be used to simulate the real\-world network latencies, perhaps to see how
 .UNINDENT
 .UNINDENT
 .sp
-\fB\-\-profile\-cpu <path>\fP and \fB\-\-profile\-mem <path>\fP
+\fB\-\-profile\-cpu <path>\fP, and \fB\-\-profile\-mem <path>\fP
 .INDENT 0.0
 .INDENT 3.5
 Enables CPU and memory profiling using Go\(aqs profiling infrastructure.

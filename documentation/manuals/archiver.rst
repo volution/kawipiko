@@ -14,6 +14,7 @@ kawipiko -- blazingly fast static HTTP server
 ::
 
     >> kawipiko-archiver --help
+    >> kawipiko-archiver --man
 
 ::
 
@@ -33,8 +34,10 @@ kawipiko -- blazingly fast static HTTP server
     --exclude-file-listing
     --include-folder-listing
 
-    --progress
-    --debug
+    --progress  --debug
+
+    --help       (show this short help)
+    --man        (show the full manual)
 
 
 

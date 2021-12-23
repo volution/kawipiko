@@ -36,6 +36,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .nf
 .ft C
 >> kawipiko\-archiver \-\-help
+>> kawipiko\-archiver \-\-man
 .ft P
 .fi
 .UNINDENT
@@ -61,8 +62,10 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 \-\-exclude\-file\-listing
 \-\-include\-folder\-listing
 
-\-\-progress
-\-\-debug
+\-\-progress  \-\-debug
+
+\-\-help       (show this short help)
+\-\-man        (show the full manual)
 .ft P
 .fi
 .UNINDENT
