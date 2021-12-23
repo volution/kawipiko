@@ -331,7 +331,7 @@
 
 
 
-<< benchmark / alternatives / haproxy
+<< benchmark / alternatives / haproxy-dummy
 	exec -- \
 		sudo -u root -n -E -P -- \
 		taskset -c 0,1 \
@@ -343,7 +343,28 @@
 		env -i -- \
 	./.bin/haproxy \
 			-db \
-			-f ./examples/haproxy.conf \
+			-f ./examples/haproxy-dummy.conf \
+			"${@}" \
+	#
+!!
+
+
+
+
+<< benchmark / alternatives / nginx-dummy
+	exec -- \
+		sudo -u root -n -E -P -- \
+		taskset -c 0,1 \
+		nice -n -19 -- \
+		ionice -c 2 -n 0 -- \
+		chrt -r 10 \
+		prlimit -n262144 -- \
+		sudo -u "${USER}" -n -E -P -- \
+		env -i -- \
+	./.bin/nginx \
+			-c ./examples/nginx-dummy.conf \
+			-e /dev/stderr \
+			-p . \
 			"${@}" \
 	#
 !!
