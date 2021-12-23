@@ -1456,9 +1456,9 @@ func main_0 () (error) {
 					tls.TLS_AES_256_GCM_SHA384,
 					// NOTE:  TLSv1.2
 					// NOTE:  https://datatracker.ietf.org/doc/html/rfc7540#section-9.2.2
-					tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
-					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256, // -- ECDHE-RSA-CHACHA20-POLY1305
+					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,       // -- ECDHE-RSA-AES128-GCM-SHA256
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,       // -- ECDHE-RSA-AES256-GCM-SHA384
 				},
 			Renegotiation : tls.RenegotiateNever,
 			SessionTicketsDisabled : true,

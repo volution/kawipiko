@@ -346,6 +346,10 @@
 			-r \
 			-e 's#@\{nginx_root\}#'"${_archive}"'#g' \
 			-e 's#@\{nginx_bind_http\}#127.9.185.194:8080#g' \
+			-e 's#@\{nginx_bind_https\}#127.9.185.194:8443#g' \
+			-e 's#@\{nginx_bind_http2\}#127.9.185.194:8444#g' \
+			-e 's#@\{nginx_tls_public\}#./tls-public.pem#g' \
+			-e 's#@\{nginx_tls_private\}#./tls-private.pem#g' \
 			-e 's#@\{nginx_empty\}#/var/lib/empty#g' \
 			-e 's#@\{nginx_pid\}#/tmp/nginx.pid#g' \
 		< ./examples/nginx/nginx.conf \
