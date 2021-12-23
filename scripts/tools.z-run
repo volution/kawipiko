@@ -9,7 +9,6 @@
 	test "${#}" -ge 1
 	exec -- \
 		env -i -- \
-		./.bin/nodaemon \
 	./.bin/wrk \
 			--threads 1 \
 			--connections 1 \
@@ -30,13 +29,13 @@
 	test "${#}" -ge 1
 	exec -- \
 		env -i -- \
-		./.bin/nodaemon \
 	./.bin/h1load \
 			-t 1 \
 			-c 1 \
 			-w 1000 \
 			-d 30 \
 			-s 1 \
+			-l \
 			"${@}" \
 	#
 !!
@@ -50,7 +49,6 @@
 	test "${#}" -ge 1
 	exec -- \
 		env -i -- \
-		./.bin/nodaemon \
 	./.bin/h2load \
 			--threads 1 \
 			--clients 1 \
@@ -70,7 +68,6 @@
 	test "${#}" -ge 1
 	exec -- \
 		env -i -- \
-		./.bin/nodaemon \
 	./.bin/hey \
 			-cpus 1 \
 			-c 1 \
@@ -89,7 +86,6 @@
 	test "${#}" -ge 1
 	exec -- \
 		env -i -- \
-		./.bin/nodaemon \
 	./.bin/nghttp \
 			--no-verify-peer \
 			"${@}" \
@@ -105,7 +101,6 @@
 	test "${#}" -ge 1
 	exec -- \
 		env -i -- \
-		./.bin/nodaemon \
 	./.bin/curl \
 			--silent \
 			--insecure \
