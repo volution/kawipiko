@@ -3,6 +3,17 @@
 
 
 
+<< go / build / all / release / quick
+	export -- _BUILD_QUICK=true
+	"${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
+	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
+	"${ZRUN[@]}" ':: go / build / server-dummy / release' "${@}"
+	"${ZRUN[@]}" ':: go / build / wrapper / release' "${@}"
+!!
+
+
+
+
 << go / build / server / debug
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
