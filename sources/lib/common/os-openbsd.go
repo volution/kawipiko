@@ -2,7 +2,7 @@
 //go:build openbsd
 
 
-package server
+package common
 
 
 import "syscall"
@@ -10,7 +10,7 @@ import "syscall"
 
 
 
-func setrlimit (_limitMemory uint) (error) {
+func SysSetrlimit (_limitMemory uint) (error) {
 	{
 		_limitMb := _limitMemory
 		_limit := syscall.Rlimit {

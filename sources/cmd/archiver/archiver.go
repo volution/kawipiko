@@ -76,7 +76,7 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 	var _fileSize uint64
 	var _fileTimestamp uint64
 	if _stat, _error := os.Stat (_pathResolved); _error == nil {
-		_fileDev, _fileInode, _fileSize, _fileTimestamp, _error = statExtract (_stat)
+		_fileDev, _fileInode, _fileSize, _fileTimestamp, _error = SysStatExtract (_stat)
 		if _error != nil {
 			return _error
 		}
@@ -115,7 +115,7 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 				}
 				defer _file.Close ()
 				if _stat, _error := _file.Stat (); _error == nil {
-					_fileDev_0, _fileInode_0, _fileSize_0, _fileTimestamp_0, _error := statExtract (_stat)
+					_fileDev_0, _fileInode_0, _fileSize_0, _fileTimestamp_0, _error := SysStatExtract (_stat)
 					if _error != nil {
 						return nil, _error
 					}
@@ -136,7 +136,7 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 					return nil, _error
 				}
 				if _stat, _error := _file.Stat (); _error == nil {
-					_, _, _fileSize_0, _fileTimestamp_0, _error := statExtract (_stat)
+					_, _, _fileSize_0, _fileTimestamp_0, _error := SysStatExtract (_stat)
 					if _error != nil {
 						return nil, _error
 					}

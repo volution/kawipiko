@@ -2,7 +2,7 @@
 //go:build linux || openbsd
 
 
-package archiver
+package common
 
 
 import "fmt"
@@ -12,7 +12,7 @@ import "syscall"
 
 
 
-func statExtract (_stat os.FileInfo) (_dev uint64, _inode uint64, _size uint64, _timestamp uint64, _error error) {
+func SysStatExtract (_stat os.FileInfo) (_dev uint64, _inode uint64, _size uint64, _timestamp uint64, _error error) {
 	if _stat, _ok := _stat.Sys () .(*syscall.Stat_t); _ok {
 		_dev = uint64 (_stat.Dev)
 		_inode = uint64 (_stat.Ino)

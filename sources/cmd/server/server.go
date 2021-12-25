@@ -918,7 +918,7 @@ func main_0 () (error) {
 		if !_quiet && _isMaster {
 			log.Printf ("[ii] [2c130d70]  limiting memory to %d MiB;\n", _limitMemory)
 		}
-		if _error := setrlimit (_limitMemory); _error != nil {
+		if _error := SysSetrlimit (_limitMemory); _error != nil {
 			AbortError (_error, "[4da96378]  failed to configure memory limit!")
 		}
 	}
