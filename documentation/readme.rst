@@ -1,5 +1,17 @@
 
 
+
+
+.. image:: ./documentation/logo.png
+
+
+
+
+--------
+
+
+
+
 #############################################
 kawipiko -- blazingly fast static HTTP server
 #############################################
@@ -81,17 +93,6 @@ plus efficient management and storage of large collections of many small files.
 .. contents::
     :depth: 1
     :backlinks: none
-
-
-
-
---------
-
-
-
-
-.. image:: ./documentation/banner.png
-     :width: 50em
 
 
 
