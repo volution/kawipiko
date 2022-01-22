@@ -500,6 +500,7 @@ Ciprian Dorin Craciun
   * `ciprian@volution.ro <mailto:ciprian@volution.ro>`__
     or `ciprian.craciun@gmail.com <mailto:ciprian.craciun@gmail.com>`__
   * `<https://volution.ro/ciprian>`__
+  * `<https://github.com/volution>`__
   * `<https://github.com/cipriancraciun>`__
 
 
