@@ -92,6 +92,7 @@ plus efficient management and storage of large collections of many small files.
 
 .. contents::
     :depth: 1
+    :local:
     :backlinks: none
 
 
