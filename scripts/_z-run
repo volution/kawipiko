@@ -22,3 +22,7 @@
 && _/tools.z-run
 && _/tls.z-run
 
+&& _/deploy.z-run
+
+&&?? _/.local.z-run
+

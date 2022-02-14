@@ -219,17 +219,42 @@
 
 
 << go / build / all / release
+	if test "${#}" -ge 1 ; then
+		_platform_0="${1}"
+		shift -- 1
+	else
+		_platform_0='all'
+	fi
+	if test "${#}" -ge 1 ; then
+		_component_0="${1}"
+		shift -- 1
+	else
+		_component_0=all
+	fi
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	for _platform in linux darwin openbsd freebsd ; do
-		for _component in archiver server wrapper ; do
+		if test "${_platform_0}" != all -a "${_platform_0}" != "${_platform}" ; then
+			continue
+		fi
+		for _component in archiver server server-dummy wrapper ; do
+			if test "${_component_0}" != all -a "${_component_0}" != "${_component}" ; then
+				continue
+			fi
 			if test -e "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}" ; then
 				rm -f -- "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}"
 			fi
 		done
 	done
 	for _platform in linux darwin openbsd freebsd ; do
-		for _component in archiver server wrapper ; do
+		if test "${_platform_0}" != all -a "${_platform_0}" != "${_platform}" ; then
+			continue
+		fi
+		for _component in archiver server server-dummy wrapper ; do
+			if test "${_component_0}" != all -a "${_component_0}" != "${_component}" ; then
+				continue
+			fi
+			test ! -e "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}"
 			printf -- '[ii]  building `%s` for `%s`...\n' "${_component}" "${_platform}" >&2
 			env GOOS="${_platform}" \
 				nodaemon \
@@ -255,7 +280,7 @@
 << go / build / all / publish
 	test "${#}" -eq 0
 	for _platform in linux darwin openbsd freebsd ; do
-		for _component in archiver server wrapper ; do
+		for _component in archiver server server-dummy wrapper ; do
 			cp -T -- \
 					"./.outputs/binaries/release/kawipiko-${_component}--${_platform}" \
 					"./.outputs/publish/binaries/kawipiko-${_component}--${_platform}" \

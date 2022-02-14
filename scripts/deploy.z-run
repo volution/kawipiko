@@ -1,0 +1,220 @@
+#!/dev/null
+
+
+
+
+::// deploy / ...
+
+
+
+
+--:: deploy / rsync / * / linux :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' linux "${@}"
+--:: deploy / rsync / * / darwin :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' darwin "${@}"
+--:: deploy / rsync / * / freebsd :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' freebsd "${@}"
+--:: deploy / rsync / * / openbsd :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' openbsd "${@}"
+
+
+
+
+--<< deploy / rsync / *
+	test "${#}" -eq 3 ; _os="${1}" ; _main="${2}" ; _target="${3}" ; shift -- 3
+	"${ZRUN[@]}" ':: deploy / release' "${_os}" "${_main}"
+	_source="./.outputs/binaries/release/${_main}--${_os}"
+	printf -- '[ii]  deploying `%s` for `%s` to `%s`...\n' "${_main}" "${_os}" "${_target}" >&2
+	exec -- rsync -i -t -p --chmod=0555 -- "${_source}" "${_target}"
+!!
+
+
+
+
+<< deploy / publish
+	
+	if test "${#}" -eq 0 ; then
+		_main_0=all
+	else
+		_main_0="${1}"
+		shift -- 1
+	fi
+	
+	test "${#}" -eq 0
+	
+	test -d ./.publish/
+	
+	
+	_build_version=0.1.0
+	case "${_build_version}" in
+		( 0.0.0 | *.0 )
+			_build_release=false
+			_build_suffix='--preview'
+		;;
+		( * )
+			_build_release=true
+			_build_suffix=''
+		;;
+	esac
+	
+	
+	if test "${_build_release}" == true ; then
+		for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
+			if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
+				continue
+			fi
+			for _os in linux darwin freebsd openbsd ; do
+				if test -e "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}" ; then
+					printf -- '[ee]  release already exists for `%s` for `%s`!\n' "${_main}" "${_os}" >&2
+					exit -- 1
+				fi
+			done
+		done
+	fi
+	
+	
+	if ! git diff --quiet ; then
+		printf -- '[ee]  dirty repository (before build);  aborting!\n' >&2
+		exit -- 1
+	fi
+	if ! git diff --cached --quiet ; then
+		printf -- '[ee]  dirty repository (before build);  aborting!\n' >&2
+		exit -- 1
+	fi
+	
+	
+	printf -- '[ii]  releasing all for `%s`...\n' "${_build_version}${_build_suffix}" >&2
+	
+	"${ZRUN[@]}" ':: deploy / release' all "${_main_0}"
+	
+	
+	if ! git diff --quiet ; then
+		printf -- '[ee]  dirty repository (after build);  aborting!\n' >&2
+		exit -- 1
+	fi
+	if ! git diff --cached --quiet ; then
+		printf -- '[ee]  dirty repository (after build);  aborting!\n' >&2
+		exit -- 1
+	fi
+	
+	
+	printf -- '[ii]  tagging and pushing for `%s`...\n' "${_build_version}${_build_suffix}" >&2
+	printf -- '[--]\n' >&2
+	
+	if test "${_build_release}" == true ; then
+		git tag --sign -m "[release]  Release \`v${_build_version}\`." -- "v${_build_version}" HEAD
+	else
+		git tag --sign -m "[preview]  Preview \`v${_build_version}\`." --force -- preview HEAD
+	fi
+	
+	"${ZRUN[@]}" ':: github / push'
+	
+	printf -- '[--]\n' >&2
+	
+	
+	printf -- '[ii]  publishing all for `%s`...\n' "${_build_version}${_build_suffix}" >&2
+	
+	for _os in linux darwin freebsd openbsd ; do
+		for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
+			
+			if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
+				continue
+			fi
+			
+			printf -- '[ii]  publishing `%s` for `%s` for `%s`...\n' "${_main}" "${_os}" "${_build_version}${_build_suffix}" >&2
+			printf -- '[--]\n' >&2
+			
+			rsync -i -t -p --chmod=0555 -- \
+					"./.outputs/binaries/release/${_main}--${_os}" \
+					"./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}" \
+			#
+			
+			if test -e "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc" ; then
+				if ! gpg2 --verify -- \
+						"./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc" \
+						< /dev/null > /dev/null 2> /dev/null \
+				; then
+					rm -- "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc"
+				fi
+			fi
+			
+			if test ! -e "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc" ; then
+				for _retry in 1 2 3 4 ; do
+					if gpg2 --sign --detach-sign --armor \
+							--default-key 58FC2194FCC2478399CB220C5A974037A6FD8839 \
+							--output "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc" \
+							-- "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}" \
+					; then break ; fi
+				done
+			fi
+			
+			gpg2 --verify \
+					-- "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc" \
+			#
+			
+			if test "${_build_release}" == true ; then
+				ln -s -T -f -- "./${_main}--${_os}--v${_build_version}${_build_suffix}" "./.publish/${_os}/${_main}${_build_suffix}"
+				ln -s -T -f -- "./${_main}--${_os}--v${_build_version}${_build_suffix}.asc" "./.publish/${_os}/${_main}${_build_suffix}.asc"
+			fi
+			
+			printf -- '[--]\n' >&2
+		done
+	done
+	
+	
+	printf -- '[ii]  publishing all for `%s` (on GitHub)...\n' "${_build_version}${_build_suffix}" >&2
+	
+	for _os in linux darwin freebsd openbsd ; do
+		for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
+			
+			if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
+				continue
+			fi
+			
+			printf -- '[ii]  publishing `%s` for `%s` for `%s` (on GitHub)...\n' "${_main}" "${_os}" "${_build_version}${_build_suffix}" >&2
+			
+			if test "${_build_release}" == true ; then
+				gh release upload --clobber -- "v${_build_version}" \
+						"./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}" \
+						"./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc" \
+				#
+			else
+				gh release upload --clobber -- preview \
+						"./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}" \
+						"./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}.asc" \
+				#
+			fi
+			
+		done
+	done
+!!
+
+
+
+
+<< deploy / release
+	if test "${#}" -ge 1 ; then
+		_os_0="${1}"
+		shift -- 1
+	else
+		_os_0='all'
+	fi
+	if test "${#}" -ge 1 ; then
+		_main_0="${1}"
+		shift -- 1
+	else
+		_main_0=all
+	fi
+	test "${#}" -eq 0
+	if test "${__DEPLOY_NORELEASE:-}" == true ; then
+		exit -- 0
+	fi
+	for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
+		if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
+			continue
+		fi
+		for _os in linux darwin freebsd openbsd ; do
+			if test "${_os_0}" != all -a "${_os_0}" != "${_os}" ; then
+				continue
+			fi
+			"${ZRUN[@]}" ':: go / build / all / release' "${_os}" "${_main#kawipiko-}"
+		done
+	done
+!!
+
