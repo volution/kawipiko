@@ -25,10 +25,16 @@
 	test "${#}" -eq 0
 	
 	if test ! -d ./.outputs ; then
-		_outputs_store="${TMPDIR:-/tmp}/go--${UID}--${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+		if test -h ./.outputs ; then
+			_outputs_store="$( exec -- readlink -f -- ./.outputs )"
+		else
+			_outputs_store="${TMPDIR:-/tmp}/workspace--${UID}--${RANDOM}-${RANDOM}-${RANDOM}-${RANDOM}"
+		fi
 		mkdir -- "${_outputs_store}"
-		_outputs_store="$( exec -- readlink -e -- "${_outputs_store}" )"
-		ln -s -f -T -- "${_outputs_store}" ./.outputs
+		if test ! -e ./.outputs ; then
+			_outputs_store="$( exec -- readlink -e -- "${_outputs_store}" )"
+			ln -s -f -T -- "${_outputs_store}" ./.outputs
+		fi
 	fi
 	
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
@@ -102,7 +108,7 @@
 << workspace / initialize / python
 	test "${#}" -eq 0
 	
-	if test -d ./.python ; then
+	if test -d ./.outputs/python ; then
 		exit -- 0
 	fi
 	
@@ -126,8 +132,6 @@
 	
 	./.outputs/python/bin/pip install --compile -- docutils
 	./.outputs/python/bin/pip install --compile -- restview
-	
-	ln -s -f -T -- ./.outputs/python ./.python
 !!
 
 
@@ -169,7 +173,7 @@
 
 << documentation / readme / server
 	test "${#}" -eq 0
-	exec -- env -i -- ./.python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
+	exec -- env -i -- ./.outputs/python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
 !!
 
 
