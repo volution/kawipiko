@@ -69,7 +69,7 @@ type context struct {
 
 
 
-func archiveFile (_context *context, _pathResolved string, _pathInArchive string, _name string) (error) {
+func archiveFile (_context *context, _pathResolved string, _pathInArchive string, _name string, _statusPerhaps uint) (error) {
 	
 	var _fileDev uint64
 	var _fileInode uint64
@@ -151,7 +151,7 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 				return _data, nil
 			}
 		
-		if _fingerprintContent_0, _dataContent_0, _dataMeta_0, _error := prepareDataContent (_context, _pathResolved, _pathInArchive, _name, _fileId, _dataContentRead, ""); _error != nil {
+		if _fingerprintContent_0, _dataContent_0, _dataMeta_0, _error := prepareDataContent (_context, _pathResolved, _pathInArchive, _name, _fileId, _dataContentRead, "", _statusPerhaps); _error != nil {
 			return _error
 		} else {
 			_fingerprintContent = _fingerprintContent_0
@@ -202,7 +202,7 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 
 
 
-func archiveFolder (_context *context, _pathResolved string, _pathInArchive string, _names []string, _stats map[string]os.FileInfo) (error) {
+func archiveFolder (_context *context, _pathResolved string, _pathInArchive string, _names []string, _stats map[string]os.FileInfo, _statusPerhaps uint) (error) {
 	
 	type Entry struct {
 		Name string `json:"name,omitempty"`
@@ -261,7 +261,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 			if _pathInArchive == "/" {
 				_indexPathInArchive = "/"
 			}
-			archiveFile (_context, _indexPathResolved, _indexPathInArchive, _indexNameFirst)
+			archiveFile (_context, _indexPathResolved, _indexPathInArchive, _indexNameFirst, _statusPerhaps)
 		}
 	}
 	
@@ -281,7 +281,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 		return _error
 	}
 	
-	if _, _, _error := archiveReferenceAndData (_context, NamespaceFoldersContent, _pathResolved, _pathInArchive, "", _data, MimeTypeJson); _error != nil {
+	if _, _, _error := archiveReferenceAndData (_context, NamespaceFoldersContent, _pathResolved, _pathInArchive, "", _data, MimeTypeJson, _statusPerhaps); _error != nil {
 		return _error
 	}
 	
@@ -291,7 +291,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 
 
 
-func archiveReferenceAndData (_context *context, _namespace string, _pathResolved string, _pathInArchive string, _name string, _dataContent []byte, _dataType string) (string, string, error) {
+func archiveReferenceAndData (_context *context, _namespace string, _pathResolved string, _pathInArchive string, _name string, _dataContent []byte, _dataType string, _statusPerhaps uint) (string, string, error) {
 	
 	var _fingerprintContent string
 	var _fingerprintMeta string
@@ -302,7 +302,7 @@ func archiveReferenceAndData (_context *context, _namespace string, _pathResolve
 			return _dataContent, nil
 		}
 	
-	if _fingerprintContent_0, _dataContent_0, _dataMeta_0, _error := prepareDataContent (_context, _pathResolved, _pathInArchive, _name, "", _dataContentRead, _dataType); _error != nil {
+	if _fingerprintContent_0, _dataContent_0, _dataMeta_0, _error := prepareDataContent (_context, _pathResolved, _pathInArchive, _name, "", _dataContentRead, _dataType, _statusPerhaps); _error != nil {
 		return "", "", _error
 	} else {
 		_fingerprintContent = _fingerprintContent_0
@@ -470,7 +470,7 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 
 
 
-func prepareDataContent (_context *context, _pathResolved string, _pathInArchive string, _name string, _dataContentId string, _dataContentRead func () ([]byte, error), _dataType string) (string, []byte, map[string]string, error) {
+func prepareDataContent (_context *context, _pathResolved string, _pathInArchive string, _name string, _dataContentId string, _dataContentRead func () ([]byte, error), _dataType string, _statusPerhaps uint) (string, []byte, map[string]string, error) {
 	
 	type DataPrepared struct {
 		DataFingerprint string
@@ -768,6 +768,12 @@ func prepareDataContent (_context *context, _pathResolved string, _pathInArchive
 	
 	_dataMeta := make (map[string]string, 16)
 	
+	_status := _statusPerhaps
+	if _status == 0 {
+		_status = 200
+	}
+	_dataMeta["!Status"] = fmt.Sprintf ("%d", _status)
+	
 	// _dataMeta["Content-Length"] = fmt.Sprintf ("%d", _dataSize)
 	_dataMeta["Content-Type"] = _dataType
 	_dataMeta["Content-Encoding"] = _dataEncoding
@@ -836,7 +842,7 @@ func prepareKeyString (_context *context, _namespace string, _fingerprint string
 
 
 
-func walkPath (_context *context, _pathResolved string, _pathInArchive string, _name string, _recursed map[string]uint, _recurse bool) (os.FileInfo, error) {
+func walkPath (_context *context, _pathResolved string, _pathInArchive string, _name string, _recursed map[string]uint, _recurse bool, _statusPerhaps uint) (os.FileInfo, error) {
 	
 	if _recursed == nil {
 		_recursed = make (map[string]uint, 128)
@@ -885,7 +891,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		if _context.debug {
 			log.Printf ("[dd] [da429eaa]  file         -- `%s`\n", _pathInArchive)
 		}
-		if _error := archiveFile (_context, _pathResolved, _pathInArchive, _name); _error != nil {
+		if _error := archiveFile (_context, _pathResolved, _pathInArchive, _name, _statusPerhaps); _error != nil {
 			return nil, _error
 		}
 		return _stat, nil
@@ -905,6 +911,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		_childsStat := make (map[string]os.FileInfo, 16)
 		
 		var _wildcardName string
+		var _wildcardStatus uint
 		
 		if _context.debug {
 			log.Printf ("[dd] [2d22d910]  folder       |> `%s`\n", _pathInArchive)
@@ -923,7 +930,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 							_childPathResolved := filepath.Join (_pathResolved, _childName)
 							_childPathInArchive := filepath.Join (_pathInArchive, _childName)
 							
-							if _childStat_0, _error := walkPath (_context, _childPathResolved, _childPathInArchive, _childName, _recursed, false); _error == nil {
+							if _childStat_0, _error := walkPath (_context, _childPathResolved, _childPathInArchive, _childName, _recursed, false, _statusPerhaps); _error == nil {
 								_childStat = _childStat_0
 							} else {
 								return nil, _error
@@ -933,8 +940,14 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 							_childsPathInArchive[_childName] = _childPathInArchive
 							_childsStat[_childName] = _childStat
 							
-							if strings.HasPrefix (_childName, "_wildcard.") {
+							if strings.HasPrefix (_childName, "200.") || strings.HasPrefix (_childName, "_200.") || strings.HasPrefix (_childName, "_wildcard.") {
 								_wildcardName = _childName
+								_wildcardStatus = 200
+								continue
+							}
+							if strings.HasPrefix (_childName, "404.") || strings.HasPrefix (_childName, "_404.") {
+								_wildcardName = _childName
+								_wildcardStatus = 404
 								continue
 							}
 							if ShouldSkipName (_childName) {
@@ -962,13 +975,13 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		if _context.debug {
 			log.Printf ("[dd] [a4475a48]  folder       -- `%s`\n", _pathInArchive)
 		}
-		if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _childsName, _childsStat); _error != nil {
+		if _error := archiveFolder (_context, _pathResolved, _pathInArchive, _childsName, _childsStat, _statusPerhaps); _error != nil {
 			return nil, _error
 		}
 		
 		if _wildcardName != "" {
 			_childPathInArchive := filepath.Join (_pathInArchive, "*")
-			if _, _error := walkPath (_context, _childsPathResolved[_wildcardName], _childPathInArchive, _wildcardName, _recursed, true); _error != nil {
+			if _, _error := walkPath (_context, _childsPathResolved[_wildcardName], _childPathInArchive, _wildcardName, _recursed, true, _wildcardStatus); _error != nil {
 				return nil, _error
 			}
 		}
@@ -978,21 +991,21 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		}
 		for _, _childName := range _childsName {
 			if _childsStat[_childName] .Mode () .IsRegular () {
-				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true); _error != nil {
+				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true, _statusPerhaps); _error != nil {
 					return nil, _error
 				}
 			}
 		}
 		for _, _childName := range _childsName {
 			if _childsStat[_childName] .Mode () .IsDir () {
-				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true); _error != nil {
+				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true, _statusPerhaps); _error != nil {
 					return nil, _error
 				}
 			}
 		}
 		for _, _childName := range _childsName {
 			if (! _childsStat[_childName] .Mode () .IsRegular ()) && (! _childsStat[_childName] .Mode () .IsDir ()) {
-				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true); _error != nil {
+				if _, _error := walkPath (_context, _childsPathResolved[_childName], _childsPathInArchive[_childName], _childName, _recursed, true, _statusPerhaps); _error != nil {
 					return nil, _error
 				}
 			}
@@ -1167,7 +1180,7 @@ func main_0 () (error) {
 	_context.cdbWriteKeySize += len (NamespaceSchemaVersion)
 	_context.cdbWriteDataSize += len (CurrentSchemaVersion)
 	
-	if _, _error := walkPath (_context, _sourcesFolder, "/", filepath.Base (_sourcesFolder), nil, true); _error != nil {
+	if _, _error := walkPath (_context, _sourcesFolder, "/", filepath.Base (_sourcesFolder), nil, true, 0); _error != nil {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
 	}
 	

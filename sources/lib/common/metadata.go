@@ -7,6 +7,7 @@ import "bytes"
 import "fmt"
 import "regexp"
 import "sort"
+import "strconv"
 
 
 
@@ -132,11 +133,27 @@ func MetadataEncodeBinary (_metadata map[string]string) ([]byte, error) {
 	for _, _metadata := range _metadataArray {
 		_key := _metadata[0]
 		_value := _metadata[1]
-		if ! metadataKeyRegex.MatchString (_key) {
-			return nil, fmt.Errorf ("[9c53ceb6]  invalid metadata key:  `%s`", _key)
-		}
-		if ! metadataValueRegex.MatchString (_value) {
-			return nil, fmt.Errorf ("[f932f38f]  invalid metadata value:  `%s`", _value)
+		if (_key != "") && (_key[0] == '!') {
+			if _key == "!Status" {
+				if _value, _error := strconv.Atoi (_value); _error == nil {
+					if (_value >= 200) && (_value <= 599) {
+						// NOP
+					} else {
+						return nil, fmt.Errorf ("[08d97429]  invalid metadata value:  `%d`", _value)
+					}
+				} else {
+					return nil, fmt.Errorf ("[7a36c814]  invalid metadata value:  `%s`", _value)
+				}
+			} else {
+				return nil, fmt.Errorf ("[777a334d]  invalid metadata key:  `%s`", _key)
+			}
+		} else {
+			if ! metadataKeyRegex.MatchString (_key) {
+				return nil, fmt.Errorf ("[9c53ceb6]  invalid metadata key:  `%s`", _key)
+			}
+			if ! metadataValueRegex.MatchString (_value) {
+				return nil, fmt.Errorf ("[f932f38f]  invalid metadata value:  `%s`", _value)
+			}
 		}
 		
 		_keyId, _keyFound := CanonicalHeaderNamesToKey[_key]
@@ -241,7 +258,7 @@ func MetadataDecodeBinaryIterate (_data []byte, _callback func ([]byte, []byte) 
 		} else if _slice[0] == 'Z' {
 			
 			if _sliceSize < 4 {
-				return fmt.Errorf ("[3c4a6b51]  invalid metadata encoding")
+				return fmt.Errorf ("[e52b70b0]  invalid metadata encoding")
 			}
 			
 			_valueSize := 0

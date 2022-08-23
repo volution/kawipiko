@@ -59,6 +59,10 @@ var CanonicalHeaderValuesArraysMap map[string][]string
 
 
 var CanonicalHeaderNames = []string {
+		
+		// FIXME:  Move this somewhere else!
+		"!Status",
+		
 		"Accept",
 		"Accept-CH",
 		"Accept-CH-Lifetime",
@@ -202,6 +206,9 @@ var CanonicalHeaderValues = []string {
 		"nosniff",
 		"1; mode=block",
 		"sameorigin",
+		
+		// FIXME:  Move this somewhere else!
+		"200", "404",
 		
 	}
 
