@@ -6,7 +6,7 @@ package common
 
 
 const NamespaceSchemaVersion = "schema"
-const CurrentSchemaVersion = "kawipiko-2021b"
+const CurrentSchemaVersion = "kawipiko-2021c"
 
 
 const NamespaceFilesContent = "files-content"
