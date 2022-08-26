@@ -45,6 +45,8 @@ kawipiko -- blazingly fast static HTTP server
     --index-data-meta
     --index-data-content
 
+    --hosts-disable           (ignore `Host` header)
+
     --security-headers-tls
     --security-headers-disable
 
@@ -143,6 +145,10 @@ Flags
     * (depending on the use-case) it is recommended to use ``--index-paths``;  if ``--exclude-etag`` was used during archival, one can also use ``--index-data-meta``;
 
     * it is recommended to use either ``--archive-mmap`` or  ``--archive-inmem``, else (especially if data is indexed) the resulting effect is that of loading everything in RAM;
+
+``--hosts-disable``
+
+    Disables the virtual-hosts feature by ignoring the `Host` header.
 
 ``--security-headers-tls``
 

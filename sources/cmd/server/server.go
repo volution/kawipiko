@@ -52,6 +52,7 @@ type server struct {
 	cachedReferences map[string][2]uint64
 	cachedDataMeta map[uint64][]byte
 	cachedDataContent map[uint64][]byte
+	hostsDisabled bool
 	securityHeadersEnabled bool
 	securityHeadersTls bool
 	http1Disabled bool
@@ -89,6 +90,7 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	_responseHeaders := (*fasthttp.ResponseHeader) (NoEscape (unsafe.Pointer (&_response.Header)))
 	
 	_requestMethod := _requestHeaders.Method ()
+	_requestHost := _requestHeaders.Host ()
 	_requestUri := _requestHeaders.RequestURI ()
 	_requestUriString_0 := BytesToString (_requestUri)
 	_requestUriString := NoEscapeString (&_requestUriString_0)
@@ -168,50 +170,70 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 		}
 	
 	if !_referencesFound {
-		for _namespaceAndPathSuffixIndex := range _namespaceAndPathSuffixes {
-			_namespaceAndPathSuffix := _namespaceAndPathSuffixes[_namespaceAndPathSuffixIndex]
-			_namespace := _namespaceAndPathSuffix[0]
-			_pathSuffix := _namespaceAndPathSuffix[1]
+		
+		for _hostIdx := 0; _hostIdx < 2; _hostIdx += 1 {
 			
-			if !_pathIsRoot && !_pathHasSlash {
-				// NOP
-			} else if _pathSuffix == "" {
-				// NOP
-			} else if (_pathSuffix[0] == '/') && (_pathIsRoot || _pathHasSlash) {
-				_pathSuffix = _pathSuffix[1:]
+			if (_hostIdx == 0) && (_server.hostsDisabled) {
+				continue
 			}
 			
-			if _server.cachedReferences != nil {
-				_key := _keyBufferLarge[:0]
-				_key = append (_key, KeyNamespacePrefix (_namespace), ':')
-				_key = append (_key, _path ...)
-				_key = append (_key, _pathSuffix ...)
-				_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
-			} else {
-				_key := _keyBufferLarge[:0]
-				_key = append (_key, KeyNamespacePrefix (_namespace), ':')
-				_key = append (_key, _path ...)
-				_key = append (_key, _pathSuffix ...)
-				if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-					_referencesBuffer = _value
-					_referencesFound = _value != nil
+			for _namespaceAndPathSuffixIndex := range _namespaceAndPathSuffixes {
+				_namespaceAndPathSuffix := _namespaceAndPathSuffixes[_namespaceAndPathSuffixIndex]
+				_namespace := _namespaceAndPathSuffix[0]
+				_pathSuffix := _namespaceAndPathSuffix[1]
+				
+				if !_pathIsRoot && !_pathHasSlash {
+					// NOP
+				} else if _pathSuffix == "" {
+					// NOP
+				} else if (_pathSuffix[0] == '/') && (_pathIsRoot || _pathHasSlash) {
+					_pathSuffix = _pathSuffix[1:]
+				}
+				
+				if _server.cachedReferences != nil {
+					_key := _keyBufferLarge[:0]
+					_key = append (_key, KeyNamespacePrefix (_namespace), ':')
+					if _hostIdx == 0 {
+						_key = append (_key, "://" ...)
+						_key = append (_key, _requestHost ...)
+					}
+					_key = append (_key, _path ...)
+					_key = append (_key, _pathSuffix ...)
+					_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
 				} else {
-					_server.ServeError (_context, http.StatusInternalServerError, _error, false)
-					return
+					_key := _keyBufferLarge[:0]
+					_key = append (_key, KeyNamespacePrefix (_namespace), ':')
+					if _hostIdx == 0 {
+						_key = append (_key, "://" ...)
+						_key = append (_key, _requestHost ...)
+					}
+					_key = append (_key, _path ...)
+					_key = append (_key, _pathSuffix ...)
+					if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
+						_referencesBuffer = _value
+						_referencesFound = _value != nil
+					} else {
+						_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+						return
+					}
+				}
+				
+				if _referencesFound {
+					if _pathSuffix == "/*" {
+						_pathSuffix = "/"
+					} else if _pathSuffix == "*" {
+						_pathSuffix = ""
+					}
+					if _pathSuffix != "" {
+						_path = append (_path, _pathSuffix ...)
+						_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
+						return
+					}
+					break
 				}
 			}
 			
 			if _referencesFound {
-				if _pathSuffix == "/*" {
-					_pathSuffix = "/"
-				} else if _pathSuffix == "*" {
-					_pathSuffix = ""
-				}
-				if _pathSuffix != "" {
-					_path = append (_path, _pathSuffix ...)
-					_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
-					return
-				}
 				break
 			}
 		}
@@ -225,30 +247,50 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if !_referencesFound {
-		for
-				_pathLimit := bytes.LastIndexByte (_path, '/');
-				_pathLimit >= 0;
-				_pathLimit = bytes.LastIndexByte (_path[: _pathLimit], '/') {
+		
+		for _hostIdx := 0; _hostIdx < 2; _hostIdx += 1 {
 			
-			for _, _namespace := range []string { NamespaceFilesContent, NamespaceRedirectsContent } {
+			if (_hostIdx == 0) && (_server.hostsDisabled) {
+				continue
+			}
+			
+			for
+					_pathLimit := bytes.LastIndexByte (_path, '/');
+					_pathLimit >= 0;
+					_pathLimit = bytes.LastIndexByte (_path[: _pathLimit], '/') {
 				
-				if _server.cachedReferences != nil {
-					_key := _keyBufferLarge[:0]
-					_key = append (_key, KeyNamespacePrefix (_namespace), ':')
-					_key = append (_key, _path[: _pathLimit] ...)
-					_key = append (_key, "/*" ...)
-					_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
-				} else {
-					_key := _keyBufferLarge[:0]
-					_key = append (_key, KeyNamespacePrefix (_namespace), ':')
-					_key = append (_key, _path[: _pathLimit] ...)
-					_key = append (_key, "/*" ...)
-					if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-						_referencesBuffer = _value
-						_referencesFound = _value != nil
+				for _, _namespace := range []string { NamespaceFilesContent, NamespaceRedirectsContent } {
+					
+					if _server.cachedReferences != nil {
+						_key := _keyBufferLarge[:0]
+						_key = append (_key, KeyNamespacePrefix (_namespace), ':')
+						if _hostIdx == 0 {
+							_key = append (_key, "://" ...)
+							_key = append (_key, _requestHost ...)
+						}
+						_key = append (_key, _path[: _pathLimit] ...)
+						_key = append (_key, "/*" ...)
+						_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
 					} else {
-						_server.ServeError (_context, http.StatusInternalServerError, _error, false)
-						return
+						_key := _keyBufferLarge[:0]
+						_key = append (_key, KeyNamespacePrefix (_namespace), ':')
+						if _hostIdx == 0 {
+							_key = append (_key, "://" ...)
+							_key = append (_key, _requestHost ...)
+						}
+						_key = append (_key, _path[: _pathLimit] ...)
+						_key = append (_key, "/*" ...)
+						if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
+							_referencesBuffer = _value
+							_referencesFound = _value != nil
+						} else {
+							_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+							return
+						}
+					}
+					
+					if _referencesFound {
+						break
 					}
 				}
 				
@@ -689,6 +731,7 @@ func main_0 () (error) {
 	var _indexPaths bool
 	var _indexDataMeta bool
 	var _indexDataContent bool
+	var _hostsDisabled bool
 	var _securityHeadersEnabled bool
 	var _securityHeadersTls bool
 	var _timeoutDisabled bool
@@ -733,6 +776,7 @@ func main_0 () (error) {
 		_indexDataMeta_0 := _flags.Bool ("index-data-meta", false, "")
 		_indexDataContent_0 := _flags.Bool ("index-data-content", false, "")
 		_timeoutDisabled_0 := _flags.Bool ("timeout-disable", false, "")
+		_hostsDisabled_0 := _flags.Bool ("hosts-disable", false, "")
 		_securityHeadersTls_0 := _flags.Bool ("security-headers-tls", false, "")
 		_securityHeadersDisabled_0 := _flags.Bool ("security-headers-disable", false, "")
 		_tlsPrivate_0 := _flags.String ("tls-private", "", "")
@@ -771,6 +815,7 @@ func main_0 () (error) {
 		_indexPaths = _indexAll || *_indexPaths_0
 		_indexDataMeta = _indexAll || *_indexDataMeta_0
 		_indexDataContent = _indexAll || *_indexDataContent_0
+		_hostsDisabled = *_hostsDisabled_0
 		_securityHeadersTls = *_securityHeadersTls_0
 		_securityHeadersEnabled = ! *_securityHeadersDisabled_0
 		_timeoutDisabled = *_timeoutDisabled_0
@@ -996,6 +1041,9 @@ func main_0 () (error) {
 		}
 		if _indexDataContent {
 			_processArguments = append (_processArguments, "--index-data-content")
+		}
+		if _hostsDisabled {
+			_processArguments = append (_processArguments, "--hosts-disabled")
 		}
 		if _securityHeadersTls {
 			_processArguments = append (_processArguments, "--security-headers-tls")
@@ -1476,6 +1524,7 @@ func main_0 () (error) {
 			cachedReferences : _cachedReferences,
 			cachedDataMeta : _cachedDataMeta,
 			cachedDataContent : _cachedDataContent,
+			hostsDisabled : _hostsDisabled,
 			securityHeadersTls : _securityHeadersTls,
 			securityHeadersEnabled : _securityHeadersEnabled,
 			http1Disabled : _http1Disabled,

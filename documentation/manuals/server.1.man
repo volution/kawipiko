@@ -74,6 +74,8 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 \-\-index\-data\-meta
 \-\-index\-data\-content
 
+\-\-hosts\-disable           (ignore \(gaHost\(ga header)
+
 \-\-security\-headers\-tls
 \-\-security\-headers\-disable
 
@@ -205,6 +207,13 @@ by using \fB\-\-index\-data\-content\fP a RAM\-based lookup table is created to 
 .IP \(bu 2
 it is recommended to use either \fB\-\-archive\-mmap\fP or  \fB\-\-archive\-inmem\fP, else (especially if data is indexed) the resulting effect is that of loading everything in RAM;
 .UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-hosts\-disable\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables the virtual\-hosts feature by ignoring the \fIHost\fP header.
 .UNINDENT
 .UNINDENT
 .sp
