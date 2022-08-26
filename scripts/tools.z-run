@@ -7,12 +7,12 @@
 	test -f ./.bin/wrk
 	test -x ./.bin/wrk
 	test "${#}" -ge 1
+	#!		--conn-reqs 65536 \
 	exec -- \
 		env -i -- \
 	./.bin/wrk \
 			--threads 1 \
 			--connections 1 \
-			--conn-reqs 65536 \
 			--timeout 1s \
 			--duration 30s \
 			--latency \
