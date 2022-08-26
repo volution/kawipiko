@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "KAWIPIKO-ARCHIVER" "1" "2021-12-23" "volution.ro" "kawipiko"
-.SH NAME
-kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "KAWIPIKO-ARCHIVER" "1" "2022-08-26" "volution.ro" "kawipiko"
+.SH NAME
+kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 .INDENT 0.0
 .INDENT 3.5
 .sp
@@ -59,8 +59,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 \-\-exclude\-cache
 \-\-include\-etag
 
-\-\-exclude\-file\-listing
 \-\-include\-folder\-listing
+
+\-\-exclude\-paths\-index
 
 \-\-progress  \-\-debug
 
@@ -168,17 +169,17 @@ By not including the \fBETag\fP header (i.e. the default), and because identical
 .UNINDENT
 .UNINDENT
 .sp
-\fB\-\-exclude\-file\-listing\fP
-.INDENT 0.0
-.INDENT 3.5
-Disables the creation of an internal list of files that can be used in conjunction with the \fB\-\-index\-all\fP flag of the \fBkawipiko\-server\fP\&.
-.UNINDENT
-.UNINDENT
-.sp
 \fB\-\-include\-folder\-listing\fP
 .INDENT 0.0
 .INDENT 3.5
-Enables the creation of an internal list of folders.  (Currently not used by the \fBkawipiko\-server\fP tool.)
+Enables the creation of an internal list of folders.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-exclude\-paths\-index\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables the creation of an internal list of references that can be used in conjunction with the \fB\-\-index\-all\fP flag of the \fBkawipiko\-server\fP\&.
 .UNINDENT
 .UNINDENT
 .sp

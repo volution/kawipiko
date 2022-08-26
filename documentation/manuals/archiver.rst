@@ -31,8 +31,9 @@ kawipiko -- blazingly fast static HTTP server
     --exclude-cache
     --include-etag
 
-    --exclude-file-listing
     --include-folder-listing
+
+    --exclude-paths-index
 
     --progress  --debug
 
@@ -106,13 +107,13 @@ Flags
     By not including the ``ETag`` header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without ``ETag`` generates the same headers), this can lead to significant reduction in stored headers blocks, including reducing RAM usage.
     (At this moment it does not support HTTP conditional requests, i.e. the ``If-None-Match``, ``If-Modified-Since`` and their counterparts;  however this ``ETag`` header might be used in conjuction with ``HEAD`` requests to see if the resource has changed.)
 
-``--exclude-file-listing``
-
-    Disables the creation of an internal list of files that can be used in conjunction with the ``--index-all`` flag of the ``kawipiko-server``.
-
 ``--include-folder-listing``
 
-    Enables the creation of an internal list of folders.  (Currently not used by the ``kawipiko-server`` tool.)
+    Enables the creation of an internal list of folders.
+
+``--exclude-paths-index``
+
+    Disables the creation of an internal list of references that can be used in conjunction with the ``--index-all`` flag of the ``kawipiko-server``.
 
 ``--progress``
 
