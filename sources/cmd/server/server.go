@@ -158,16 +158,12 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	var _referencesValues [2]uint64
 	var _referencesBuffer []byte
 	
-	var _namespaceAndPathSuffixes = [][2]string {
-			{NamespaceFilesContent, ""},
-			{NamespaceRedirectsContent, ""},
-			{NamespaceFilesContent, "/"},
-			{NamespaceRedirectsContent, "/"},
-			{NamespaceFilesContent, "/*"},
-			{NamespaceRedirectsContent, "/*"},
-			{NamespaceFoldersContent, ""},
-			{NamespaceFoldersContent, "/"},
-		}
+	var _namespaceAndPathSuffixes [][2]string
+	if true {
+		_namespaceAndPathSuffixes = _namespaceAndPathSuffixes_a_static
+	} else {
+		_namespaceAndPathSuffixes = _namespaceAndPathSuffixes_b_static
+	}
 	
 	if !_referencesFound {
 		
@@ -177,8 +173,7 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 				continue
 			}
 			
-			for _namespaceAndPathSuffixIndex := range _namespaceAndPathSuffixes {
-				_namespaceAndPathSuffix := _namespaceAndPathSuffixes[_namespaceAndPathSuffixIndex]
+			for _, _namespaceAndPathSuffix := range _namespaceAndPathSuffixes {
 				_namespace := _namespaceAndPathSuffix[0]
 				_pathSuffix := _namespaceAndPathSuffix[1]
 				
@@ -259,7 +254,7 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 					_pathLimit >= 0;
 					_pathLimit = bytes.LastIndexByte (_path[: _pathLimit], '/') {
 				
-				for _, _namespace := range []string { NamespaceFilesContent, NamespaceRedirectsContent } {
+				for _, _namespace := range _namespace_c_static {
 					
 					if _server.cachedReferences != nil {
 						_key := _keyBufferLarge[:0]
@@ -446,6 +441,28 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	atomic.AddUint64 (&_statsRequestsBody, uint64 (len (_data)))
 }
 
+
+var _namespaceAndPathSuffixes_a_static = [][2]string {
+		{NamespaceFilesContent, ""},
+		{NamespaceRedirectsContent, ""},
+		{NamespaceFoldersContent, ""},
+	}
+
+var _namespaceAndPathSuffixes_b_static = [][2]string {
+		{NamespaceFilesContent, ""},
+		{NamespaceRedirectsContent, ""},
+		{NamespaceFilesContent, "/"},
+		{NamespaceRedirectsContent, "/"},
+		{NamespaceFilesContent, "/*"},
+		{NamespaceRedirectsContent, "/*"},
+		{NamespaceFoldersContent, ""},
+		{NamespaceFoldersContent, "/"},
+	}
+
+var _namespace_c_static = []string {
+		NamespaceFilesContent,
+		NamespaceRedirectsContent,
+	}
 
 
 
