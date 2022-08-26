@@ -59,6 +59,7 @@ type context struct {
 	dataCompressedSize int
 	includeIndex bool
 	includeStripped bool
+	includeSlashRedirects bool
 	includeCache bool
 	includeEtag bool
 	includeFolderListing bool
@@ -1281,6 +1282,7 @@ func main_0 () (error) {
 	var _compressCache string
 	var _includeIndex bool
 	var _includeStripped bool
+	var _includeSlashRedirects bool
 	var _includeCache bool
 	var _includeEtag bool
 	var _includeFolderListing bool
@@ -1303,6 +1305,7 @@ func main_0 () (error) {
 		_compressCache_0 := _flags.String ("compress-cache", "", "")
 		_excludeIndex_0 := _flags.Bool ("exclude-index", false, "")
 		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
+		_excludeSlashRedirects_0 := _flags.Bool ("exclude-slash-redirects", false, "")
 		_excludeCache_0 := _flags.Bool ("exclude-cache", false, "")
 		_includeEtag_0 := _flags.Bool ("include-etag", false, "")
 		_includeFolderListing_0 := _flags.Bool ("include-folder-listing", false, "")
@@ -1320,6 +1323,7 @@ func main_0 () (error) {
 		_compressCache = *_compressCache_0
 		_includeIndex = ! *_excludeIndex_0
 		_includeStripped = ! *_excludeStripped_0
+		_includeSlashRedirects = ! *_excludeSlashRedirects_0
 		_includeCache = ! *_excludeCache_0
 		_includeEtag = *_includeEtag_0
 		_includeFolderListing = *_includeFolderListing_0
@@ -1390,6 +1394,7 @@ func main_0 () (error) {
 			sourcesCache : _sourcesCacheDb,
 			includeIndex : _includeIndex,
 			includeStripped : _includeStripped,
+			includeSlashRedirects : _includeSlashRedirects,
 			includeCache : _includeCache,
 			includeEtag : _includeEtag,
 			includeFolderListing : _includeFolderListing,
@@ -1410,6 +1415,97 @@ func main_0 () (error) {
 	if _, _error := walkPath (_context, _sourcesFolder, "/", filepath.Base (_sourcesFolder), nil, true, 0); _error != nil {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
 	}
+	
+	sort.Strings (_context.storedFilePaths)
+	sort.Strings (_context.storedFolderPaths)
+	sort.Strings (_context.storedRedirectPaths)
+	
+	if _includeSlashRedirects {
+		_paths := make ([]string, 0, 16 * 1024)
+		_paths = append (_paths, _context.storedFilePaths ...)
+		_paths = append (_paths, _context.storedFolderPaths ...)
+		_paths = append (_paths, _context.storedRedirectPaths ...)
+		sort.Strings (_paths)
+		_pathsExisting := make (map[string]bool, len (_paths))
+		_pathsProcessed := make (map[string]bool, len (_paths))
+		for _, _path := range _paths {
+			_pathsExisting[_path] = true
+		}
+		for _, _path := range _paths {
+			if _processed, _ := _pathsProcessed[_path]; !_processed {
+				_pathsProcessed[_path] = true
+			} else {
+				continue
+			}
+			_pathHost := ""
+			if strings.HasPrefix (_path, "://") {
+				_path = _path[3:]
+				_slashOffset := strings.Index (_path, "/")
+				_pathHost = "://" + _path[: _slashOffset]
+				_path = _path[_slashOffset :]
+			}
+			_alternate := ""
+			_target := ""
+			if _alternate == "" {
+				for _, _suffix := range []string { "/", "/*" } {
+					if _path == _suffix {
+						continue
+					}
+					if ! strings.HasSuffix (_path, _suffix) {
+						continue
+					}
+					_alternate_0 := strings.TrimSuffix (_path, _suffix)
+					_alternateQualified_0 := _pathHost + _alternate_0
+					if _exists, _ := _pathsExisting[_alternateQualified_0]; !_exists {
+						_alternate = _alternate_0
+						_target = _alternate + "/"
+						break
+					}
+				}
+			}
+			if _alternate == "" {
+				for _, _suffix := range []string { "/" } {
+					if strings.HasSuffix (_path, "/*") {
+						continue
+					}
+					if strings.HasSuffix (_path, _suffix) {
+						continue
+					}
+					_alternate_0 := _path + _suffix
+					_alternateQualified_0 := _pathHost + _alternate_0
+					if _exists, _ := _pathsExisting[_alternateQualified_0]; !_exists {
+						_alternate = _alternate_0
+						_target = _path
+						break
+					}
+				}
+			}
+			if _alternate == "" {
+				continue
+			}
+			_alternateQualified := _pathHost + _alternate
+			_pathsExisting[_alternateQualified] = true
+			if _context.debug {
+				log.Printf ("[dd] [f6970144]  alternate    -- `%s` -> `%s`\n", _alternateQualified, _target)
+			}
+			{
+				_dataMeta := map[string]string {
+						"!Status" : fmt.Sprintf ("%d", 308),
+						"Location" : _target,
+					}
+				if _context.includeCache {
+					_dataMeta["Cache-Control"] = "public, immutable, max-age=3600"
+				}
+				if _, _, _error := archiveReferenceAndDataWithMeta (_context, NamespaceRedirectsContent, _alternateQualified, []byte (""), _dataMeta); _error != nil {
+					AbortError (_error, "[27a5dabe]  failed writing archive!")
+				}
+			}
+		}
+	}
+	
+	sort.Strings (_context.storedFilePaths)
+	sort.Strings (_context.storedFolderPaths)
+	sort.Strings (_context.storedRedirectPaths)
 	
 	if _includePathsIndex {
 		_buffer := make ([]byte, 0, 1024 * 1024)

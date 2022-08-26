@@ -46,6 +46,8 @@
 			--processes 1 \
 			--threads 1 \
 			\
+			--security-headers-disable \
+			\
 			--debug \
 			\
 			"${@}" \
@@ -88,7 +90,7 @@
 			--compress-cache ./.outputs/examples/huge-compress.cache \
 			--sources-cache ./.outputs/examples/huge-sources.cache \
 			--exclude-strip \
-			--exclude-file-listing \
+			--exclude-paths-index \
 			--progress \
 			"${@}" \
 	#
@@ -101,6 +103,7 @@
 			--archive-mmap \
 			--processes 1 \
 			--threads 1 \
+			--security-headers-disable \
 			--debug \
 			"${@}" \
 	#

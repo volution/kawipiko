@@ -1,0 +1,12 @@
+
+/redirect-01 / 301
+/redirect-02 https://www.google.com/ 301
+
+://host/redirect-03 /hello-03 301
+://*/redirect-04 /hello-04 301
+
+./redirect-05 /hello-05 301
+
+/redirect-06/* /hello-06 301
+./redirect-07/* /hello-07 301
+
