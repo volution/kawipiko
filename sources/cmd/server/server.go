@@ -199,8 +199,10 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 		
 		if !_referencesFound {
 			if bytes.Equal (StringToBytes ("/favicon.ico"), _path) {
-				_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
-				return
+				if _hostIdx != 0 {
+					_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
+					return
+				}
 			}
 		}
 		
