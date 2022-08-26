@@ -158,27 +158,28 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	
 	var _namespaceAndPathSuffixes = [][2]string {
 			{NamespaceFilesContent, ""},
+			{NamespaceRedirectsContent, ""},
 			{NamespaceFilesContent, "/"},
+			{NamespaceRedirectsContent, "/"},
+			{NamespaceFilesContent, "/*"},
+			{NamespaceRedirectsContent, "/*"},
 			{NamespaceFoldersContent, ""},
+			{NamespaceFoldersContent, "/"},
 		}
 	
 	if !_referencesFound {
-		_loop_1 : for _namespaceAndPathSuffixIndex := range _namespaceAndPathSuffixes {
+		for _namespaceAndPathSuffixIndex := range _namespaceAndPathSuffixes {
 			_namespaceAndPathSuffix := _namespaceAndPathSuffixes[_namespaceAndPathSuffixIndex]
 			_namespace := _namespaceAndPathSuffix[0]
 			_pathSuffix := _namespaceAndPathSuffix[1]
 			
-			switch {
-				case !_pathIsRoot && !_pathHasSlash :
-					// NOP
-				case _pathSuffix == "/" :
-					continue _loop_1
-				case _pathSuffix == "" :
-					// NOP
-				case _pathSuffix[0] == '/' :
-					_pathSuffix = _pathSuffix[1:]
+			if !_pathIsRoot && !_pathHasSlash {
+				// NOP
+			} else if _pathSuffix == "" {
+				// NOP
+			} else if (_pathSuffix[0] == '/') && (_pathIsRoot || _pathHasSlash) {
+				_pathSuffix = _pathSuffix[1:]
 			}
-			_pathSuffixHasSlash := (len (_pathSuffix) != 0) && (_pathSuffix[0] == '/')
 			
 			if _server.cachedReferences != nil {
 				_key := _keyBufferLarge[:0]
@@ -201,12 +202,17 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 			}
 			
 			if _referencesFound {
-				if ((_namespace == NamespaceFoldersContent) || _pathSuffixHasSlash) && (!_pathIsRoot && !_pathHasSlash) {
-					_path = append (_path, '/')
+				if _pathSuffix == "/*" {
+					_pathSuffix = "/"
+				} else if _pathSuffix == "*" {
+					_pathSuffix = ""
+				}
+				if _pathSuffix != "" {
+					_path = append (_path, _pathSuffix ...)
 					_server.ServeRedirect (_context, http.StatusTemporaryRedirect, _path, true)
 					return
 				}
-				break _loop_1
+				break
 			}
 		}
 	}
@@ -219,33 +225,40 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if !_referencesFound {
-		_loop_2 : for
+		for
 				_pathLimit := bytes.LastIndexByte (_path, '/');
 				_pathLimit >= 0;
 				_pathLimit = bytes.LastIndexByte (_path[: _pathLimit], '/') {
 			
-			if _server.cachedReferences != nil {
-				_key := _keyBufferLarge[:0]
-				_key = append (_key, NamespaceFilesContentPrefix, ':')
-				_key = append (_key, _path[: _pathLimit] ...)
-				_key = append (_key, "/*" ...)
-				_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
-			} else {
-				_key := _keyBufferLarge[:0]
-				_key = append (_key, NamespaceFilesContentPrefix, ':')
-				_key = append (_key, _path[: _pathLimit] ...)
-				_key = append (_key, "/*" ...)
-				if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
-					_referencesBuffer = _value
-					_referencesFound = _value != nil
+			for _, _namespace := range []string { NamespaceFilesContent, NamespaceRedirectsContent } {
+				
+				if _server.cachedReferences != nil {
+					_key := _keyBufferLarge[:0]
+					_key = append (_key, KeyNamespacePrefix (_namespace), ':')
+					_key = append (_key, _path[: _pathLimit] ...)
+					_key = append (_key, "/*" ...)
+					_referencesValues, _referencesFound = _server.cachedReferences[BytesToString (*NoEscapeBytes (&_key))]
 				} else {
-					_server.ServeError (_context, http.StatusInternalServerError, _error, false)
-					return
+					_key := _keyBufferLarge[:0]
+					_key = append (_key, KeyNamespacePrefix (_namespace), ':')
+					_key = append (_key, _path[: _pathLimit] ...)
+					_key = append (_key, "/*" ...)
+					if _value, _error := _server.cdbReader.GetWithCdbHash (_key); _error == nil {
+						_referencesBuffer = _value
+						_referencesFound = _value != nil
+					} else {
+						_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+						return
+					}
+				}
+				
+				if _referencesFound {
+					break
 				}
 			}
 			
 			if _referencesFound {
-				break _loop_2
+				break
 			}
 		}
 	}
@@ -1260,113 +1273,143 @@ func main_0 () (error) {
 	}
 	
 	if _indexPaths || _indexDataMeta || _indexDataContent {
+		
 		if !_quiet {
 			log.Printf ("[ii] [fa5338fd]  [cdb.....]  indexing archive...\n")
 		}
-		var _filesIndexKey string
-		if _key_0, _error := PrepareKeyToString (NamespaceFilesIndex, 1); _error == nil {
-			_filesIndexKey = _key_0
-		} else {
-			AbortError (_error, "[5289ee67]  [cdb.....]  failed indexing archive!")
-		}
-		if _filesIndex, _error := _cdbReader.GetWithCdbHash (StringToBytes (_filesIndexKey)); _error == nil {
-			if _filesIndex != nil {
-				_keyBuffer := [1024]byte {}
-				for {
-					_offset := bytes.IndexByte (_filesIndex, '\n')
-					if _offset == 0 {
-						continue
+		
+		for _, _namespaceContents := range []string { NamespaceFilesContent, NamespaceFoldersContent, NamespaceRedirectsContent } {
+			
+			_namespaceIndex := ""
+			switch _namespaceContents {
+				case NamespaceFilesContent : _namespaceIndex = NamespaceFilesIndex
+				case NamespaceFoldersContent : _namespaceIndex = NamespaceFoldersIndex
+				case NamespaceRedirectsContent : _namespaceIndex = NamespaceRedirectsIndex
+			}
+			
+			var _indexKey string
+			if _key_0, _error := PrepareKeyToString (_namespaceIndex, 1); _error == nil {
+				_indexKey = _key_0
+			} else {
+				AbortError (_error, "[5289ee67]  [cdb.....]  failed indexing archive!")
+			}
+			
+			var _index []byte
+			if _index_0, _error := _cdbReader.GetWithCdbHash (StringToBytes (_indexKey)); _error == nil {
+				_index = _index_0
+			} else {
+				AbortError (_error, "[82299b3d]  [cdb.....]  failed indexing arcdive!")
+			}
+			if _index == nil {
+				log.Printf ("[ww] [30314f31]  [cdb.....]  missing archive index `%s`;  ignoring!\n", _namespaceIndex)
+				continue
+			}
+			
+			_keyBuffer := [1024]byte {}
+			_keysCount := 0
+			for {
+				_offset := bytes.IndexByte (_index, '\n')
+				if _offset == 0 {
+					continue
+				}
+				if _offset == -1 {
+					break
+				}
+				_path := _index[: _offset]
+				_index = _index[_offset + 1 :]
+				var _references []byte
+				{
+					_key := _keyBuffer[:0]
+					_key = append (_key, KeyNamespacePrefix (_namespaceContents), ':')
+					_key = append (_key, _path ...)
+					if _references_0, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
+						if _references_0 != nil {
+							_references = _references_0
+						} else {
+							AbortError (_error, "[460b3cf1]  [cdb.....]  failed indexing archive!")
+						}
+					} else {
+						AbortError (_error, "[216f2075]  [cdb.....]  failed indexing archive!")
 					}
-					if _offset == -1 {
-						break
-					}
-					_filePath := _filesIndex[: _offset]
-					_filesIndex = _filesIndex[_offset + 1 :]
-					var _fileReferences []byte
-					{
-						_key := _keyBuffer[:0]
-						_key = append (_key, NamespaceFilesContentPrefix, ':')
-						_key = append (_key, _filePath ...)
-						if _references_0, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
-							if _references_0 != nil {
-								_fileReferences = _references_0
+				}
+				var _keyDataMeta, _keyDataContent uint64
+				if _keyDataMeta_0, _keyDataContent_0, _error := DecodeKeysPair (_references); _error == nil {
+					_keyDataMeta = _keyDataMeta_0
+					_keyDataContent = _keyDataContent_0
+				} else {
+					AbortError (_error, "[7d1a366f]  [cdb.....]  failed indexing archive!")
+				}
+				if _indexPaths {
+					_key := _keyBuffer[:0]
+					_key = append (_key, KeyNamespacePrefix (_namespaceContents), ':')
+					_key = append (_key, _path ...)
+					_cachedReferences[string (_key)] = [2]uint64 { _keyDataMeta, _keyDataContent }
+				}
+				if _indexDataMeta {
+					if _, _wasCached := _cachedDataMeta[_keyDataMeta]; !_wasCached {
+						_key := _keyBuffer[:8]
+						if _error := EncodeKeyToBytes_0 (NamespaceDataMetadata, _keyDataMeta, _key); _error != nil {
+							AbortError (_error, "[b8cd07f4]  [cdb.....]  failed indexing archive!")
+						}
+						if _dataMeta, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
+							if _dataMeta != nil {
+								_cachedDataMeta[_keyDataMeta] = _dataMeta
 							} else {
-								AbortError (_error, "[460b3cf1]  [cdb.....]  failed indexing archive!")
+								AbortError (_error, "[6df556bf]  [cdb.....]  failed indexing archive!")
 							}
 						} else {
-							AbortError (_error, "[216f2075]  [cdb.....]  failed indexing archive!")
-						}
-					}
-					var _keyDataMeta, _keyDataContent uint64
-					if _keyDataMeta_0, _keyDataContent_0, _error := DecodeKeysPair (_fileReferences); _error == nil {
-						_keyDataMeta = _keyDataMeta_0
-						_keyDataContent = _keyDataContent_0
-					} else {
-						AbortError (_error, "[7d1a366f]  [cdb.....]  failed indexing archive!")
-					}
-					if _indexPaths {
-						_key := _keyBuffer[:0]
-						_key = append (_key, NamespaceFilesContentPrefix, ':')
-						_key = append (_key, _filePath ...)
-						_cachedReferences[string (_key)] = [2]uint64 { _keyDataMeta, _keyDataContent }
-					}
-					if _indexDataMeta {
-						if _, _wasCached := _cachedDataMeta[_keyDataMeta]; !_wasCached {
-							_key := _keyBuffer[:8]
-							if _error := EncodeKeyToBytes_0 (NamespaceDataMetadata, _keyDataMeta, _key); _error != nil {
-								AbortError (_error, "[b8cd07f4]  [cdb.....]  failed indexing archive!")
-							}
-							if _dataMeta, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
-								if _dataMeta != nil {
-									_cachedDataMeta[_keyDataMeta] = _dataMeta
-								} else {
-									AbortError (_error, "[6df556bf]  [cdb.....]  failed indexing archive!")
-								}
-							} else {
-								AbortError (_error, "[0d730134]  [cdb.....]  failed indexing archive!")
-							}
-						}
-					}
-					if _indexDataContent {
-						if _, _wasCached := _cachedDataContent[_keyDataContent]; !_wasCached {
-							_key := _keyBuffer[:8]
-							if _error := EncodeKeyToBytes_0 (NamespaceDataContent, _keyDataContent, _key); _error != nil {
-								AbortError (_error, "[580e387e]  [cdb.....]  failed indexing archive!")
-							}
-							if _dataContent, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
-								if _dataContent != nil {
-									_cachedDataContent[_keyDataContent] = _dataContent
-								} else {
-									AbortError (_error, "[4e27fe46]  [cdb.....]  failed indexing archive!")
-								}
-							} else {
-								AbortError (_error, "[532845ad]  [cdb.....]  failed indexing archive!")
-							}
+							AbortError (_error, "[0d730134]  [cdb.....]  failed indexing archive!")
 						}
 					}
 				}
-				if !_quiet {
-					if _indexPaths {
-						log.Printf ("[ii] [6b7ec5d9]  [cdb.....]  cached %d file references;\n", len (_cachedReferences))
-					}
-					if _indexDataMeta {
-						log.Printf ("[ii] [5ec4f113]  [cdb.....]  cached %d meta-data blocks;\n", len (_cachedDataMeta))
-					}
-					if _indexDataContent {
-						log.Printf ("[ii] [d9680a2f]  [cdb.....]  cached %d content blocks;\n", len (_cachedDataContent))
+				if _indexDataContent {
+					if _, _wasCached := _cachedDataContent[_keyDataContent]; !_wasCached {
+						_key := _keyBuffer[:8]
+						if _error := EncodeKeyToBytes_0 (NamespaceDataContent, _keyDataContent, _key); _error != nil {
+							AbortError (_error, "[580e387e]  [cdb.....]  failed indexing archive!")
+						}
+						if _dataContent, _error := _cdbReader.GetWithCdbHash (_key); _error == nil {
+							if _dataContent != nil {
+								_cachedDataContent[_keyDataContent] = _dataContent
+							} else {
+								AbortError (_error, "[4e27fe46]  [cdb.....]  failed indexing archive!")
+							}
+						} else {
+							AbortError (_error, "[532845ad]  [cdb.....]  failed indexing archive!")
+						}
 					}
 				}
-			} else {
-				log.Printf ("[ww] [30314f31]  [cdb.....]  missing archive files index;  ignoring!\n")
-				_indexPaths = false
-				_indexDataMeta = false
-				_indexDataContent = false
-				_cachedReferences = nil
-				_cachedDataMeta = nil
-				_cachedDataContent = nil
+				_keysCount += 1
 			}
-		} else {
-			AbortError (_error, "[82299b3d]  [cdb.....]  failed indexing arcdive!")
+			
+			if !_quiet {
+				log.Printf ("[ii] [0c2abafe]  [cdb.....]  indexed %d references in `%s`;\n", _keysCount, _namespaceIndex)
+			}
+		}
+		
+		if !_quiet {
+			if _indexPaths {
+				log.Printf ("[ii] [6b7ec5d9]  [cdb.....]  cached %d references;\n", len (_cachedReferences))
+			}
+			if _indexDataMeta {
+				log.Printf ("[ii] [5ec4f113]  [cdb.....]  cached %d meta-data blocks;\n", len (_cachedDataMeta))
+			}
+			if _indexDataContent {
+				log.Printf ("[ii] [d9680a2f]  [cdb.....]  cached %d content blocks;\n", len (_cachedDataContent))
+			}
+		}
+		
+		if len (_cachedReferences) == 0 {
+			_indexPaths = false
+			_cachedReferences = nil
+		}
+		if len (_cachedDataMeta) == 0 {
+			_indexDataMeta = false
+			_cachedDataMeta = nil
+		}
+		if len (_cachedDataContent) == 0 {
+			_indexDataContent = false
+			_cachedDataContent = nil
 		}
 	}
 	
