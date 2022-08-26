@@ -155,13 +155,13 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	var _referencesValues [2]uint64
 	var _referencesBuffer []byte
 	
-	if !_referencesFound {
+	for _hostIdx := 0; _hostIdx < 2; _hostIdx += 1 {
 		
-		for _hostIdx := 0; _hostIdx < 2; _hostIdx += 1 {
-			
-			if (_hostIdx == 0) && _server.hostsDisabled {
-				continue
-			}
+		if (_hostIdx == 0) && _server.hostsDisabled {
+			continue
+		}
+		
+		if !_referencesFound {
 			
 			for _, _namespace := range _namespaces_a_static {
 				
@@ -195,27 +195,16 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 					break
 				}
 			}
-			
-			if _referencesFound {
-				break
-			}
 		}
-	}
-	
-	if !_referencesFound {
-		if bytes.Equal (StringToBytes ("/favicon.ico"), _path) {
-			_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
-			return
-		}
-	}
-	
-	if !_referencesFound {
 		
-		for _hostIdx := 0; _hostIdx < 2; _hostIdx += 1 {
-			
-			if (_hostIdx == 0) && _server.hostsDisabled {
-				continue
+		if !_referencesFound {
+			if bytes.Equal (StringToBytes ("/favicon.ico"), _path) {
+				_server.ServeStatic (_context, http.StatusOK, FaviconData, FaviconContentType, FaviconContentEncoding, true)
+				return
 			}
+		}
+		
+		if !_referencesFound {
 			
 			for
 					_pathLimit := bytes.LastIndexByte (_path, '/');
@@ -261,10 +250,10 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 					break
 				}
 			}
-			
-			if _referencesFound {
-				break
-			}
+		}
+		
+		if _referencesFound {
+			break
 		}
 	}
 	
