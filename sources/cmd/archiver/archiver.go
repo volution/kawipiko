@@ -889,7 +889,7 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 	if _statMode.IsRegular () {
 		
 		if _context.debug {
-			log.Printf ("[dd] [da429eaa]  file         -- `%s`\n", _pathInArchive)
+			log.Printf ("[dd] [da429eaa]  file         -- `%s` -> `%s`\n", _pathInArchive, _pathResolved)
 		}
 		if _error := archiveFile (_context, _pathResolved, _pathInArchive, _name, _statusPerhaps); _error != nil {
 			return nil, _error
@@ -941,11 +941,17 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 							_childsStat[_childName] = _childStat
 							
 							if strings.HasPrefix (_childName, "200.") || strings.HasPrefix (_childName, "_200.") || strings.HasPrefix (_childName, "_wildcard.") {
+								if _wildcardName != "" {
+									return nil, fmt.Errorf ("[b5afdb05]  duplicate wildcard files found:  `%s` and `%s`!", _childName, _wildcardName)
+								}
 								_wildcardName = _childName
 								_wildcardStatus = 200
 								continue
 							}
 							if strings.HasPrefix (_childName, "404.") || strings.HasPrefix (_childName, "_404.") {
+								if _wildcardName != "" {
+									return nil, fmt.Errorf ("[4c14c7bb]  duplicate wildcard files found:  `%s` and `%s`!", _childName, _wildcardName)
+								}
 								_wildcardName = _childName
 								_wildcardStatus = 404
 								continue
@@ -981,7 +987,11 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		
 		if _wildcardName != "" {
 			_childPathInArchive := filepath.Join (_pathInArchive, "*")
-			if _, _error := walkPath (_context, _childsPathResolved[_wildcardName], _childPathInArchive, _wildcardName, _recursed, true, _wildcardStatus); _error != nil {
+			_childPathResolved := _childsPathResolved[_wildcardName]
+			if _context.debug {
+				log.Printf ("[dd] [351804ff]  wildcard     -- `%s` -> `%s`\n", _childPathInArchive, _childPathResolved)
+			}
+			if _, _error := walkPath (_context, _childPathResolved, _childPathInArchive, _wildcardName, _recursed, true, _wildcardStatus); _error != nil {
 				return nil, _error
 			}
 		}
