@@ -190,6 +190,10 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 						return
 					}
 				}
+				
+				if _referencesFound {
+					break
+				}
 			}
 			
 			if _referencesFound {
