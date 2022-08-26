@@ -21,8 +21,9 @@ NAME
           --exclude-cache
           --include-etag
 
-          --exclude-file-listing
           --include-folder-listing
+
+          --exclude-paths-index
 
           --progress  --debug
 

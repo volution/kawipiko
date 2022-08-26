@@ -42,6 +42,7 @@ type context struct {
 	cdbWriteKeys map[string]bool
 	storedFilePaths []string
 	storedFolderPaths []string
+	storedRedirectPaths []string
 	storedDataMeta map[string]bool
 	storedDataContent map[string]bool
 	storedDataContentMeta map[string]map[string]string
@@ -60,8 +61,8 @@ type context struct {
 	includeStripped bool
 	includeCache bool
 	includeEtag bool
-	includeFileListing bool
 	includeFolderListing bool
+	includePathsIndex bool
 	progress bool
 	progressStarted time.Time
 	progressLast time.Time
@@ -206,6 +207,10 @@ func archiveFile (_context *context, _pathResolved string, _pathInArchive string
 
 func archiveFolder (_context *context, _pathResolved string, _pathInArchive string, _names []string, _stats map[string]os.FileInfo, _statusPerhaps uint) (error) {
 	
+	if ! strings.HasSuffix (_pathInArchive, "/") {
+		_pathInArchive = _pathInArchive + "/"
+	}
+	
 	type Entry struct {
 		Name string `json:"name,omitempty"`
 		Type string `json:"type,omitempty"`
@@ -259,10 +264,7 @@ func archiveFolder (_context *context, _pathResolved string, _pathInArchive stri
 		}
 		if _indexNameFirst != "" {
 			_indexPathResolved := filepath.Join (_pathResolved, _indexNameFirst)
-			_indexPathInArchive := _pathInArchive + "/"
-			if _pathInArchive == "/" {
-				_indexPathInArchive = "/"
-			}
+			_indexPathInArchive := _pathInArchive
 			archiveFile (_context, _indexPathResolved, _indexPathInArchive, _indexNameFirst, _statusPerhaps)
 		}
 	}
@@ -453,6 +455,8 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 			_context.storedFilePaths = append (_context.storedFilePaths, _pathInArchive)
 		case NamespaceFoldersContent :
 			_context.storedFolderPaths = append (_context.storedFolderPaths, _pathInArchive)
+		case NamespaceRedirectsContent :
+			_context.storedRedirectPaths = append (_context.storedRedirectPaths, _pathInArchive)
 		default :
 			return fmt.Errorf ("[051a102a]")
 	}
@@ -501,10 +505,11 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 		if (
 				(((_context.archivedReferences % 1000) == 0) && (time.Since (_context.progressLast) .Seconds () >= 2)) ||
 				(((_context.archivedReferences % 10) == 0) && (time.Since (_context.progressLast) .Seconds () >= 6))) {
-			log.Printf ("[ii] [5193276e]  pogress      -- %0.2f min -- %d fil, %d fol, %0.2f M (%0.2f M/s) -- %d comp, %0.2f%% -- %d rec, %0.2f M\n",
+			log.Printf ("[ii] [5193276e]  pogress      -- %0.2f min -- %d fil, %d fol, %d red, %0.2f M (%0.2f M/s) -- %d comp, %0.2f%% -- %d rec, %0.2f M\n",
 					time.Since (_context.progressStarted) .Minutes (),
 					len (_context.storedFilePaths),
 					len (_context.storedFolderPaths),
+					len (_context.storedRedirectPaths),
 					float32 (_context.dataUncompressedSize) / 1024 / 1024,
 					float64 (_context.dataUncompressedSize) / 1024 / 1024 / (time.Since (_context.progressStarted) .Seconds () + 0.001),
 					_context.dataCompressedCount,
@@ -1233,7 +1238,7 @@ func walkRedirects (_context *context, _pathResolved string, _pathInArchive stri
 			_dataMeta["ETag"] = _fingerprintContent
 		}
 		
-		if _, _, _error := archiveReferenceAndDataWithMeta (_context, NamespaceFilesContent, _source, []byte (""), _dataMeta); _error != nil {
+		if _, _, _error := archiveReferenceAndDataWithMeta (_context, NamespaceRedirectsContent, _source, []byte (""), _dataMeta); _error != nil {
 			return _error
 		}
 	}
@@ -1278,8 +1283,8 @@ func main_0 () (error) {
 	var _includeStripped bool
 	var _includeCache bool
 	var _includeEtag bool
-	var _includeFileListing bool
 	var _includeFolderListing bool
+	var _includePathsIndex bool
 	var _progress bool
 	var _debug bool
 	
@@ -1300,8 +1305,8 @@ func main_0 () (error) {
 		_excludeStripped_0 := _flags.Bool ("exclude-strip", false, "")
 		_excludeCache_0 := _flags.Bool ("exclude-cache", false, "")
 		_includeEtag_0 := _flags.Bool ("include-etag", false, "")
-		_excludeFileListing_0 := _flags.Bool ("exclude-file-listing", false, "")
 		_includeFolderListing_0 := _flags.Bool ("include-folder-listing", false, "")
+		_excludePathsIndex_0 := _flags.Bool ("exclude-paths-index", false, "")
 		_progress_0 := _flags.Bool ("progress", false, "")
 		_debug_0 := _flags.Bool ("debug", false, "")
 		
@@ -1317,8 +1322,8 @@ func main_0 () (error) {
 		_includeStripped = ! *_excludeStripped_0
 		_includeCache = ! *_excludeCache_0
 		_includeEtag = *_includeEtag_0
-		_includeFileListing = ! *_excludeFileListing_0
 		_includeFolderListing = *_includeFolderListing_0
+		_includePathsIndex = ! *_excludePathsIndex_0
 		_progress = *_progress_0
 		_debug = *_debug_0
 		
@@ -1373,6 +1378,7 @@ func main_0 () (error) {
 			cdbWriteKeys : make (map[string]bool, 16 * 1024),
 			storedFilePaths : make ([]string, 0, 16 * 1024),
 			storedFolderPaths : make ([]string, 0, 16 * 1024),
+			storedRedirectPaths : make ([]string, 0, 16 * 1024),
 			storedDataMeta : make (map[string]bool, 16 * 1024),
 			storedDataContent : make (map[string]bool, 16 * 1024),
 			storedDataContentMeta : make (map[string]map[string]string, 16 * 1024),
@@ -1386,8 +1392,8 @@ func main_0 () (error) {
 			includeStripped : _includeStripped,
 			includeCache : _includeCache,
 			includeEtag : _includeEtag,
-			includeFileListing : _includeFileListing,
 			includeFolderListing : _includeFolderListing,
+			includePathsIndex : _includePathsIndex,
 			progress : _progress,
 			debug : _debug,
 		}
@@ -1405,7 +1411,7 @@ func main_0 () (error) {
 		AbortError (_error, "[b6a19ef4]  failed walking folder!")
 	}
 	
-	if _includeFileListing {
+	if _includePathsIndex {
 		_buffer := make ([]byte, 0, 1024 * 1024)
 		for _, _path := range _context.storedFilePaths {
 			_buffer = append (_buffer, _path ...)
@@ -1428,7 +1434,7 @@ func main_0 () (error) {
 		}
 	}
 	
-	if _includeFolderListing {
+	if _includePathsIndex {
 		_buffer := make ([]byte, 0, 1024 * 1024)
 		for _, _path := range _context.storedFolderPaths {
 			_buffer = append (_buffer, _path ...)
@@ -1451,6 +1457,29 @@ func main_0 () (error) {
 		}
 	}
 	
+	if _includePathsIndex {
+		_buffer := make ([]byte, 0, 1024 * 1024)
+		for _, _path := range _context.storedRedirectPaths {
+			_buffer = append (_buffer, _path ...)
+			_buffer = append (_buffer, '\n')
+		}
+		if _key, _error := PrepareKeyToString (NamespaceRedirectsIndex, 1); _error == nil {
+			if _found, _ := _context.cdbWriteKeys[_key]; _found {
+				_error := fmt.Errorf ("[1d4dcde6]  duplicate key encountered:  `%s`", _key)
+				AbortError (_error, "[d57123af]  failed writing archive!")
+			}
+			if _error := _context.cdbWriter.Put ([]byte (_key), _buffer); _error != nil {
+				AbortError (_error, "[24833b01]  failed writing archive!")
+			}
+			_context.cdbWriteKeys[_key] = true
+			_context.cdbWriteCount += 1
+			_context.cdbWriteKeySize += len (_key)
+			_context.cdbWriteDataSize += len (_buffer)
+		} else {
+			AbortError (_error, "[05b9d10b]  failed writing archive!")
+		}
+	}
+	
 	if _error := _context.cdbWriter.Close (); _error != nil {
 		AbortError (_error, "[bbfb8478]  failed creating archive (while closing)!")
 	}
@@ -1469,10 +1498,11 @@ func main_0 () (error) {
 	}
 	
 	if true {
-		log.Printf ("[ii] [56f63575]  completed    -- %0.2f min -- %d fil, %d fol, %0.2f M (%0.2f M/s) -- %d comp, %0.2f%% -- %d rec, %0.2f M\n",
+		log.Printf ("[ii] [56f63575]  completed    -- %0.2f min -- %d fil, %d fol, %d red, %0.2f M (%0.2f M/s) -- %d comp, %0.2f%% -- %d rec, %0.2f M\n",
 				time.Since (_context.progressStarted) .Minutes (),
 				len (_context.storedFilePaths),
 				len (_context.storedFolderPaths),
+				len (_context.storedRedirectPaths),
 				float32 (_context.dataUncompressedSize) / 1024 / 1024,
 				float64 (_context.dataUncompressedSize) / 1024 / 1024 / (time.Since (_context.progressStarted) .Seconds () + 0.001),
 				_context.dataCompressedCount,

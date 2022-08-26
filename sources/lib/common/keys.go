@@ -86,6 +86,8 @@ func KeyNamespacePrefix (_namespace string) (byte) {
 		case NamespaceFilesIndex : return NamespaceFilesIndexPrefix
 		case NamespaceFoldersContent : return NamespaceFoldersContentPrefix
 		case NamespaceFoldersIndex : return NamespaceFoldersIndexPrefix
+		case NamespaceRedirectsContent : return NamespaceRedirectsContentPrefix
+		case NamespaceRedirectsIndex : return NamespaceRedirectsIndexPrefix
 		case NamespaceDataContent : return NamespaceDataContentPrefix
 		case NamespaceDataMetadata : return NamespaceDataMetadataPrefix
 		case NamespaceHeaderName : return NamespaceHeaderNamePrefix

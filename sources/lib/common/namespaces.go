@@ -6,7 +6,7 @@ package common
 
 
 const NamespaceSchemaVersion = "schema"
-const CurrentSchemaVersion = "kawipiko-2021c"
+const CurrentSchemaVersion = "kawipiko-2021d"
 
 
 const NamespaceFilesContent = "files-content"
@@ -20,6 +20,12 @@ const NamespaceFoldersContentPrefix byte = 'l'
 
 const NamespaceFoldersIndex = "folders-index"
 const NamespaceFoldersIndexPrefix byte = 'L'
+
+const NamespaceRedirectsContent = "redirects-content"
+const NamespaceRedirectsContentPrefix byte = 'r'
+
+const NamespaceRedirectsIndex = "redirects-index"
+const NamespaceRedirectsIndexPrefix byte = 'R'
 
 
 const NamespaceDataMetadata = "resource-metadata"
