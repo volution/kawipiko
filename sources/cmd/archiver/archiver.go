@@ -13,6 +13,7 @@ import "io"
 import "io/ioutil"
 import "log"
 import "net/http"
+import "net/url"
 import "os"
 import "path/filepath"
 import "runtime"
@@ -310,6 +311,44 @@ func archiveReferenceAndData (_context *context, _namespace string, _pathResolve
 		_dataContent = _dataContent_0
 		_dataMeta = _dataMeta_0
 	}
+	if _fingerprintMeta_0, _dataMetaRaw_0, _error := prepareDataMeta (_context, _dataMeta); _error != nil {
+		return "", "", _error
+	} else {
+		_fingerprintMeta = _fingerprintMeta_0
+		_dataMetaRaw = _dataMetaRaw_0
+	}
+	
+	if _error := archiveReference (_context, _namespace, _pathInArchive, _fingerprintContent, _fingerprintMeta); _error != nil {
+		return "", "", _error
+	}
+	if _dataMetaRaw != nil {
+		if _error := archiveDataMeta (_context, _fingerprintMeta, _dataMetaRaw); _error != nil {
+			return "", "", _error
+		}
+	}
+	if _dataContent != nil {
+		if _error := archiveDataContent (_context, _fingerprintContent, _dataContent); _error != nil {
+			return "", "", _error
+		}
+	}
+	
+	return _fingerprintContent, _fingerprintMeta, nil
+}
+
+
+func archiveReferenceAndDataWithMeta (_context *context, _namespace string, _pathInArchive string, _dataContent []byte, _dataMeta map[string]string) (string, string, error) {
+	
+	var _fingerprintContent string
+	var _fingerprintMeta string
+	var _dataMetaRaw []byte
+	
+	_fingerprintContentRaw := blake3.Sum256 (_dataContent)
+	_fingerprintContent = hex.EncodeToString (_fingerprintContentRaw[:])
+	
+	if _wasStored, _ := _context.storedDataContent[_fingerprintContent]; _wasStored {
+		_dataContent = nil
+	}
+	
 	if _fingerprintMeta_0, _dataMetaRaw_0, _error := prepareDataMeta (_context, _dataMeta); _error != nil {
 		return "", "", _error
 	} else {
@@ -926,6 +965,8 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 		var _wildcardName string
 		var _wildcardStatus uint
 		
+		var _redirectsName string
+		
 		if _context.debug {
 			log.Printf ("[dd] [2d22d910]  folder       |> `%s`\n", _pathInArchive)
 		}
@@ -969,6 +1010,13 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 								_wildcardStatus = 404
 								continue
 							}
+							if (_childName == "_redirects") || (_childName == "_redirects.txt") {
+								if _redirectsName != "" {
+									return nil, fmt.Errorf ("[fbc0ee12]  duplicate redirects files found:  `%s` and `%s`!", _childName, _redirectsName)
+								}
+								_redirectsName = _childName
+								continue
+							}
 							if ShouldSkipName (_childName) {
 								if _context.debug {
 									log.Printf ("[dd] [f11b5ba1]  skip         !! `%s`\n", _childPathInArchive)
@@ -1008,6 +1056,16 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 				return nil, _error
 			}
 		}
+		if _redirectsName != "" {
+			_childPathInArchive := _pathInArchive
+			_childPathResolved := _childsPathResolved[_redirectsName]
+			if _context.debug {
+				log.Printf ("[dd] [f49aa9f5]  redirects    -- `%s` -> `%s`\n", _childPathInArchive, _childPathResolved)
+			}
+			if _error := walkRedirects (_context, _childPathResolved, _childPathInArchive); _error != nil {
+				return nil, _error
+			}
+		}
 		
 		if _context.debug {
 			log.Printf ("[dd] [ce1fe181]  folder       |> `%s`\n", _pathInArchive)
@@ -1043,6 +1101,144 @@ func walkPath (_context *context, _pathResolved string, _pathInArchive string, _
 	} else {
 		return nil, fmt.Errorf ("[d9b836d7]  unexpected file type for `%s`:  `%s`!", _pathResolved, _statMode)
 	}
+}
+
+
+
+
+func walkRedirects (_context *context, _pathResolved string, _pathInArchive string) (error) {
+	
+	_redirectsData, _error := os.ReadFile (_pathResolved)
+	if _error != nil {
+		return _error
+	}
+	
+	_redirectLines := strings.Split (string (_redirectsData), "\n")
+	
+	for _, _redirectLine := range _redirectLines {
+		
+		_redirectLine = strings.ReplaceAll (_redirectLine, "\t", " ")
+		_redirectLine = strings.Trim (_redirectLine, " ")
+		for {
+			_redirectLine_0 := strings.ReplaceAll (_redirectLine, "  ", " ")
+			if _redirectLine == _redirectLine_0 {
+				break
+			}
+			_redirectLine = _redirectLine_0
+		}
+		
+		if _redirectLine == "" {
+			continue
+		}
+		if _redirectLine[0] == '#' {
+			continue
+		}
+		
+		_redirectParts := strings.Split (_redirectLine, " ")
+		if len (_redirectParts) != 3 {
+			return fmt.Errorf ("[bf358c0a]  invalid redirect statement:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+		}
+		
+		_source := _redirectParts[0]
+		_target := _redirectParts[1]
+		_code := 0
+		switch _redirectParts[2] {
+			case "301" : _code = 301
+			case "302" : _code = 302
+			case "303" : _code = 303
+			case "307" : _code = 307
+			case "308" : _code = 308
+			default :
+				return fmt.Errorf ("[fb9ac5a5]  invalid redirect code:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+		}
+		
+		_sourceParsed := false
+		if ! _sourceParsed {
+			for _, _schemePrefix := range []string { "://", "http://", "https://" } {
+				if strings.HasPrefix (_source, _schemePrefix) {
+					if _pathInArchive != "/" {
+						return fmt.Errorf ("[ceac537a]  invalid redirect absolute source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+					}
+					_source_0 := "http://" + strings.TrimPrefix (_source, _schemePrefix)
+					_sourceUrl, _error := url.ParseRequestURI (_source_0)
+					if _error != nil {
+						return fmt.Errorf ("[dd43230e]  invalid redirect source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+					}
+					_sourceCanonical := _sourceUrl.String ()
+					if _sourceCanonical != _source_0 {
+						return fmt.Errorf ("[2c6dc950]  invalid redirect source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+					}
+					_source = strings.TrimPrefix (_source, _schemePrefix)
+					_source = "://" + _source
+					_sourceParsed = true
+					break
+				}
+			}
+		}
+		if ! _sourceParsed {
+			if _source[0] == '.' {
+				if _pathInArchive == "/" {
+					_source = "/" + _source[2:]
+				} else {
+					_source = _pathInArchive + "/" + _source[2:]
+				}
+			} else if _source[0] == '/' {
+				if _pathInArchive != "/" {
+					return fmt.Errorf ("[99e025fe]  invalid redirect absolute source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+				}
+			} else {
+				return fmt.Errorf ("[2e716cd2]  invalid redirect source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+			}
+			_sourceUrl, _error := url.ParseRequestURI (_source)
+			if _error != nil {
+				return fmt.Errorf ("[be9abd4d]  invalid redirect source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+			}
+			_sourceCanonical := _sourceUrl.String ()
+			if _sourceCanonical != _source {
+				return fmt.Errorf ("[3c31deb4]  invalid redirect source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+			}
+			_sourceParsed = true
+		}
+		if ! _sourceParsed {
+			return fmt.Errorf ("[8305376f]  invalid redirect source:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+		}
+		
+		{
+			_targetUrl, _error := url.Parse (_target)
+			if _error != nil {
+				return fmt.Errorf ("[968f7208]  invalid redirect target:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+			}
+			_targetCanonical := _targetUrl.String ()
+			if _targetCanonical != _target {
+				return fmt.Errorf ("[c22eea24]  invalid redirect target:  `%s` -- `%s`!", _pathResolved, _redirectLine)
+			}
+		}
+		
+		if _context.debug {
+			log.Printf ("[dd] [c8139953]  redirect     -- `%s` -> `%s` (%d)\n", _source, _target, _code)
+		}
+		
+		_dataMeta := map[string]string {
+				"!Status" : fmt.Sprintf ("%d", _code),
+				"Location" : _target,
+			}
+		
+		_fingerprintContentRaw := blake3.Sum256 ([]byte (_redirectLine))
+		_fingerprintContent := hex.EncodeToString (_fingerprintContentRaw[:])
+		
+		if _context.includeCache {
+			_dataMeta["Cache-Control"] = "public, immutable, max-age=3600"
+		}
+		if _context.includeEtag {
+			_dataMeta["ETag"] = _fingerprintContent
+		}
+		
+		if _, _, _error := archiveReferenceAndDataWithMeta (_context, NamespaceFilesContent, _source, []byte (""), _dataMeta); _error != nil {
+			return _error
+		}
+	}
+	
+	return nil
 }
 
 
