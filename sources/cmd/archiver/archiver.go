@@ -38,6 +38,7 @@ type context struct {
 	cdbWriteCount int
 	cdbWriteKeySize int
 	cdbWriteDataSize int
+	cdbWriteKeys map[string]bool
 	storedFilePaths []string
 	storedFolderPaths []string
 	storedDataMeta map[string]bool
@@ -352,9 +353,13 @@ func archiveDataContent (_context *context, _fingerprintContent string, _dataCon
 		if _context.debug {
 			log.Printf ("[dd] [085d83ec]  data-content ++ `%s` %d\n", _key, len (_dataContent))
 		}
+		if _found, _ := _context.cdbWriteKeys[_key]; _found {
+			return fmt.Errorf ("[53aeea4b]  duplicate key encountered:  `%s`", _key)
+		}
 		if _error := _context.cdbWriter.Put ([]byte (_key), _dataContent); _error != nil {
 			return _error
 		}
+		_context.cdbWriteKeys[_key] = true
 		_context.cdbWriteCount += 1
 		_context.cdbWriteKeySize += len (_key)
 		_context.cdbWriteDataSize += len (_dataContent)
@@ -382,9 +387,13 @@ func archiveDataMeta (_context *context, _fingerprintMeta string, _dataMeta []by
 		if _context.debug {
 			log.Printf ("[dd] [07737b98]  data-meta    ++ `%s` %d\n", _key, len (_dataMeta))
 		}
+		if _found, _ := _context.cdbWriteKeys[_key]; _found {
+			return fmt.Errorf ("[8f2c6911]  duplicate key encountered:  `%s`", _key)
+		}
 		if _error := _context.cdbWriter.Put ([]byte (_key), _dataMeta); _error != nil {
 			return _error
 		}
+		_context.cdbWriteKeys[_key] = true
 		_context.cdbWriteCount += 1
 		_context.cdbWriteKeySize += len (_key)
 		_context.cdbWriteDataSize += len (_dataMeta)
@@ -435,9 +444,13 @@ func archiveReference (_context *context, _namespace string, _pathInArchive stri
 		log.Printf ("[dd] [2b9c053a]  reference    ++ `%s` :: `%s` -> `%s`\n", _namespace, _pathInArchive, _references)
 	}
 	
+	if _found, _ := _context.cdbWriteKeys[_key]; _found {
+		return fmt.Errorf ("[3d856291]  duplicate key encountered:  `%s`", _key)
+	}
 	if _error := _context.cdbWriter.Put ([]byte (_key), []byte (_references)); _error != nil {
 		return _error
 	}
+	_context.cdbWriteKeys[_key] = true
 	_context.cdbWriteCount += 1
 	_context.cdbWriteKeySize += len (_key)
 	_context.cdbWriteDataSize += len (_references)
@@ -1161,6 +1174,7 @@ func main_0 () (error) {
 	
 	_context := & context {
 			cdbWriter : _cdbWriter,
+			cdbWriteKeys : make (map[string]bool, 16 * 1024),
 			storedFilePaths : make ([]string, 0, 16 * 1024),
 			storedFolderPaths : make ([]string, 0, 16 * 1024),
 			storedDataMeta : make (map[string]bool, 16 * 1024),
@@ -1186,6 +1200,7 @@ func main_0 () (error) {
 	if _error := _context.cdbWriter.Put ([]byte (NamespaceSchemaVersion), []byte (CurrentSchemaVersion)); _error != nil {
 		AbortError (_error, "[43228812]  failed writing archive!")
 	}
+	_context.cdbWriteKeys[NamespaceSchemaVersion] = true
 	_context.cdbWriteCount += 1
 	_context.cdbWriteKeySize += len (NamespaceSchemaVersion)
 	_context.cdbWriteDataSize += len (CurrentSchemaVersion)
@@ -1201,9 +1216,14 @@ func main_0 () (error) {
 			_buffer = append (_buffer, '\n')
 		}
 		if _key, _error := PrepareKeyToString (NamespaceFilesIndex, 1); _error == nil {
+			if _found, _ := _context.cdbWriteKeys[_key]; _found {
+				_error := fmt.Errorf ("[1d4dcde6]  duplicate key encountered:  `%s`", _key)
+				AbortError (_error, "[a2d60ec1]  failed writing archive!")
+			}
 			if _error := _context.cdbWriter.Put ([]byte (_key), _buffer); _error != nil {
 				AbortError (_error, "[1dbdde05]  failed writing archive!")
 			}
+			_context.cdbWriteKeys[_key] = true
 			_context.cdbWriteCount += 1
 			_context.cdbWriteKeySize += len (_key)
 			_context.cdbWriteDataSize += len (_buffer)
@@ -1219,9 +1239,14 @@ func main_0 () (error) {
 			_buffer = append (_buffer, '\n')
 		}
 		if _key, _error := PrepareKeyToString (NamespaceFoldersIndex, 1); _error == nil {
+			if _found, _ := _context.cdbWriteKeys[_key]; _found {
+				_error := fmt.Errorf ("[c427b7f7]  duplicate key encountered:  `%s`", _key)
+				AbortError (_error, "[651f521a]  failed writing archive!")
+			}
 			if _error := _context.cdbWriter.Put ([]byte (_key), _buffer); _error != nil {
 				AbortError (_error, "[e2dd2de0]  failed writing archive!")
 			}
+			_context.cdbWriteKeys[_key] = true
 			_context.cdbWriteCount += 1
 			_context.cdbWriteKeySize += len (_key)
 			_context.cdbWriteDataSize += len (_buffer)
