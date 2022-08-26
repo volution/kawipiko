@@ -4,7 +4,7 @@
 
 
 << go / build / all / release / quick
-	export -- _BUILD_QUICK=true
+	export -- __BUILD_QUICK=true
 	"${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
 	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
 	"${ZRUN[@]}" ':: go / build / server-dummy / release' "${@}"
@@ -32,7 +32,7 @@
 
 
 << go / build / server / release / quick
-	export -- _BUILD_QUICK=true
+	export -- __BUILD_QUICK=true
 	exec -- "${ZRUN[@]}" ':: go / build / server / release' "${@}"
 !!
 
@@ -45,7 +45,7 @@
 	_flags=(
 			-tags netgo
 		)
-	if test -z "${_BUILD_QUICK:-}" ; then
+	if test -z "${__BUILD_QUICK:-}" ; then
 		_flags+=(
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
@@ -86,7 +86,7 @@
 
 
 << go / build / archiver / release / quick
-	export -- _BUILD_QUICK=true
+	export -- __BUILD_QUICK=true
 	exec -- "${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
 !!
 
@@ -99,7 +99,7 @@
 	_flags=(
 			-tags netgo
 		)
-	if test -z "${_BUILD_QUICK:-}" ; then
+	if test -z "${__BUILD_QUICK:-}" ; then
 		_flags+=(
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
@@ -182,7 +182,7 @@
 
 
 << go / build / server-dummy / release / quick
-	export -- _BUILD_QUICK=true
+	export -- __BUILD_QUICK=true
 	exec -- "${ZRUN[@]}" ':: go / build / server-dummy / release' "${@}"
 !!
 
@@ -195,7 +195,7 @@
 	_flags=(
 			-tags netgo
 		)
-	if test -z "${_BUILD_QUICK:-}" ; then
+	if test -z "${__BUILD_QUICK:-}" ; then
 		_flags+=(
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'

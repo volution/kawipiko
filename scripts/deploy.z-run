@@ -41,7 +41,7 @@
 	test -d ./.publish/
 	
 	
-	_build_version=0.1.0
+	_build_version="${__BUILD_VERSION}"
 	case "${_build_version}" in
 		( 0.0.0 | *.0 )
 			_build_release=false

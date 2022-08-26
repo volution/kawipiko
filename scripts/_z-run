@@ -1,6 +1,10 @@
 #!/dev/null
 
 
+&&== env-fallback __BUILD_VERSION 0.1.0
+&&== env-fallback __BUILD_QUICK false
+
+
 ::// workspace / ...
 ::// execute / ...
 ::// clients / ...
