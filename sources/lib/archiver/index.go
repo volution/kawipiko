@@ -9,6 +9,13 @@ import "strings"
 
 
 var IndexNames = []string {
+		
+		"_index.html", "_index.htm",
+		"_index.xhtml", "_index.xht",
+		"_index.txt",
+		"_index.json",
+		"_index.xml",
+		
 		"index.html", "index.htm",
 		"index.xhtml", "index.xht",
 		"index.txt",
