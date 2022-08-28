@@ -88,7 +88,7 @@ Flags
 
 ``--exclude-index``
 
-    Disables using ``index.*`` files (where ``.*`` is one of ``.html``, ``.htm``, ``.xhtml``, ``.xht``, ``.txt``, ``.json``, and ``.xml``) to respond to a request whose URL path ends in ``/`` (corresponding to the folder wherein ``index.*`` file is located).
+    Disables using ``_index.*`` and ``index.*`` files (where ``.*`` is one of ``.html``, ``.htm``, ``.xhtml``, ``.xht``, ``.txt``, ``.json``, and ``.xml``) to respond to a request whose URL path ends in ``/`` (corresponding to the folder wherein ``_index.*`` or ``index.*`` file is located).
     (This can be used to implement "slash" blog style URL's like ``/blog/whatever/`` which maps to ``/blog/whatever/index.html``.)
 
 ``--exclude-strip``
@@ -151,6 +151,34 @@ Wildcard files
 By placing a file whose name matches ``_wildcard.*`` (i.e. with the prefix ``_wildcard.`` and any other suffix), it will be used to respond to any request whose URL fails to find a "better" match.
 
 These wildcard files respect the folder hierarchy, in that wildcard files in (direct or transitive) subfolders override the wildcard file in their parents (direct or transitive).
+
+In addition to ``_wildcard.*``, there is also support for ``_200.html`` (or just ``200.html``), plus ``_404.html`` (or just ``404.html``).
+
+
+
+
+Redirect files
+..............
+
+By placing a file whose name is ``_redirects`` (or ``_redirects.txt``), it instructs the archiver to create redirect responses.
+
+The syntax is quite simple:
+
+::
+
+    # This is a comment.
+
+    # NOTE:  Absolute paths are allowed only at the top of the sources folder.
+    /some-path     https://example.com/     301
+
+    # NOTE:  Relative paths are always, and are reinterpreted as relative to the containing folder.
+    ./some-path    https://example.com/     302
+
+    # NOTE:  Redirects only for a specific domain.  (The protocol is irelevant.)
+    #        (Allowed only at the top of the sources folder.)
+    ://example.com/some-path         https://example.com/    303
+    http://example.com/some-path     https://example.com/    307
+    https://example.com/some-path    https://example.com/    308
 
 
 

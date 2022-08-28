@@ -139,7 +139,7 @@ Using these caches allows one to very quickly rebuild an archive when only a cou
 \fB\-\-exclude\-index\fP
 .INDENT 0.0
 .INDENT 3.5
-Disables using \fBindex.*\fP files (where \fB\&.*\fP is one of \fB\&.html\fP, \fB\&.htm\fP, \fB\&.xhtml\fP, \fB\&.xht\fP, \fB\&.txt\fP, \fB\&.json\fP, and \fB\&.xml\fP) to respond to a request whose URL path ends in \fB/\fP (corresponding to the folder wherein \fBindex.*\fP file is located).
+Disables using \fB_index.*\fP and \fBindex.*\fP files (where \fB\&.*\fP is one of \fB\&.html\fP, \fB\&.htm\fP, \fB\&.xhtml\fP, \fB\&.xht\fP, \fB\&.txt\fP, \fB\&.json\fP, and \fB\&.xml\fP) to respond to a request whose URL path ends in \fB/\fP (corresponding to the folder wherein \fB_index.*\fP or \fBindex.*\fP file is located).
 (This can be used to implement "slash" blog style URL\(aqs like \fB/blog/whatever/\fP which maps to \fB/blog/whatever/index.html\fP\&.)
 .UNINDENT
 .UNINDENT
@@ -223,6 +223,35 @@ any file that exactly matches the following: \fBThumbs.db\fP, \fB\&.DS_Store\fP;
 By placing a file whose name matches \fB_wildcard.*\fP (i.e. with the prefix \fB_wildcard.\fP and any other suffix), it will be used to respond to any request whose URL fails to find a "better" match.
 .sp
 These wildcard files respect the folder hierarchy, in that wildcard files in (direct or transitive) subfolders override the wildcard file in their parents (direct or transitive).
+.sp
+In addition to \fB_wildcard.*\fP, there is also support for \fB_200.html\fP (or just \fB200.html\fP), plus \fB_404.html\fP (or just \fB404.html\fP).
+.SH REDIRECT FILES
+.sp
+By placing a file whose name is \fB_redirects\fP (or \fB_redirects.txt\fP), it instructs the archiver to create redirect responses.
+.sp
+The syntax is quite simple:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+# This is a comment.
+
+# NOTE:  Absolute paths are allowed only at the top of the sources folder.
+/some\-path     https://example.com/     301
+
+# NOTE:  Relative paths are always, and are reinterpreted as relative to the containing folder.
+\&./some\-path    https://example.com/     302
+
+# NOTE:  Redirects only for a specific domain.  (The protocol is irelevant.)
+#        (Allowed only at the top of the sources folder.)
+://example.com/some\-path         https://example.com/    303
+http://example.com/some\-path     https://example.com/    307
+https://example.com/some\-path    https://example.com/    308
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
 .SH SYMLINKS, HARDLINKS, LOOPS, AND DUPLICATED FILES
 .sp
 You freely use symlinks (including pointing outside of the content root) and they will be crawled during archival respecting the "logical" hierarchy they introduce.
