@@ -461,6 +461,12 @@ Why CDB?
 --------
 
 
+CDB is the venerable key-value embedded database implemented by D.J. Bernstein, `<https://cr.yp.to/cdb.html>`__,
+and was used in many software solutions implemented by him,
+most notably `qmail <https://cr.yp.to/qmail.html>`__ and `tinydns <https://cr.yp.to/djbdns/tinydns.html>`__.
+From there it was picked up by many other network services that required mostly-static low-overhead lookup tables,
+like for example Postfix as an alternative for its user database.
+
 Until I expand upon why I have chosen to use CDB for service static website content,
 you can read about the `sparkey <https://github.com/spotify/sparkey>`__ from Spotify.
 
