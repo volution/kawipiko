@@ -26,6 +26,20 @@ supporting both **HTTP/1 (with or without TLS), HTTP/2 and HTTP/3 (over QUIC)**;
 available as a **single statically linked executable** without any other dependencies.
 
 
+Want to see ``kawipiko`` in action?
+
+* `kawipiko-examples.volution.ro <https://kawipiko-examples.volution.ro/>`__
+  -- here are a few demos that best fit `kawipiko`;
+  `/documentation` represents static sites that compress well,
+  meanwhile `/carina-nebula`, `/openstreetmap` and `/fontawesome` represents static sites that generate lots of small requests;
+  (please note that this instance is behind CloudFlare, however it was instructed not to cache anything on the edge;)
+  (the server is currently hosted over a residential fiber connection;)
+
+* `notes.volution.ro <https://notes.volution.ro/>`__
+  -- my personal notes / blog site, previously hosted at Netlify;
+  (the server is currently hosted over a residential fiber connection;)
+
+
 However, *simple* doesn't imply *dumb* or *limited*,
 instead it implies *efficient* through the removal of superfluous features,
 thus being inline with UNIX's old philosophy of
