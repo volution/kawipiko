@@ -2269,63 +2269,63 @@ func reportUpdateStats () () {
 	}
 	
 	if (_shouldLog || _reportHeartbeat.Changed) && _reportHeartbeat.Touched {
-		log.Printf ("[ii] [addc4553]  [stats...]  uptime   %7.2f h  |  tps  %7.2f %6.1f%%\n",
+		log.Printf ("[ii] [addc4553]  [stats...]  uptime   %7.2f h   |  tps  %7.2f %6.1f%%\n",
 				_reportHeartbeat.ValueLast / 3600, _reportHeartbeat.Speed1Last, _reportHeartbeat.Speed1prLast)
 	}
 	
 	if (_shouldLog || _reportRequestsTotal.Changed) && _reportRequestsTotal.Touched {
-		log.Printf ("[ii] [870f4146]  [stats...]  requests %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [870f4146]  [stats...]  requests %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequestsTotal.ValueLast, _reportRequestsTotal.Speed1Last, _reportRequestsTotal.Speed1prLast, _reportRequestsTotal.Speed1prWindow)
 	}
 	if (_shouldLog || _reportResponses1xx.Changed) && _reportResponses1xx.Touched {
-		log.Printf ("[ii] [d12ebda3]  [stats...]  resp-1xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [d12ebda3]  [stats...]  resp-1xx %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportResponses1xx.ValueLast, _reportResponses1xx.Speed1Last, _reportResponses1xx.Speed1prLast, _reportResponses1xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportResponses2xx.Changed) && _reportResponses2xx.Touched {
-		log.Printf ("[ii] [2464e4c2]  [stats...]  resp-2xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [2464e4c2]  [stats...]  resp-2xx %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportResponses2xx.ValueLast, _reportResponses2xx.Speed1Last, _reportResponses2xx.Speed1prLast, _reportResponses2xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportResponses3xx.Changed) && _reportResponses3xx.Touched {
-		log.Printf ("[ii] [59bea970]  [stats...]  resp-3xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [59bea970]  [stats...]  resp-3xx %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportResponses3xx.ValueLast, _reportResponses3xx.Speed1Last, _reportResponses3xx.Speed1prLast, _reportResponses3xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportResponses4xx.Changed) && _reportResponses4xx.Touched {
-		log.Printf ("[ii] [babb043c]  [stats...]  resp-4xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [babb043c]  [stats...]  resp-4xx %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportResponses4xx.ValueLast, _reportResponses4xx.Speed1Last, _reportResponses4xx.Speed1prLast, _reportResponses4xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportResponses5xx.Changed) && _reportResponses5xx.Touched {
-		log.Printf ("[ii] [047ba05b]  [stats...]  resp-5xx %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [047ba05b]  [stats...]  resp-5xx %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportResponses5xx.ValueLast, _reportResponses5xx.Speed1Last, _reportResponses5xx.Speed1prLast, _reportResponses5xx.Speed1prWindow)
 	}
 	if (_shouldLog || _reportRequestsBody.Changed) && _reportRequestsBody.Touched {
-		log.Printf ("[ii] [d2d45f12]  [stats...]  resp-sz  %7.2f GB |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [d2d45f12]  [stats...]  resp-sz  %7.2f GB  |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportRequestsBody.ValueLast, _reportRequestsBody.Speed1Last, _reportRequestsBody.Speed1prLast, _reportRequestsBody.Speed1prWindow)
 	}
 	
 	if (_shouldLog || _reportUsageCpuTotal.Changed) && _reportUsageCpuTotal.Touched {
-		log.Printf ("[ii] [e27def0f]  [stats...]  cpu-all  %7.2f h  |  load %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [e27def0f]  [stats...]  cpu-all  %7.2f h   |  load %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportUsageCpuTotal.ValueLast / 3600, _reportUsageCpuTotal.Speed1Last, _reportUsageCpuTotal.Speed1prLast, _reportUsageCpuTotal.Speed1prWindow)
 	}
 	if (_shouldLog || _reportUsageCpuSys.Changed) && _reportUsageCpuSys.Touched {
-		log.Printf ("[ii] [4a13138d]  [stats...]  cpu-sys  %7.2f h  |  load %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [4a13138d]  [stats...]  cpu-sys  %7.2f h   |  load %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportUsageCpuSys.ValueLast / 3600, _reportUsageCpuSys.Speed1Last, _reportUsageCpuSys.Speed1prLast, _reportUsageCpuSys.Speed1prWindow)
 	}
 	
 	if (_shouldLog || _reportUsageSwitchPreempted.Changed) && _reportUsageSwitchPreempted.Touched {
-		log.Printf ("[ii] [9e3fe2a8]  [stats...]  csw-prem %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [9e3fe2a8]  [stats...]  csw-prem %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportUsageSwitchPreempted.ValueLast, _reportUsageSwitchPreempted.Speed1Last, _reportUsageSwitchPreempted.Speed1prLast, _reportUsageSwitchPreempted.Speed1prWindow)
 	}
 	if (_shouldLog || _reportUsageSwitchVoluntary.Changed) && _reportUsageSwitchVoluntary.Touched {
-		log.Printf ("[ii] [e8059c56]  [stats...]  csw-norm %7.2f M  |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [e8059c56]  [stats...]  csw-norm %7.2f M   |  kps  %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportUsageSwitchVoluntary.ValueLast, _reportUsageSwitchVoluntary.Speed1Last, _reportUsageSwitchVoluntary.Speed1prLast, _reportUsageSwitchVoluntary.Speed1prWindow)
 	}
 	
 	if (_shouldLog || _reportUsageFaultsMajor.Changed) && _reportUsageFaultsMajor.Touched {
-		log.Printf ("[ii] [08adfe80]  [stats...]  mem-maj  %7.2f GB |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [08adfe80]  [stats...]  mem-maj  %7.2f GB  |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportUsageFaultsMajor.ValueLast, _reportUsageFaultsMajor.Speed1Last / 1024, _reportUsageFaultsMajor.Speed1prLast, _reportUsageFaultsMajor.Speed1prWindow)
 	}
 	if (_shouldLog || _reportUsageFaultsMinor.Changed) && _reportUsageFaultsMinor.Touched {
-		log.Printf ("[ii] [6681ca7b]  [stats...]  mem-min  %7.2f GB |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
+		log.Printf ("[ii] [6681ca7b]  [stats...]  mem-min  %7.2f GB  |  MBps %7.2f %6.1f%% (%+.1f%%)\n",
 				_reportUsageFaultsMinor.ValueLast, _reportUsageFaultsMinor.Speed1Last / 1024, _reportUsageFaultsMinor.Speed1prLast, _reportUsageFaultsMinor.Speed1prWindow)
 	}
 	
