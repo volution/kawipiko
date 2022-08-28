@@ -3,15 +3,6 @@
 
 
 
-<< workspace / publish
-	test "${#}" -eq 0
-	printf -- '[ii]  publishing to `https://data.volution.ro/ciprian/ad5264afc6e27e46b5d71837552cb3fd`...\n' >&2
-	exec -- rsync -a -v -- ./.outputs/publish/ ./.publish/
-!!
-
-
-
-
 << workspace / initialize
 	test "${#}" -eq 0
 	"${ZRUN[@]}" ':: workspace / initialize / outputs'
@@ -44,8 +35,6 @@
 			binaries/debug
 			binaries/release
 			binaries/analyze
-			publish
-			publish/binaries
 			examples
 		)
 	
