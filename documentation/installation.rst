@@ -133,7 +133,7 @@ Either clone the full Git repository: ::
 
     git clone \
             -b development \
-            git://github.com/volution/kawipiko.git \
+            https://github.com/volution/kawipiko.git \
             /tmp/kawipiko/src \
     #
 
