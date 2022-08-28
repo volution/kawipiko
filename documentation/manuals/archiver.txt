@@ -21,8 +21,8 @@ NAME
           --exclude-cache
           --include-etag
 
+          --exclude-slash-redirects
           --include-folder-listing
-
           --exclude-paths-index
 
           --progress  --debug
@@ -129,6 +129,11 @@ FLAGS
           and their counterparts;  however this ETag header might be used in
           conjuction with HEAD requests to see if the resource has changed.)
 
+       --exclude-slash-redirects
+          Disables adding redirects to/from paths with/without / (For example,
+          by default, if /file exists, then there is also a /file/ redirect
+          towards /file;  and vice-versa from /folder towards /folder/.)
+
        --include-folder-listing
           Enables the creation of an internal list of folders.
 
@@ -178,4 +183,4 @@ SYMLINKS, HARDLINKS, LOOPS, AND DUPLICATED FILES
 
 
 
-volution.ro                       2022-08-26              KAWIPIKO-ARCHIVER(1)
+volution.ro                       2022-08-28              KAWIPIKO-ARCHIVER(1)

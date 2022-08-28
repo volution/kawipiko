@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "KAWIPIKO-SERVER" "1" "2022-08-26" "volution.ro" "kawipiko"
+.TH "KAWIPIKO-SERVER" "1" "2022-08-28" "volution.ro" "kawipiko"
 .SH NAME
 kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 .INDENT 0.0

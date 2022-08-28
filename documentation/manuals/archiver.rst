@@ -31,8 +31,8 @@ kawipiko -- blazingly fast static HTTP server
     --exclude-cache
     --include-etag
 
+    --exclude-slash-redirects
     --include-folder-listing
-
     --exclude-paths-index
 
     --progress  --debug
@@ -106,6 +106,11 @@ Flags
 
     By not including the ``ETag`` header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without ``ETag`` generates the same headers), this can lead to significant reduction in stored headers blocks, including reducing RAM usage.
     (At this moment it does not support HTTP conditional requests, i.e. the ``If-None-Match``, ``If-Modified-Since`` and their counterparts;  however this ``ETag`` header might be used in conjuction with ``HEAD`` requests to see if the resource has changed.)
+
+``--exclude-slash-redirects``
+
+    Disables adding redirects to/from paths with/without `/`
+    (For example, by default, if `/file` exists, then there is also a `/file/` redirect towards `/file`;  and vice-versa from `/folder` towards `/folder/`.)
 
 ``--include-folder-listing``
 

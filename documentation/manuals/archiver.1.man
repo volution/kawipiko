@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "KAWIPIKO-ARCHIVER" "1" "2022-08-26" "volution.ro" "kawipiko"
+.TH "KAWIPIKO-ARCHIVER" "1" "2022-08-28" "volution.ro" "kawipiko"
 .SH NAME
 kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 .INDENT 0.0
@@ -59,8 +59,8 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 \-\-exclude\-cache
 \-\-include\-etag
 
+\-\-exclude\-slash\-redirects
 \-\-include\-folder\-listing
-
 \-\-exclude\-paths\-index
 
 \-\-progress  \-\-debug
@@ -166,6 +166,14 @@ Enables adding an \fBETag\fP response header that contains the SHA256 of the res
 .sp
 By not including the \fBETag\fP header (i.e. the default), and because identical headers are stored only one, if one has many files of the same type (that in turn without \fBETag\fP generates the same headers), this can lead to significant reduction in stored headers blocks, including reducing RAM usage.
 (At this moment it does not support HTTP conditional requests, i.e. the \fBIf\-None\-Match\fP, \fBIf\-Modified\-Since\fP and their counterparts;  however this \fBETag\fP header might be used in conjuction with \fBHEAD\fP requests to see if the resource has changed.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-exclude\-slash\-redirects\fP
+.INDENT 0.0
+.INDENT 3.5
+Disables adding redirects to/from paths with/without \fI/\fP
+(For example, by default, if \fI/file\fP exists, then there is also a \fI/file/\fP redirect towards \fI/file\fP;  and vice\-versa from \fI/folder\fP towards \fI/folder/\fP\&.)
 .UNINDENT
 .UNINDENT
 .sp

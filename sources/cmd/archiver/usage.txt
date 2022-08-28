@@ -16,8 +16,8 @@
     --exclude-cache
     --include-etag
 
+    --exclude-slash-redirects
     --include-folder-listing
-
     --exclude-paths-index
 
     --progress  --debug
