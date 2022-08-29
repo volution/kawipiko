@@ -30,8 +30,8 @@ Want to see ``kawipiko`` in action?
 
 * `kawipiko-examples.volution.ro <https://kawipiko-examples.volution.ro/>`__
   -- here are a few demos that best fit `kawipiko`;
-  `/documentation` represents static sites that compress well,
-  meanwhile `/carina-nebula`, `/openstreetmap` and `/fontawesome` represents static sites that generate lots of small requests;
+  ``/documentation`` represents static sites that compress well,
+  meanwhile ``/carina-nebula``, ``/openstreetmap`` and ``/fontawesome`` represents static sites that generate lots of small requests;
   (please note that this instance is behind CloudFlare, however it was instructed not to cache anything on the edge;)
   (the server is currently hosted over a residential fiber connection;)
 
