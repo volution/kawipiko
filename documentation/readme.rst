@@ -470,6 +470,16 @@ like for example Postfix as an alternative for its user database.
 Until I expand upon why I have chosen to use CDB for service static website content,
 you can read about the `sparkey <https://github.com/spotify/sparkey>`__ from Spotify.
 
+The CDB implementation being used is a custom fork of the following:
+
+* `github.com/colinmarc/cdb <https://github.com/colinmarc/cdb>`__
+  -- the original CDB implementation for Go;
+
+* `github.com/cipriancraciun/go-cdb-lib <https://github.com/cipriancraciun/go-cdb-lib>`__
+  -- my own custom fork of the above;
+  (it adds support for memory-mapped CDB files,
+  plus a few changes to improve performance by making sure that key `[]byte` slices don't "escape to the heap" as required by the Go compiler;)
+
 
 
 
