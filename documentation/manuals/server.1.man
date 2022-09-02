@@ -85,15 +85,19 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 
 \-\-report  \-\-quiet  \-\-debug
 
-\-\-help       (show this short help)
-\-\-man        (show the full manual)
-
 \-\-dummy
 \-\-dummy\-empty
 \-\-dummy\-delay <duration>
 
 \-\-profile\-cpu <path>
 \-\-profile\-mem <path>
+
+\-\-version
+\-\-help          (show this short help)
+\-\-man           (show the full manual)
+
+\-\-sources\-md5   (dump an \(gamd5sum\(ga of the sources)
+\-\-sources\-cpio  (dump a \(gacpio.gz\(ga of the sources)
 .ft P
 .fi
 .UNINDENT
@@ -117,7 +121,7 @@ The IP and port to listen for requests with:
 .IP \(bu 2
 (secure) HTTP/1.1 over TLS for \fB\-\-bind\-tls\fP, leveraging \fBfasthttp\fP library;
 .IP \(bu 2
-(insecure) HTTP/1.1 for \fI\-\-bind\-2\(ga\fP, leveraging Go\(aqs \fBnet/http\fP library; (not as performant as the \fBfasthttp\fP powered endpoint;)
+(insecure) HTTP/1.1 for \fB\-\-bind\-2\fP, leveraging Go\(aqs \fBnet/http\fP library; (not as performant as the \fBfasthttp\fP powered endpoint;)
 .IP \(bu 2
 (secure) H2 or HTTP/1.1 over TLS for \fB\-\-bind\-tls\-2\fP, leveraging Go\(aqs \fBnet/http\fP;  (not as performant as the \fBfasthttp\fP powered endpoint;)
 .IP \(bu 2

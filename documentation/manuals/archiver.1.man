@@ -65,8 +65,12 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 
 \-\-progress  \-\-debug
 
-\-\-help       (show this short help)
-\-\-man        (show the full manual)
+\-\-version
+\-\-help          (show this short help)
+\-\-man           (show the full manual)
+
+\-\-sources\-md5   (dump an \(ga\(gamd5sum\(ga\(ga of the sources)
+\-\-sources\-cpio  (dump a \(ga\(gacpio.gz\(ga\(ga of the sources)
 .ft P
 .fi
 .UNINDENT

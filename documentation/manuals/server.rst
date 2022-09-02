@@ -56,15 +56,19 @@ kawipiko -- blazingly fast static HTTP server
 
     --report  --quiet  --debug
 
-    --help       (show this short help)
-    --man        (show the full manual)
-
     --dummy
     --dummy-empty
     --dummy-delay <duration>
 
     --profile-cpu <path>
     --profile-mem <path>
+
+    --version
+    --help          (show this short help)
+    --man           (show the full manual)
+
+    --sources-md5   (dump an `md5sum` of the sources)
+    --sources-cpio  (dump a `cpio.gz` of the sources)
 
 
 
@@ -84,7 +88,7 @@ Flags
 
     * (insecure) HTTP/1.1 for ``--bind``, leveraging ``fasthttp`` library;
     * (secure) HTTP/1.1 over TLS for ``--bind-tls``, leveraging ``fasthttp`` library;
-    * (insecure) HTTP/1.1 for `--bind-2``, leveraging Go's ``net/http`` library; (not as performant as the ``fasthttp`` powered endpoint;)
+    * (insecure) HTTP/1.1 for ``--bind-2``, leveraging Go's ``net/http`` library; (not as performant as the ``fasthttp`` powered endpoint;)
     * (secure) H2 or HTTP/1.1 over TLS for ``--bind-tls-2``, leveraging Go's ``net/http``;  (not as performant as the ``fasthttp`` powered endpoint;)
     * (secure) H3 over QUIC for ``--bind-quic``, leveraging ``github.com/lucas-clemente/quic-go`` library;  (given that H3 is still a new protocol, this must be used with caution;  also one should use the ``--http3-alt-svc <ip:port>``;)
 

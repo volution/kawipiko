@@ -37,8 +37,12 @@ kawipiko -- blazingly fast static HTTP server
 
     --progress  --debug
 
-    --help       (show this short help)
-    --man        (show the full manual)
+    --version
+    --help          (show this short help)
+    --man           (show the full manual)
+
+    --sources-md5   (dump an ``md5sum`` of the sources)
+    --sources-cpio  (dump a ``cpio.gz`` of the sources)
 
 
 
