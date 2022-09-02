@@ -37,6 +37,7 @@ import . "github.com/volution/kawipiko/lib/common"
 import . "github.com/volution/kawipiko/lib/server"
 
 import "github.com/volution/kawipiko/cmd/version"
+import "github.com/volution/kawipiko/embedded"
 
 import _ "embed"
 
@@ -134,6 +135,15 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 			return
 		} else if bytes.Equal (_path, StringToBytes ("/__/about")) || bytes.Equal (_path, StringToBytes ("/__/about/")) {
 			_server.ServeStatic (_context, http.StatusOK, AboutBannerData, AboutBannerContentType, AboutBannerContentEncoding, true)
+			return
+		} else if bytes.Equal (_path, StringToBytes ("/__/version")) || bytes.Equal (_path, StringToBytes ("/__/version/")) {
+			_server.ServeSpecial (_context, "version", true)
+			return
+		} else if bytes.Equal (_path, StringToBytes ("/__/sources.md5")) {
+			_server.ServeSpecial (_context, "sources.md5", true)
+			return
+		} else if bytes.Equal (_path, StringToBytes ("/__/sources.cpio")) {
+			_server.ServeSpecial (_context, "sources.cpio", true)
 			return
 		} else if bytes.HasPrefix (_path, StringToBytes ("/__/banners/errors/")) {
 			_code := _path[len ("/__/banners/errors/") :]
@@ -415,6 +425,7 @@ var _namespaces_b_static = []string {
 
 
 
+
 func (_server *server) ServeStatic (_context *fasthttp.RequestCtx, _status uint, _data []byte, _contentType string, _contentEncoding string, _cache bool) () {
 	
 	_response := (*fasthttp.Response) (NoEscape (unsafe.Pointer (&_context.Response)))
@@ -485,6 +496,42 @@ func (_server *server) ServeError (_context *fasthttp.RequestCtx, _status uint, 
 	if (_error != nil) && !_server.quiet {
 		LogError (_error, "[23d6cb35]  [http-x..]  failed handling request!")
 	}
+}
+
+
+func (_server *server) ServeSpecial (_context *fasthttp.RequestCtx, _special string, _cache bool) () {
+	
+	var _data []byte
+	var _contentType string
+	var _contentEncoding string
+	
+	switch _special {
+		
+		case "version" :
+			_buffer := bytes.NewBuffer (nil)
+			if _error := version.Version ("kawipiko-server", "", _buffer); _error != nil {
+				_server.ServeError (_context, http.StatusInternalServerError, _error, false)
+				return
+			}
+			_data = _buffer.Bytes ()
+			_contentType = MimeTypeText
+			_contentEncoding = "identity"
+		
+		case "sources.md5" :
+			_data = StringToBytes (embedded.BuildSourcesMd5)
+			_contentType = MimeTypeText
+			_contentEncoding = "identity"
+		
+		case "sources.cpio" :
+			_data = embedded.BuildSourcesCpioGz
+			_contentType = MimeTypeText
+			_contentEncoding = "application/x-cpio"
+		
+		default :
+			panic ("[8546f2bd]")
+	}
+	
+	_server.ServeStatic (_context, http.StatusOK, _data, _contentType, _contentEncoding, _cache)
 }
 
 

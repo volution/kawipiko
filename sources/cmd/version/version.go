@@ -5,6 +5,7 @@ package version
 
 import "bytes"
 import "fmt"
+import "io"
 import "os"
 
 
@@ -14,7 +15,7 @@ import . "github.com/volution/kawipiko/embedded"
 
 
 
-func Version (_executableName string, _executable string, _stream *os.File) (error) {
+func Version (_executableName string, _executable string, _stream io.Writer) (error) {
 	
 	if _executable == "<os.Executable>" {
 		if _executable_0, _error := os.Executable (); _error == nil {
