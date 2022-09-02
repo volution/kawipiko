@@ -32,8 +32,9 @@
 
     --hosts-disable           (ignore `Host` header)
 
-    --security-headers-tls
+    --special-pages-disable
     --security-headers-disable
+    --security-headers-tls
 
     --limit-memory <MiB>
     --timeout-disable

@@ -38,8 +38,9 @@ NAME
 
           --hosts-disable           (ignore `Host` header)
 
-          --security-headers-tls
+          --special-pages-disable
           --security-headers-disable
+          --security-headers-tls
 
           --limit-memory <MiB>
           --timeout-disable
@@ -180,6 +181,19 @@ FLAGS
        --hosts-disable
           Disables the virtual-hosts feature by ignoring the Host header.
 
+       --special-pages-disable
+          Disables serving a few special pages internal to the server like:
+             /__/about /__/version /__/heartbeat /__/sources.md5
+             /__/sources.cpio /__/banners/errors/403 /__/banners/errors/...
+
+       --security-headers-disable
+          Disables adding a few security related headers:
+
+             Referrer-Policy: strict-origin-when-cross-origin
+             X-Content-Type-Options: nosniff
+             X-XSS-Protection: 1; mode=block
+             X-Frame-Options: sameorigin
+
        --security-headers-tls
           Enables adding the following TLS related headers to the response:
 
@@ -189,14 +203,6 @@ FLAGS
           These instruct the browser to always use HTTPS for the served
           domain.  (Useful even without HTTPS, when used behind a TLS
           terminator, load-balancer or proxy that do support HTTPS.)
-
-       --security-headers-disable
-          Disables adding a few security related headers:
-
-             Referrer-Policy: strict-origin-when-cross-origin
-             X-Content-Type-Options: nosniff
-             X-XSS-Protection: 1; mode=block
-             X-Frame-Options: sameorigin
 
        --report
           Enables periodic reporting of various metrics.  Also enables

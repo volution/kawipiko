@@ -76,8 +76,9 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 
 \-\-hosts\-disable           (ignore \(gaHost\(ga header)
 
-\-\-security\-headers\-tls
+\-\-special\-pages\-disable
 \-\-security\-headers\-disable
+\-\-security\-headers\-tls
 
 \-\-limit\-memory <MiB>
 \-\-timeout\-disable
@@ -217,24 +218,21 @@ Disables the virtual\-hosts feature by ignoring the \fIHost\fP header.
 .UNINDENT
 .UNINDENT
 .sp
-\fB\-\-security\-headers\-tls\fP
+\fB\-\-special\-pages\-disable\fP
 .INDENT 0.0
 .INDENT 3.5
-Enables adding the following TLS related headers to the response:
+Disables serving a few special pages internal to the server like:
 .INDENT 0.0
 .INDENT 3.5
-.sp
-.nf
-.ft C
-Strict\-Transport\-Security: max\-age=31536000
-Content\-Security\-Policy: upgrade\-insecure\-requests
-.ft P
-.fi
+/__/about
+/__/version
+/__/heartbeat
+/__/sources.md5
+/__/sources.cpio
+/__/banners/errors/403
+/__/banners/errors/...
 .UNINDENT
 .UNINDENT
-.sp
-These instruct the browser to always use HTTPS for the served domain.
-(Useful even without HTTPS, when used behind a TLS terminator, load\-balancer or proxy that do support HTTPS.)
 .UNINDENT
 .UNINDENT
 .sp
@@ -255,6 +253,27 @@ X\-Frame\-Options: sameorigin
 .fi
 .UNINDENT
 .UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-security\-headers\-tls\fP
+.INDENT 0.0
+.INDENT 3.5
+Enables adding the following TLS related headers to the response:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+Strict\-Transport\-Security: max\-age=31536000
+Content\-Security\-Policy: upgrade\-insecure\-requests
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+These instruct the browser to always use HTTPS for the served domain.
+(Useful even without HTTPS, when used behind a TLS terminator, load\-balancer or proxy that do support HTTPS.)
 .UNINDENT
 .UNINDENT
 .sp

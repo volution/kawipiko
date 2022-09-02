@@ -47,8 +47,9 @@ kawipiko -- blazingly fast static HTTP server
 
     --hosts-disable           (ignore `Host` header)
 
-    --security-headers-tls
+    --special-pages-disable
     --security-headers-disable
+    --security-headers-tls
 
     --limit-memory <MiB>
     --timeout-disable
@@ -150,15 +151,17 @@ Flags
 
     Disables the virtual-hosts feature by ignoring the `Host` header.
 
-``--security-headers-tls``
+``--special-pages-disable``
 
-    Enables adding the following TLS related headers to the response: ::
+    Disables serving a few special pages internal to the server like:
 
-      Strict-Transport-Security: max-age=31536000
-      Content-Security-Policy: upgrade-insecure-requests
-
-    These instruct the browser to always use HTTPS for the served domain.
-    (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)
+      /__/about
+      /__/version
+      /__/heartbeat
+      /__/sources.md5
+      /__/sources.cpio
+      /__/banners/errors/403
+      /__/banners/errors/...
 
 ``--security-headers-disable``
 
@@ -168,6 +171,16 @@ Flags
       X-Content-Type-Options: nosniff
       X-XSS-Protection: 1; mode=block
       X-Frame-Options: sameorigin
+
+``--security-headers-tls``
+
+    Enables adding the following TLS related headers to the response: ::
+
+      Strict-Transport-Security: max-age=31536000
+      Content-Security-Policy: upgrade-insecure-requests
+
+    These instruct the browser to always use HTTPS for the served domain.
+    (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)
 
 ``--report``
 

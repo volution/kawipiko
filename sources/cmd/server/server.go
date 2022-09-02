@@ -55,6 +55,7 @@ type server struct {
 	cachedDataMeta map[uint64][]byte
 	cachedDataContent map[uint64][]byte
 	hostsDisabled bool
+	specialPagesEnabled bool
 	securityHeadersEnabled bool
 	securityHeadersTls bool
 	http1Disabled bool
@@ -130,6 +131,10 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 	}
 	
 	if bytes.HasPrefix (_path, StringToBytes ("/__/")) {
+		if !_server.specialPagesEnabled {
+			_server.ServeError (_context, http.StatusForbidden, nil, false)
+			return
+		}
 		if bytes.Equal (_path, StringToBytes ("/__/heartbeat")) || bytes.HasPrefix (_path, StringToBytes ("/__/heartbeat/")) {
 			_server.ServeStatic (_context, http.StatusOK, HeartbeatDataOk, HeartbeatContentType, HeartbeatContentEncoding, false)
 			return
@@ -757,6 +762,7 @@ func main_0 () (error) {
 	var _indexDataMeta bool
 	var _indexDataContent bool
 	var _hostsDisabled bool
+	var _specialPagesEnabled bool
 	var _securityHeadersEnabled bool
 	var _securityHeadersTls bool
 	var _timeoutDisabled bool
@@ -802,8 +808,9 @@ func main_0 () (error) {
 		_indexDataContent_0 := _flags.Bool ("index-data-content", false, "")
 		_timeoutDisabled_0 := _flags.Bool ("timeout-disable", false, "")
 		_hostsDisabled_0 := _flags.Bool ("hosts-disable", false, "")
-		_securityHeadersTls_0 := _flags.Bool ("security-headers-tls", false, "")
+		_specialPagesDisabled_0 := _flags.Bool ("special-pages-disable", false, "")
 		_securityHeadersDisabled_0 := _flags.Bool ("security-headers-disable", false, "")
+		_securityHeadersTls_0 := _flags.Bool ("security-headers-tls", false, "")
 		_tlsPrivate_0 := _flags.String ("tls-private", "", "")
 		_tlsPublic_0 := _flags.String ("tls-public", "", "")
 		_tlsBundle_0 := _flags.String ("tls-bundle", "", "")
@@ -841,8 +848,9 @@ func main_0 () (error) {
 		_indexDataMeta = _indexAll || *_indexDataMeta_0
 		_indexDataContent = _indexAll || *_indexDataContent_0
 		_hostsDisabled = *_hostsDisabled_0
-		_securityHeadersTls = *_securityHeadersTls_0
+		_specialPagesEnabled = ! *_specialPagesDisabled_0
 		_securityHeadersEnabled = ! *_securityHeadersDisabled_0
+		_securityHeadersTls = *_securityHeadersTls_0
 		_timeoutDisabled = *_timeoutDisabled_0
 		_processes = *_processes_0
 		_threads = *_threads_0
@@ -1070,11 +1078,14 @@ func main_0 () (error) {
 		if _hostsDisabled {
 			_processArguments = append (_processArguments, "--hosts-disabled")
 		}
-		if _securityHeadersTls {
-			_processArguments = append (_processArguments, "--security-headers-tls")
+		if !_specialPagesEnabled {
+			_processArguments = append (_processArguments, "--special-pages-disable")
 		}
 		if !_securityHeadersEnabled {
 			_processArguments = append (_processArguments, "--security-headers-disable")
+		}
+		if _securityHeadersTls {
+			_processArguments = append (_processArguments, "--security-headers-tls")
 		}
 		if _tlsPrivate != "" {
 			_processArguments = append (_processArguments, "--tls-private", _tlsPrivate)
@@ -1550,8 +1561,9 @@ func main_0 () (error) {
 			cachedDataMeta : _cachedDataMeta,
 			cachedDataContent : _cachedDataContent,
 			hostsDisabled : _hostsDisabled,
-			securityHeadersTls : _securityHeadersTls,
+			specialPagesEnabled : _specialPagesEnabled,
 			securityHeadersEnabled : _securityHeadersEnabled,
+			securityHeadersTls : _securityHeadersTls,
 			http1Disabled : _http1Disabled,
 			http2Disabled : _http2Disabled,
 			http3AltSvc : _http3AltSvc,
