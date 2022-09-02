@@ -67,7 +67,7 @@
 
 << go / build / server / release
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: sources / embedded / prepare'
+	"${ZRUN[@]}" ':: sources / embedded / bundle'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-server" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server"
@@ -134,7 +134,7 @@
 
 << go / build / archiver / release
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: sources / embedded / prepare'
+	"${ZRUN[@]}" ':: sources / embedded / bundle'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-archiver" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-archiver"
@@ -201,7 +201,7 @@
 
 << go / build / wrapper / release
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: sources / embedded / prepare'
+	"${ZRUN[@]}" ':: sources / embedded / bundle'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-wrapper" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-wrapper"
@@ -268,7 +268,7 @@
 
 << go / build / server-dummy / release
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: sources / embedded / prepare'
+	"${ZRUN[@]}" ':: sources / embedded / bundle'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-server-dummy" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server-dummy"
@@ -323,7 +323,7 @@
 		_component_0=all
 	fi
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: sources / embedded / prepare'
+	"${ZRUN[@]}" ':: sources / embedded / bundle'
 	_tags=(
 			netgo
 		)
