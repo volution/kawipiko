@@ -3,12 +3,27 @@
 
 
 
-<< go / build / all / release / quick
-	export -- __BUILD_QUICK=true
-	"${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
-	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
-	"${ZRUN[@]}" ':: go / build / server-dummy / release' "${@}"
-	"${ZRUN[@]}" ':: go / build / wrapper / release' "${@}"
+++<< go / build / all / debug
+	printf -- '[ii]  building archiver...\n' >&2
+	"${ZRUN[@]}" ':: go / build / archiver / debug' "${@}"
+	printf -- '[ii]  building server...\n' >&2
+	"${ZRUN[@]}" ':: go / build / server / debug' "${@}"
+	printf -- '[ii]  building server-dummy...\n' >&2
+	"${ZRUN[@]}" ':: go / build / server-dummy / debug' "${@}"
+	printf -- '[ii]  building wrapper...\n' >&2
+	"${ZRUN[@]}" ':: go / build / wrapper / debug' "${@}"
+!!
+
+
+++<< go / build / all / release / quick
+	printf -- '[ii]  building archiver...\n' >&2
+	"${ZRUN[@]}" ':: go / build / archiver / release / quick' "${@}"
+	printf -- '[ii]  building server...\n' >&2
+	"${ZRUN[@]}" ':: go / build / server / release / quick' "${@}"
+	printf -- '[ii]  building server-dummy...\n' >&2
+	"${ZRUN[@]}" ':: go / build / server-dummy / release / quick' "${@}"
+	printf -- '[ii]  building wrapper...\n' >&2
+	"${ZRUN[@]}" ':: go / build / wrapper / release / quick' "${@}"
 !!
 
 
@@ -36,6 +51,7 @@
 	exec -- "${ZRUN[@]}" ':: go / build / server / release' "${@}"
 !!
 
+
 << go / build / server / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
@@ -43,13 +59,13 @@
 		rm -- "${_outputs}/binaries/release/kawipiko-server"
 	fi
 	_flags=(
+		#?	-buildmode exe
 			-tags netgo
 		)
-	if test -z "${__BUILD_QUICK:-}" ; then
+	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=(
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
-				-buildmode exe
 				-trimpath
 				-a
 			)
@@ -90,6 +106,7 @@
 	exec -- "${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
 !!
 
+
 << go / build / archiver / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
@@ -97,13 +114,13 @@
 		rm -- "${_outputs}/binaries/release/kawipiko-archiver"
 	fi
 	_flags=(
+		#?	-buildmode exe
 			-tags netgo
 		)
-	if test -z "${__BUILD_QUICK:-}" ; then
+	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=(
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
-				-buildmode exe
 				-trimpath
 				-a
 			)
@@ -139,23 +156,36 @@
 !!
 
 
+<< go / build / wrapper / release / quick
+	export -- __BUILD_QUICK=true
+	exec -- "${ZRUN[@]}" ':: go / build / wrapper / release' "${@}"
+!!
+
+
 << go / build / wrapper / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-wrapper" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-wrapper"
 	fi
+	_flags=(
+		#?	-buildmode exe
+			-tags netgo
+		)
+	if test "${__BUILD_QUICK:-false}" != true ; then
+		_flags+=(
+				-gcflags 'all=-l=4'
+				-ldflags 'all=-s'
+				-trimpath
+				-a
+			)
+	fi
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
 	"${ZRUN[@]}" ':: go / tool' \
 			build \
-			-tags netgo \
-			-a \
-			-gcflags 'all=-l=4' \
-			-ldflags 'all=-s' \
-			-buildmode exe \
-			-trimpath \
+			"${_flags[@]}" \
 			-o "${_outputs}/binaries/release/kawipiko-wrapper" \
 			-- ./cmd/wrapper.go \
 	#
@@ -186,6 +216,7 @@
 	exec -- "${ZRUN[@]}" ':: go / build / server-dummy / release' "${@}"
 !!
 
+
 << go / build / server-dummy / release
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
@@ -193,13 +224,13 @@
 		rm -- "${_outputs}/binaries/release/kawipiko-server-dummy"
 	fi
 	_flags=(
+		#?	-buildmode exe
 			-tags netgo
 		)
-	if test -z "${__BUILD_QUICK:-}" ; then
+	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=(
 				-gcflags 'all=-l=4'
 				-ldflags 'all=-s'
-				-buildmode exe
 				-trimpath
 				-a
 			)
@@ -218,7 +249,7 @@
 
 
 
-<< go / build / all / release
+++<< go / build / all / release
 	if test "${#}" -ge 1 ; then
 		_platform_0="${1}"
 		shift -- 1
@@ -256,17 +287,22 @@
 			fi
 			test ! -e "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}"
 			printf -- '[ii]  building `%s` for `%s`...\n' "${_component}" "${_platform}" >&2
+			_flags=(
+				#?	-buildmode exe
+					-tags netgo
+				)
+			_flags+=(
+					-gcflags 'all=-l=4'
+					-ldflags 'all=-s'
+					-trimpath
+					-a
+				)
 			env GOOS="${_platform}" \
 				nodaemon \
 				nice -n 19 -- \
 			"${ZRUN[@]}" ':: go / tool' \
 					build \
-					-tags netgo \
-					-a \
-					-gcflags 'all=-l=4' \
-					-ldflags 'all=-s' \
-					-buildmode exe \
-					-trimpath \
+					"${_flags[@]}" \
 					-o "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}" \
 					-- "./cmd/${_component}.go" \
 			#
@@ -313,6 +349,18 @@
 !!
 
 
+
+
+<< go / dependencies / include
+	test "${#}" -ge 1
+	exec -- "${ZRUN[@]}" ':: go / tool' \
+			get \
+			-v \
+			-d \
+			-- \
+			"${@}" \
+	#
+!!
 
 
 << go / dependencies / update
@@ -367,7 +415,18 @@
 
 
 << go / tool
+	
 	test "${#}" -ge 1
+	
+	export -n -- \
+			ZRUN_LIBRARY_SOURCE= \
+			ZRUN_LIBRARY_URL= \
+			ZRUN_LIBRARY_IDENTIFIER= \
+			ZRUN_LIBRARY_FINGERPRINT= \
+			ZRUN_EXECUTABLE= \
+			ZRUN_WORKSPACE= \
+			ZRUN_CACHE= \
+	#
 	
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	_sources="$( exec -- readlink -e -- ./sources )"
@@ -376,10 +435,15 @@
 	export -- GOBIN="${_outputs}/go/bin"
 	export -- GOTMPDIR="${_outputs}/go/tmp"
 	export -- GOCACHE="${_outputs}/go/cache"
-	export -- GO111MODULE=on
+	
+	if test -e "${_outputs}/go-tool" ; then
+		_go="$( exec -- readlink -e -- "${_outputs}/go-tool" )"
+	else
+		_go="$( type -P -- go )"
+	fi
 	
 	cd -- "${_sources}"
 	
-	exec -- go "${@}"
+	exec -- "${_go}" "${@}"
 !!
 
