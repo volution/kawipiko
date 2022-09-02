@@ -51,9 +51,27 @@ func Version (_executableName string, _executable string, _stream io.Writer) (er
 
 
 
-func Main (_executableName string) () {
-	if _error := Version (_executableName, "<os.Executable>", os.Stdout); _error != nil {
-		AbortError (_error, "[74bfa815]  unexpected error!")
+func Main (_executableName string, _special string) () {
+	
+	switch _special {
+		
+		case "version" :
+			if _error := Version (_executableName, "<os.Executable>", os.Stdout); _error != nil {
+				AbortError (_error, "[74bfa815]  unexpected error!")
+			}
+		
+		case "sources.md5" :
+			if _, _error := os.Stdout.Write (StringToBytes (BuildSourcesMd5)); _error != nil {
+				AbortError (_error, "[c8f6b6c9]  unexpected error!")
+			}
+		
+		case "sources.cpio" :
+			if _, _error := os.Stdout.Write (BuildSourcesCpioGz); _error != nil {
+				AbortError (_error, "[292d8865]  unexpected error!")
+			}
+		
+		default :
+			panic ("[65a6f35f]")
 	}
 }
 

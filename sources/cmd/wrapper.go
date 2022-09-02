@@ -23,13 +23,24 @@ func main () () {
 		switch _command {
 			
 			case "version", "--version", "-v" :
-				version.Main ("kawipiko-wrapper")
+				version.Main ("kawipiko-wrapper", "version")
+				return
+			
+			case "--sources-md5" :
+				version.Main ("kawipiko-wrapper", "sources.md5")
+				return
+			
+			case "--sources-cpio" :
+				version.Main ("kawipiko-wrapper", "sources.cpio")
+				return
 			
 			case "server" :
 				server.Main ()
+				return
 			
 			case "archiver" :
 				archiver.Main ()
+				return
 			
 			default :
 				fmt.Fprintf (os.Stderr, "[!!] [44887671] unknown command: `%s`;  aborting!\n", _command)

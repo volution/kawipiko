@@ -1258,7 +1258,15 @@ func Main () () {
 		switch os.Args[1] {
 			
 			case "version", "--version", "-v" :
-				version.Main ("kawipiko-archiver")
+				version.Main ("kawipiko-archiver", "version")
+				return
+			
+			case "--sources-md5" :
+				version.Main ("kawipiko-archiver", "sources.md5")
+				return
+			
+			case "--sources-cpio" :
+				version.Main ("kawipiko-archiver", "sources.cpio")
 				return
 			
 			case "--help", "-h" :
