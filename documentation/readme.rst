@@ -19,6 +19,28 @@ kawipiko -- blazingly fast static HTTP server
 
 
 
+.. highlights::
+
+    Table of contents:
+
+    * `Manual <#manual>`__ and `Examples <#examples>`__
+    * `Installation <#installation>`__ and `FAQ <#faq>`__
+    * `Features <#features>`__ and `Benchmarks <#benchmarks>`__
+    * `About <#about>`__, `Copyright and licensing <#notice-copyright-and-licensing>`__, and `References <#references>`__
+    * `chat on Discord <https://discord.gg/NH7V7NKjNu>`__, `discuss on GitHub <https://github.com/volution/kawipiko/discussions/categories/discussions>`__, or `email author <mailto:ciprian.craciun@gmail.com>`__
+
+
+
+
+--------
+
+
+
+
+About
+=====
+
+
 ``kawipiko`` is a **lightweight static HTTP server** written in Go;
 focused on serving static content **as fast and efficient as possible**,
 with the **lowest latency**, and with the lowest resource consumption (either CPU, RAM, IO);
@@ -438,6 +460,24 @@ See the `dedicated benchmarks document <./documentation/benchmarks.rst>`__.
 
 FAQ
 ===
+
+
+
+
+How to ask for help?
+--------------------
+
+If you have encountered a bug,
+just use the `GitHub issues <https://github.com/volution/kawipiko/issues>`__.
+
+If you are not sure about something,
+want to give feedback,
+or request new features,
+just use the `GitHub discussions <https://github.com/volution/kawipiko/discussions/categories/discussions>`__.
+
+If you want to ask a quick question,
+or just have a quick chat,
+just head over to the `Discord channel <https://discord.gg/NH7V7NKjNu>`__.
 
 
 
