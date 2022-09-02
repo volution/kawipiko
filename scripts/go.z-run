@@ -43,6 +43,7 @@
 
 << go / build / server / debug
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/debug/kawipiko-server" ; then
 		rm -- "${_outputs}/binaries/debug/kawipiko-server"
@@ -66,6 +67,7 @@
 
 << go / build / server / release
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-server" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server"
@@ -77,15 +79,16 @@
 		#?	-buildmode exe
 		)
 	_gcflags=()
-	_ldflags=(
-			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
-			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
-		)
+	_ldflags=()
 	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=( -trimpath -a )
 		_gcflags+=( 'all=-l=4' )
 		_ldflags+=( 'all=-s' )
 	fi
+	_ldflags+=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
+		)
 	_flags+=(
 			-tags "$( printf -- '%s,' "${_tags[@]}" )"
 			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
@@ -107,6 +110,7 @@
 
 << go / build / archiver / debug
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/debug/kawipiko-archiver" ; then
 		rm -- ${_outputs}/binaries/debug/kawipiko-archiver
@@ -130,6 +134,7 @@
 
 << go / build / archiver / release
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-archiver" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-archiver"
@@ -141,15 +146,16 @@
 		#?	-buildmode exe
 		)
 	_gcflags=()
-	_ldflags=(
-			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
-			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
-		)
+	_ldflags=()
 	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=( -trimpath -a )
 		_gcflags+=( 'all=-l=4' )
 		_ldflags+=( 'all=-s' )
 	fi
+	_ldflags+=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
+		)
 	_flags+=(
 			-tags "$( printf -- '%s,' "${_tags[@]}" )"
 			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
@@ -171,6 +177,7 @@
 
 << go / build / wrapper / debug
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/debug/kawipiko-wrapper" ; then
 		rm -- "${_outputs}/binaries/debug/kawipiko-wrapper"
@@ -194,6 +201,7 @@
 
 << go / build / wrapper / release
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-wrapper" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-wrapper"
@@ -205,15 +213,16 @@
 		#?	-buildmode exe
 		)
 	_gcflags=()
-	_ldflags=(
-			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
-			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
-		)
+	_ldflags=()
 	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=( -trimpath -a )
 		_gcflags+=( 'all=-l=4' )
 		_ldflags+=( 'all=-s' )
 	fi
+	_ldflags+=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
+		)
 	_flags+=(
 			-tags "$( printf -- '%s,' "${_tags[@]}" )"
 			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
@@ -235,6 +244,7 @@
 
 << go / build / server-dummy / debug
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/debug/kawipiko-server-dummy" ; then
 		rm -- "${_outputs}/binaries/debug/kawipiko-server-dummy"
@@ -258,6 +268,7 @@
 
 << go / build / server-dummy / release
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	if test -e "${_outputs}/binaries/release/kawipiko-server-dummy" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server-dummy"
@@ -269,15 +280,16 @@
 		#?	-buildmode exe
 		)
 	_gcflags=()
-	_ldflags=(
-			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
-			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
-		)
+	_ldflags=()
 	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=( -trimpath -a )
 		_gcflags+=( 'all=-l=4' )
 		_ldflags+=( 'all=-s' )
 	fi
+	_ldflags+=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
+		)
 	_flags+=(
 			-tags "$( printf -- '%s,' "${_tags[@]}" )"
 			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
@@ -311,6 +323,7 @@
 		_component_0=all
 	fi
 	test "${#}" -eq 0
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
 	_tags=(
 			netgo
 		)
@@ -318,15 +331,16 @@
 		#?	-buildmode exe
 		)
 	_gcflags=()
-	_ldflags=(
-			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
-			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
-		)
+	_ldflags=()
 	if test "${__BUILD_QUICK:-false}" != true ; then
 		_flags+=( -trimpath -a )
 		_gcflags+=( 'all=-l=4' )
 		_ldflags+=( 'all=-s' )
 	fi
+	_ldflags+=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
+		)
 	_flags+=(
 			-tags "$( printf -- '%s,' "${_tags[@]}" )"
 			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
