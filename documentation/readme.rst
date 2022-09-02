@@ -26,7 +26,7 @@ kawipiko -- blazingly fast static HTTP server
     * `Manual <#manual>`__ and `Examples <#examples>`__
     * `Installation <#installation>`__ and `FAQ <#faq>`__
     * `Features <#features>`__ and `Benchmarks <#benchmarks>`__
-    * `About <#about>`__, `Copyright and licensing <#notice-copyright-and-licensing>`__, and `References <#references>`__
+    * `About <#about>`__, `Copyright and licensing <#notice-copyright-and-licensing>`__, `SBOM <#sbom-software-bill-of-materials>`__, and `References <#references>`__
     * `chat on Discord <https://discord.gg/NH7V7NKjNu>`__, `discuss on GitHub <https://github.com/volution/kawipiko/discussions/categories/discussions>`__, or `email author <mailto:ciprian.craciun@gmail.com>`__
 
 
@@ -117,19 +117,6 @@ sustaining over 100K requests / second with 0.25ms latency for 99% of the reques
 However the main advantage over NGinx is not raw performance,
 but deployment and configuration simplicity,
 plus efficient management and storage of large collections of many small files.
-
-
-
-
---------
-
-
-
-
-.. contents::
-    :depth: 1
-    :local:
-    :backlinks: none
 
 
 
@@ -387,7 +374,7 @@ The following is a list of the most important features that are currently missin
   and a few TLS or security related headers can also be included;)
 
 * (TODO)  support for mapping virtual hosts to key prefixes;
-  (currently virtual hosts, i.e. the ``Host`` header, are ignored;)
+  (currently virtual hosts, i.e. the ``Host`` header, is supported by the server, and partially by the archiver;)
 
 * (TODO)  support for mapping virtual hosts to multiple CDB archives;
   (i.e. the ability to serve multiple domains, each with its own CDB archive;)
@@ -397,6 +384,7 @@ The following is a list of the most important features that are currently missin
 * (TODO)  minifying HTML, CSS and JavaScript, by leveraging ``https://github.com/tdewolff/minify``;
 
 * (TODO)  customized error pages (embedded in the CDB archive);
+  (currently only ``404`` wildcards are supported;)
 
 
 
@@ -574,6 +562,9 @@ Ciprian Dorin Craciun
   * `<https://github.com/volution>`__
   * `<https://github.com/cipriancraciun>`__
 
+Please also see the `SBOM (Software Bill of Materials) <./documentation/sbom/sbom.md>`__
+for links this project's dependencies and their authors.
+
 
 
 
@@ -604,6 +595,26 @@ under a different license, please send an email to the authors,
 stating the licensing requirements, accompanied with the reasons
 and other details; then, depending on the situation, the authors might
 release the sources and/or documentation under a different license.
+
+
+
+
+--------
+
+
+
+
+SBOM (Software Bill of Materials)
+=================================
+
+
+This project, like many other open-source projects,
+incorporates code from other open-source projects
+(besides other tools used to develop, build and test).
+
+Strictly related to the project's dependencies (direct and transitive),
+please see the `SBOM (Software Bill of Materials) <./documentation/sbom/sbom.md>`__
+for links to these dependencies and their licenses.
 
 
 
