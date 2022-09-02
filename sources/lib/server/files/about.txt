@@ -21,7 +21,6 @@
   ====  kawipiko -- blazingly fast static HTTP server  ====
 
   |  Documentation, issues and sources:
-  |      * https://bit.ly/kawipiko
   |      * https://github.com/volution/kawipiko
 
   |  Authors:
