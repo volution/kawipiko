@@ -29,6 +29,8 @@ import "go.etcd.io/bbolt"
 import . "github.com/volution/kawipiko/lib/common"
 import . "github.com/volution/kawipiko/lib/archiver"
 
+import "github.com/volution/kawipiko/cmd/version"
+
 import _ "embed"
 
 
@@ -1254,12 +1256,24 @@ func Main () () {
 	
 	if len (os.Args) == 2 {
 		switch os.Args[1] {
+			
+			case "version", "--version", "-v" :
+				version.Main ("kawipiko-archiver")
+				return
+			
 			case "--help", "-h" :
-				os.Stderr.WriteString (usageText)
-				return
+				if _, _error := os.Stdout.WriteString (usageText); _error == nil {
+					return
+				} else {
+					AbortError (_error, "[5418de54]  unexpected error!")
+				}
+			
 			case "--man" :
-				os.Stderr.WriteString (manualText)
-				return
+				if _, _error := os.Stdout.WriteString (manualText); _error == nil {
+					return
+				} else {
+					AbortError (_error, "[5418de54]  unexpected error!")
+				}
 		}
 	}
 	

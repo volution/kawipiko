@@ -8,6 +8,7 @@ import "os"
 
 import "github.com/volution/kawipiko/cmd/server"
 import "github.com/volution/kawipiko/cmd/archiver"
+import "github.com/volution/kawipiko/cmd/version"
 
 
 
@@ -21,6 +22,9 @@ func main () () {
 		
 		switch _command {
 			
+			case "version", "--version", "-v" :
+				version.Main ("kawipiko-wrapper")
+			
 			case "server" :
 				server.Main ()
 			
@@ -32,7 +36,7 @@ func main () () {
 		}
 		
 	} else {
-		fmt.Fprintf (os.Stderr, "[!!] [3628f38a]  expected command: `server` or `archiver`;  aborting!\n")
+		fmt.Fprintf (os.Stderr, "[!!] [3628f38a]  expected command: `server`, `archiver`, or `version`;  aborting!\n")
 	}
 }
 
