@@ -5,10 +5,10 @@ a3101ca304c0cdb35934a870f20a6f31 *cmd/archiver/manual.txt
 85fd60d728787a104a48d5ead140a1ca *cmd/server-dummy.go
 98b67b7933a598a3678323836ac402d0 *cmd/server.go
 6ffaea2dd159cff79ecb402f289690b1 *cmd/server/listen.go
-069cbd54d65d0b9ad61d89e620d208b6 *cmd/server/manual.txt
-bf50edd2ee687af5579bed4f800ab407 *cmd/server/server.go
-64ec050b6cde67f5b773d796d04c7c20 *cmd/server/usage.txt
-2cbe829dab1677f62849447eb52de799 *cmd/version/version.go
+39c76af600be79e30be13b3a22fd797a *cmd/server/manual.txt
+960e903ec0461d7b24eb903ad58f8efa *cmd/server/server.go
+d723c57d994497e1e111f4356067589d *cmd/server/usage.txt
+ded309f8b38414a4d245e88b3ebd6acf *cmd/version/version.go
 bb691ebd09bff2fcbf1f141bb0ea297e *cmd/wrapper.go
 b7bd2ebef5fe1e6977b63c341c02fda1 *embedded/build.go
 dd2d617ab4c0869683c0074610e5eddc *embedded/documentation/sbom.html
@@ -25,7 +25,7 @@ d0c2f365abd3905dc2a82966f9d8aa48 *lib/archiver/compress.go
 eead34517c7a4499e93c208b275bcb75 *lib/common/main.go
 93333456bc90e46b3ef0863e20217a32 *lib/common/metadata.go
 a4e81477dbfc9c3369266a4ead0697e6 *lib/common/mime.go
-bc43d173787aa459b7b4aefd4c36d64b *lib/common/namespaces.go
+2e48a72c92f6a5da465f270742081aca *lib/common/namespaces.go
 ef218b032561525d308eccf6ff7e3b66 *lib/common/os-freebsd-darwin.go
 b098f0e2202d93e38b662b6b930949fe *lib/common/os-freebsd.go
 652a0ffd888a3334968331243ba729fc *lib/common/os-linux-darwin.go
@@ -35,7 +35,7 @@ a3edbfb5d0f3d936892ddb9a5cccfc48 *lib/common/os-openbsd.go
 bfc2c5e70df5f51ff21381db094b0b44 *lib/common/stats.go
 0ed65d1bad838e5af0eb242aa5b5a5ef *lib/server/banners.go
 004e517313f3fdfdbe5961e5a2951ed8 *lib/server/favicon.go
-ef5fd7f2564f738cf668c265e1c477a6 *lib/server/files/about.txt
+0b9e01cdda182a6c63b02098632d857e *lib/server/files/about.txt
 94fe54f366ce8339ff5cad2e60613991 *lib/server/files/errors/100.txt
 2df4868d2fd8b16d2186e1a0988f378a *lib/server/files/errors/101.txt
 b5e3a9675665619f95b865fef01baec0 *lib/server/files/errors/102.txt
