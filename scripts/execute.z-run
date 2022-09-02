@@ -13,6 +13,11 @@
 	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server "${@}"
 !!
 
+<< execute / server / release / quick
+	"${ZRUN[@]}" ':: go / build / server / release / quick'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server "${@}"
+!!
+
 
 
 
@@ -23,6 +28,11 @@
 
 << execute / archiver / release
 	"${ZRUN[@]}" ':: go / build / archiver / release'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-archiver "${@}"
+!!
+
+<< execute / archiver / release / quick
+	"${ZRUN[@]}" ':: go / build / archiver / release / quick'
 	exec -- env -i -- ./.outputs/binaries/release/kawipiko-archiver "${@}"
 !!
 
@@ -39,6 +49,11 @@
 	exec -- env -i -- ./.outputs/binaries/release/kawipiko-wrapper "${@}"
 !!
 
+<< execute / wrapper / release / quick
+	"${ZRUN[@]}" ':: go / build / wrapper / release / quick'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-wrapper "${@}"
+!!
+
 
 
 
@@ -49,6 +64,11 @@
 
 << execute / server-dummy / release
 	"${ZRUN[@]}" ':: go / build / server-dummy / release'
+	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server-dummy "${@}"
+!!
+
+<< execute / server-dummy / release / quick
+	"${ZRUN[@]}" ':: go / build / server-dummy / release / quick'
 	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server-dummy "${@}"
 !!
 

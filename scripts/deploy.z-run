@@ -49,6 +49,10 @@
 	test -d ./.publish/
 	
 	
+	"${ZRUN[@]}" ':: documentation / all / render / forced'
+	"${ZRUN[@]}" ':: sources / embedded / bundle'
+	
+	
 	if test "${__DEPLOY_NOGITHUB:-}" == true ; then
 		_github_publish=false
 	else
@@ -56,7 +60,7 @@
 	fi
 	
 	
-	_build_version="${__BUILD_VERSION}"
+	_build_version="$( exec -- cat -- ./sources/embedded/build/version.txt )"
 	case "${_build_version}" in
 		( 0.0.0 | *.0 )
 			_build_release=false

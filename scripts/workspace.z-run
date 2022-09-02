@@ -37,6 +37,7 @@
 			binaries/publish
 			binaries/analyze
 			examples
+			markers
 		)
 	
 	for _folder in "${_folders[@]}" ; do
@@ -61,6 +62,8 @@
 	
 	exec -- "${ZRUN[@]}" ':: workspace / initialize / go'
 !!
+
+
 
 
 << workspace / initialize / go
@@ -122,95 +125,5 @@
 	
 	./.outputs/python/bin/pip install --compile -- docutils
 	./.outputs/python/bin/pip install --compile -- restview
-!!
-
-
-
-
-<< workspace / sources / codes / duplicates
-	test "${#}" -eq 0
-	exec -- xargs \
-			-r -d '\n' -I {} \
-			-a <(
-				grep \
-						-o \
-						-P \
-						-e '(?<=\[)[0-9a-f]{8}(?=\])|(?<=0x)[0-9a-f]{8}(?=[^0-9a-zA-Z]|$)' \
-						-h \
-						-r ./sources \
-						--include '*.go' \
-				| sort \
-				| uniq -d
-			) \
-			-- \
-		grep \
-			-P \
-			-e '(?<=\[){}(?=\])|(?<=0x){}(?=[^0-9a-zA-Z]|$)' \
-			-r ./sources \
-			-n \
-			--include '*.go' \
-			--color \
-	#
-!!
-
-
-
-
-<< documentation / readme / open
-	test "${#}" -eq 0
-	exec -- x-www 'guest:*' open http://127.33.237.174:8080/
-!!
-
-<< documentation / readme / server
-	test "${#}" -eq 0
-	exec -- env -i -- ./.outputs/python/bin/restview --no-browser --listen 127.33.237.174:8080 --allowed-hosts '*' -- ./readme.rst
-!!
-
-
-<< documentation / manuals / render
-	test "${#}" -eq 0
-	
-	_date="$( exec -- date -- '+%Y-%m-%d' )"
-	
-	for _manual in archiver server ; do
-		
-		printf -- '[ii]  rendering `%s`...\n' "${_manual}" >&2
-		
-		rst2man --strict \
-			< "./documentation/manuals/${_manual}.rst" \
-		| sed -r \
-				-e 's#^\.TH .*#.TH "KAWIPIKO\-'"${_manual^^}"'" "1" "'"${_date}"'" "volution.ro" "kawipiko"#' \
-			>| "./documentation/manuals/${_manual}.1.man.tmp" \
-		#
-		
-		mv -T -- \
-				"./documentation/manuals/${_manual}.1.man.tmp" \
-				"./documentation/manuals/${_manual}.1.man" \
-		#
-		
-		mandoc \
-				-c \
-				-man \
-				-T utf8 \
-				-I os=POSIX \
-				-O indent=2 \
-				-O width=78 \
-				-W error \
-			< "./documentation/manuals/${_manual}.1.man" \
-		| col -b -x \
-			>| "./documentation/manuals/${_manual}.txt.tmp" \
-		#
-		
-		mv -T -- \
-				"./documentation/manuals/${_manual}.txt.tmp" \
-				"./documentation/manuals/${_manual}.txt" \
-		#
-		
-		cp -T -- \
-				"./documentation/manuals/${_manual}.txt" \
-				"./sources/cmd/${_manual}/manual.txt" \
-		#
-		
-	done
 !!
 

@@ -1,0 +1,371 @@
+#!/dev/null
+
+
+
+
+::// sources / ...
+
+
+
+
+<< sources / codes / duplicates
+	test "${#}" -eq 0
+	exec -- xargs \
+			-r -d '\n' -I {} \
+			-a <(
+				grep \
+						-o \
+						-P \
+						-e '(?<=\[)[0-9a-f]{8}(?=\])|(?<=0x)[0-9a-f]{8}(?=[^0-9a-zA-Z]|$)' \
+						-h \
+						-r ./sources \
+						--include '*.go' \
+				| sort \
+				| uniq -d
+			) \
+			-- \
+		grep \
+			-P \
+			-e '(?<=\[){}(?=\])|(?<=0x){}(?=[^0-9a-zA-Z]|$)' \
+			-r ./sources \
+			-n \
+			--include '*.go' \
+			--color \
+	#
+!!
+
+
+
+
+<< sources / embedded / prepare
+	
+	test "${#}" -eq 0
+	
+	"${ZRUN[@]}" ':: sources / embedded / documentation'
+	"${ZRUN[@]}" ':: sources / embedded / sbom'
+	"${ZRUN[@]}" ':: sources / embedded / hash'
+!!
+
+
+
+
+<< sources / embedded / documentation
+	
+	test "${#}" -eq 0
+	
+	if ! cmp -s -- ./documentation/manuals/server.txt ./sources/cmd/server/manual.txt ; then
+		cp -T -- ./documentation/manuals/server.txt ./sources/cmd/server/manual.txt
+	fi
+	
+	if ! cmp -s -- ./documentation/manuals/archiver.txt ./sources/cmd/archiver/manual.txt ; then
+		cp -T -- ./documentation/manuals/archiver.txt ./sources/cmd/archiver/manual.txt
+	fi
+!!
+
+
+
+
+<< sources / embedded / sbom
+	
+	test "${#}" -eq 0
+	
+	if ! cmp -s -- ./documentation/sbom/sbom.txt ./sources/embedded/documentation/sbom.txt ; then
+		cp -T -- ./documentation/sbom/sbom.txt ./sources/embedded/documentation/sbom.txt
+	fi
+	
+	if ! cmp -s -- ./documentation/sbom/sbom.html ./sources/embedded/documentation/sbom.html ; then
+		cp -T -- ./documentation/sbom/sbom.html ./sources/embedded/documentation/sbom.html
+	fi
+	
+	if ! cmp -s -- ./documentation/sbom/cyclonedx.json ./sources/embedded/documentation/sbom.json ; then
+		cp -T -- ./documentation/sbom/cyclonedx.json ./sources/embedded/documentation/sbom.json
+	fi
+!!
+
+
+
+
+<< sources / embedded / hash
+	
+	test "${#}" -eq 0
+	
+	if test -e ./.git ; then
+		_git_hash="$( exec -- git rev-parse HEAD )"
+		if ! git diff --quiet || ! git diff --quiet --cached ; then
+			_git_hash+="-uncommitted"
+		fi
+	else
+		_git_hash='unknown'
+	fi
+	
+	if test -s ./sources/embedded/build/sources.cpio.gz ; then
+		rm -- ./sources/embedded/build/sources.cpio.gz
+		touch -- ./sources/embedded/build/sources.cpio.gz
+	fi
+	
+	execline-cd ./sources \
+	find . \
+			-type f \
+			-not -path './embedded/build/*' \
+			-printf '%P\0' \
+	| LC_ALL=C sort -z \
+		>| ./.outputs/markers/build-sources.list.tmp \
+	#
+	
+	execline-cd ./sources \
+	xargs -0 -I {} -- md5sum -b -z -- {} \
+		< ./.outputs/markers/build-sources.list.tmp \
+	| tr '\0' '\n' \
+		>| ./.outputs/markers/build-sources.md5.tmp \
+	#
+	
+	md5sum -b \
+		< ./.outputs/markers/build-sources.md5.tmp \
+	| cut -f 1 -d ' ' \
+		>| ./.outputs/markers/build-sources.hash.tmp \
+	#
+	
+	if ! cmp -s -- ./.outputs/markers/build-sources.hash.tmp ./sources/embedded/build/sources.hash ; then
+		
+		_build_number="$( exec -- cat -- ./sources/embedded/build/number.txt )"
+		_build_number="$(( _build_number + 1 ))"
+		_build_timestamp="$( exec -- date -- '+%Y-%m-%d-%H-%M-%S' )"
+		
+		printf -- '%d\n' "${_build_number}" >| ./sources/embedded/build/number.txt.tmp
+		printf -- '%s\n' "${_build_timestamp}" >| ./sources/embedded/build/timestamp.txt.tmp
+		
+		mv -T -- ./sources/embedded/build/number.txt.tmp ./sources/embedded/build/number.txt
+		mv -T -- ./sources/embedded/build/timestamp.txt.tmp ./sources/embedded/build/timestamp.txt
+		
+		mv -T -- ./.outputs/markers/build-sources.list.tmp ./.outputs/markers/build-sources.list
+		
+		mv -T -- ./.outputs/markers/build-sources.md5.tmp ./sources/embedded/build/sources.md5
+		mv -T -- ./.outputs/markers/build-sources.hash.tmp ./sources/embedded/build/sources.hash
+		
+	else
+		
+		rm -- ./.outputs/markers/build-sources.list.tmp
+		rm -- ./.outputs/markers/build-sources.md5.tmp
+		rm -- ./.outputs/markers/build-sources.hash.tmp
+	fi
+	
+	printf -- '%s\n' "${_git_hash}" >| ./.outputs/markers/build-git-hash.txt.tmp
+	mv -T -- ./.outputs/markers/build-git-hash.txt.tmp ./.outputs/markers/build-git-hash.txt
+!!
+
+
+
+
+<< sources / embedded / bundle
+	
+	test "${#}" -eq 0
+	
+	"${ZRUN[@]}" ':: sources / embedded / prepare'
+	
+	if test -s ./sources/embedded/build/sources.cpio.gz ; then
+		rm -- ./sources/embedded/build/sources.cpio.gz
+	fi
+	touch --reference ./sources/embedded/build/timestamp.txt -- ./sources/embedded/build/sources.cpio.gz
+	
+	execline-cd ./sources \
+	find . \
+			-type f \
+			-print0 \
+	| LC_ALL=C sort -z \
+	| execline-cd ./sources \
+	cpio \
+			--create \
+			--format newc \
+			--no-absolute-filenames \
+			--quiet \
+			--warning all \
+			--owner +65534:+65534 \
+			--ignore-devno \
+			--renumber-inodes \
+			--block-size 1 \
+			--null \
+	| gzip \
+			--best \
+			--rsyncable \
+			--no-name \
+		>| ./.outputs/sources.cpio.gz.tmp \
+	#
+	
+	mv -T -- ./.outputs/sources.cpio.gz.tmp ./sources/embedded/build/sources.cpio.gz
+!!
+
+
+
+
+<< sources / watch
+	
+	test "${#}" -ge 1
+	_command="${1}"
+	shift -- 1
+	
+	_delegate=()
+	case "${_command}" in
+		( '::'* )
+			_delegate+=( "${ZRUN[@]}" "${_command}" )
+		;;
+		( /* )
+			_delegate+=( "${_command}" )
+		;;
+		( * )
+			printf -- '[ee]  invalid delegate `%s`;  aborting!\n' "${_delegate}"
+			exit -- 1
+		;;
+	esac
+	
+	_sources="$( exec -- readlink -e -- ./sources )"
+	
+	exec -- watchexec \
+			\
+			--watch="${_sources}" \
+			\
+			--filter="${_sources}/go.*" \
+			--filter="${_sources}/cmd/**" \
+			--filter="${_sources}/lib/**" \
+			--filter="${_sources}/embedded/*.go" \
+			--filter="${_sources}/embedded/documentation/**" \
+			\
+			--restart \
+			\
+			--no-shell \
+			\
+			--no-default-ignore \
+			--no-vcs-ignore \
+			--no-ignore \
+			\
+			-- \
+			\
+			"${ZRUN[@]}" ':: sources / watch / delegate' \
+			"${_delegate[@]}" \
+			"${@}" \
+	#
+!!
+
+
+--<< sources / watch / delegate
+	test "${#}" -ge 1
+	_timestamp="$( exec -- date -- '+%H:%M:%S' )"
+	printf -- '\n[--]  --------[ %s ]------------------------------------------------------\n\n' "${_timestamp}" >&2
+	exec -- "${@}"
+!!
+
+
+
+
+<< sources / generate / sbom
+	test "${#}" -eq 0
+	
+	execline-cd ./sources \
+	cyclonedx-gomod mod -json -licenses \
+		>| ./documentation/sbom/cyclonedx.json \
+	#
+	
+	jq \
+			'
+				.components[]
+				| .licenses = [
+					(.evidence // {})
+					| (.licenses // [])
+					| .[]
+					| .license.id
+				]
+				| .externalReferences = (
+					(.externalReferences // [])
+					| group_by (.type)
+					| map ({
+						key : .[0].type,
+						value : . | map (del (.type))
+					})
+					| from_entries
+				)
+				| .vcs_url = (
+					.externalReferences.vcs
+					| (if . != null then .[0].url else "" end)
+				)
+			' \
+		< ./documentation/sbom/cyclonedx.json \
+	| jq \
+			'
+				. as $component
+				| {
+					name : .name,
+					version : .version,
+					purl : .purl,
+					license :
+						.licenses
+						| join (" | ")
+						| (
+							({
+							}[$component.name])
+							// ({
+								"" : "{unknown}",
+							}[.])
+							// .
+						),
+					vcs :
+						.vcs_url
+						| (
+							({
+								"go.starlark.net" : "https://github.com/google/starlark-go",
+								"golang.org/x/sync" : "https://github.com/golang/sync",
+								"golang.org/x/sys" : "https://github.com/golang/sys",
+								"golang.org/x/term" : "https://github.com/golang/term",
+								"golang.org/x/text" : "https://github.com/golang/text",
+							}[$component.name])
+							// ({
+								"" : "{unknown}",
+								"<no value>" : "{unknown}",
+							}[.])
+							// .
+						),
+				}
+			' \
+	| jq --slurp . \
+		>| ./documentation/sbom/sbom.json \
+	#
+	
+	gomplate \
+			-c .=stdin:///.json \
+			--in \
+	'
+	## SBOM (Software Bill of Materials)
+	
+	| Dependency | Version | License (SPDX) | VCS URL |
+	| ---        | ---     | ---            | ---     |
+	{{ range $_, $_component := . -}}
+	| `{{ $_component.name }}` | `{{ $_component.version }}` | `{{ $_component.license }}` | <{{ $_component.vcs }}> |
+	{{ end }}
+	' \
+		< ./documentation/sbom/sbom.json \
+		>| ./documentation/sbom/sbom.md \
+	#
+	
+	cmark-gfm \
+			--to html \
+			--extension autolink \
+			--extension table \
+			--validate-utf8 \
+			--unsafe \
+		< ./documentation/sbom/sbom.md \
+		>| ./documentation/sbom/sbom.html \
+	#
+	
+	w3m \
+			-dump \
+			-T text/html \
+			-cols 160 \
+			-no-graph \
+			-I utf-8 \
+			-O utf-8 \
+			-o tabstop=4 \
+			-o indent_incr=4 \
+			-o display_link_number=false \
+		< ./documentation/sbom/sbom.html \
+		>| ./documentation/sbom/sbom.txt \
+	#
+!!
+

@@ -1,7 +1,6 @@
 #!/dev/null
 
 
-&&== env-fallback __BUILD_VERSION 0.1.0
 &&== env-fallback __BUILD_QUICK false
 
 
@@ -23,6 +22,8 @@
 && _/examples.z-run
 && _/benchmark.z-run
 && _/workspace.z-run
+&& _/sources.z-run
+&& _/documentation.z-run
 && _/tools.z-run
 && _/tls.z-run
 

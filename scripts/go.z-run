@@ -70,18 +70,27 @@
 	if test -e "${_outputs}/binaries/release/kawipiko-server" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server"
 	fi
+	_tags=(
+			netgo
+		)
 	_flags=(
 		#?	-buildmode exe
-			-tags netgo
+		)
+	_gcflags=()
+	_ldflags=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
 		)
 	if test "${__BUILD_QUICK:-false}" != true ; then
-		_flags+=(
-				-gcflags 'all=-l=4'
-				-ldflags 'all=-s'
-				-trimpath
-				-a
-			)
+		_flags+=( -trimpath -a )
+		_gcflags+=( 'all=-l=4' )
+		_ldflags+=( 'all=-s' )
 	fi
+	_flags+=(
+			-tags "$( printf -- '%s,' "${_tags[@]}" )"
+			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
+			-ldflags "$( printf -- '%s ' "${_ldflags[@]}" )"
+		)
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
@@ -125,18 +134,27 @@
 	if test -e "${_outputs}/binaries/release/kawipiko-archiver" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-archiver"
 	fi
+	_tags=(
+			netgo
+		)
 	_flags=(
 		#?	-buildmode exe
-			-tags netgo
+		)
+	_gcflags=()
+	_ldflags=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
 		)
 	if test "${__BUILD_QUICK:-false}" != true ; then
-		_flags+=(
-				-gcflags 'all=-l=4'
-				-ldflags 'all=-s'
-				-trimpath
-				-a
-			)
+		_flags+=( -trimpath -a )
+		_gcflags+=( 'all=-l=4' )
+		_ldflags+=( 'all=-s' )
 	fi
+	_flags+=(
+			-tags "$( printf -- '%s,' "${_tags[@]}" )"
+			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
+			-ldflags "$( printf -- '%s ' "${_ldflags[@]}" )"
+		)
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
@@ -180,18 +198,27 @@
 	if test -e "${_outputs}/binaries/release/kawipiko-wrapper" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-wrapper"
 	fi
+	_tags=(
+			netgo
+		)
 	_flags=(
 		#?	-buildmode exe
-			-tags netgo
+		)
+	_gcflags=()
+	_ldflags=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
 		)
 	if test "${__BUILD_QUICK:-false}" != true ; then
-		_flags+=(
-				-gcflags 'all=-l=4'
-				-ldflags 'all=-s'
-				-trimpath
-				-a
-			)
+		_flags+=( -trimpath -a )
+		_gcflags+=( 'all=-l=4' )
+		_ldflags+=( 'all=-s' )
 	fi
+	_flags+=(
+			-tags "$( printf -- '%s,' "${_tags[@]}" )"
+			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
+			-ldflags "$( printf -- '%s ' "${_ldflags[@]}" )"
+		)
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
@@ -235,18 +262,27 @@
 	if test -e "${_outputs}/binaries/release/kawipiko-server-dummy" ; then
 		rm -- "${_outputs}/binaries/release/kawipiko-server-dummy"
 	fi
+	_tags=(
+			netgo
+		)
 	_flags=(
 		#?	-buildmode exe
-			-tags netgo
+		)
+	_gcflags=()
+	_ldflags=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
 		)
 	if test "${__BUILD_QUICK:-false}" != true ; then
-		_flags+=(
-				-gcflags 'all=-l=4'
-				-ldflags 'all=-s'
-				-trimpath
-				-a
-			)
+		_flags+=( -trimpath -a )
+		_gcflags+=( 'all=-l=4' )
+		_ldflags+=( 'all=-s' )
 	fi
+	_flags+=(
+			-tags "$( printf -- '%s,' "${_tags[@]}" )"
+			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
+			-ldflags "$( printf -- '%s ' "${_ldflags[@]}" )"
+		)
 	exec -- \
 		nodaemon \
 		nice -n 19 -- \
@@ -275,6 +311,27 @@
 		_component_0=all
 	fi
 	test "${#}" -eq 0
+	_tags=(
+			netgo
+		)
+	_flags=(
+		#?	-buildmode exe
+		)
+	_gcflags=()
+	_ldflags=(
+			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
+		)
+	if test "${__BUILD_QUICK:-false}" != true ; then
+		_flags+=( -trimpath -a )
+		_gcflags+=( 'all=-l=4' )
+		_ldflags+=( 'all=-s' )
+	fi
+	_flags+=(
+			-tags "$( printf -- '%s,' "${_tags[@]}" )"
+			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
+			-ldflags "$( printf -- '%s ' "${_ldflags[@]}" )"
+		)
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
 	for _platform in linux--x86_64 darwin--x86_64 darwin--aarch64 openbsd--x86_64 freebsd--x86_64 android--aarch64 ; do
 		if test "${_platform_0}" != all -a "${_platform_0}" != "${_platform}" ; then
@@ -299,18 +356,6 @@
 			fi
 			test ! -e "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}"
 			printf -- '[ii]  building `%s` for `%s`...\n' "${_component}" "${_platform}" >&2
-			_flags=(
-				#?	-buildmode exe
-					-tags netgo
-				)
-			if test "${__BUILD_QUICK:-false}" != true ; then
-				_flags+=(
-						-gcflags 'all=-l=4'
-						-ldflags 'all=-s'
-						-trimpath
-						-a
-					)
-			fi
 			case "${_platform}" in
 				( linux--x86_64 )
 					export -- GOOS=linux
