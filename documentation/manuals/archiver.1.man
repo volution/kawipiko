@@ -71,6 +71,8 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 
 \-\-sources\-md5   (dump an \(ga\(gamd5sum\(ga\(ga of the sources)
 \-\-sources\-cpio  (dump a \(ga\(gacpio.gz\(ga\(ga of the sources)
+
+\-\-sbom  \-\-sbom\-text  \-\-sbom\-json
 .ft P
 .fi
 .UNINDENT

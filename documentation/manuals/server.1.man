@@ -98,6 +98,8 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 
 \-\-sources\-md5   (dump an \(gamd5sum\(ga of the sources)
 \-\-sources\-cpio  (dump a \(gacpio.gz\(ga of the sources)
+
+\-\-sbom  \-\-sbom\-text  \-\-sbom\-json
 .ft P
 .fi
 .UNINDENT
@@ -228,13 +230,22 @@ Disables the virtual\-hosts feature by ignoring the \fIHost\fP header.
 Disables serving a few special pages internal to the server like:
 .INDENT 0.0
 .INDENT 3.5
-/__/about
-/__/version
+.sp
+.nf
+.ft C
 /__/heartbeat
-/__/sources.md5
-/__/sources.cpio
-/__/banners/errors/403
-/__/banners/errors/...
+/__/kawipiko/about
+/__/kawipiko/version
+/__/kawipiko/manual.txt
+/__/kawipiko/manual.html
+/__/kawipiko/sbom.txt
+/__/kawipiko/sbom.json
+/__/kawipiko/sources.md5
+/__/kawipiko/sources.cpio
+/__/kawipiko/banners/errors/403
+/__/kawipiko/banners/errors/...
+.ft P
+.fi
 .UNINDENT
 .UNINDENT
 .UNINDENT

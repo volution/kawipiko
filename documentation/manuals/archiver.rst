@@ -44,6 +44,8 @@ kawipiko -- blazingly fast static HTTP server
     --sources-md5   (dump an ``md5sum`` of the sources)
     --sources-cpio  (dump a ``cpio.gz`` of the sources)
 
+    --sbom  --sbom-text  --sbom-json
+
 
 
 

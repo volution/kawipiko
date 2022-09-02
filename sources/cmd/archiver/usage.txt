@@ -22,8 +22,10 @@
 
     --progress  --debug
 
-    --help       (show this short help)
-    --man        (show the full manual)
+    --version
+    --help          (show this short help)
+    --man           (show the full manual)
+    --sources-md5  --sources-cpio  --sbom  --sbom-json
 
   ** supported archive version:  @{SCHEMA}
 

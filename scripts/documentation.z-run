@@ -38,7 +38,17 @@
 		
 		printf -- '[ii]  rendering `%s`...\n' "${_manual}" >&2
 		
-		rst2man --strict \
+		rst2html --strict --no-generator --embed-stylesheet \
+			< "./documentation/manuals/${_manual}.rst" \
+			>| "./documentation/manuals/${_manual}.html.tmp" \
+		#
+		
+		mv -T -- \
+				"./documentation/manuals/${_manual}.html.tmp" \
+				"./documentation/manuals/${_manual}.html" \
+		#
+		
+		rst2man --strict --no-generator \
 			< "./documentation/manuals/${_manual}.rst" \
 		| sed -r \
 				-e 's#^\.TH .*#.TH "KAWIPIKO\-'"${_manual^^}"'" "1" "'"${_date}"'" "volution.ro" "kawipiko"#' \

@@ -34,6 +34,14 @@ func main () () {
 				version.Main ("kawipiko-wrapper", "sources.cpio")
 				return
 			
+			case "--sbom-text", "--sbom-txt", "--sbom" :
+				version.Main ("kawipiko-wrapper", "sbom.txt")
+				return
+			
+			case "--sbom-json" :
+				version.Main ("kawipiko-wrapper", "sbom.json")
+				return
+			
 			case "server" :
 				server.Main ()
 				return

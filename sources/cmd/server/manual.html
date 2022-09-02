@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<title>kawipiko -- blazingly fast static HTTP server</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="kawipiko-blazingly-fast-static-http-server">
+<h1 class="title">kawipiko -- blazingly fast static HTTP server</h1>
+<h2 class="subtitle" id="kawipiko-server"><tt class="docutils literal"><span class="pre">kawipiko-server</span></tt></h2>
+
+<pre class="literal-block">
+&gt;&gt; kawipiko-server --help
+&gt;&gt; kawipiko-server --man
+</pre>
+<pre class="literal-block">
+--archive &lt;path&gt;
+--archive-inmem           (memory-loaded archive file)
+--archive-mmap            (memory-mapped archive file)
+--archive-preload         (preload archive in OS cache)
+
+--bind &lt;ip&gt;:&lt;port&gt;        (HTTP, only HTTP/1.1, FastHTTP)
+--bind-2 &lt;ip&gt;:&lt;port&gt;      (HTTP, only HTTP/1.1, Go net/http)
+--bind-tls &lt;ip&gt;:&lt;port&gt;    (HTTPS, only HTTP/1.1, FastHTTP)
+--bind-tls-2 &lt;ip&gt;:&lt;port&gt;  (HTTPS, with HTTP/2, Go net/http)
+--bind-quic &lt;ip&gt;:&lt;port&gt;   (HTTPS, with HTTP/3)
+
+--http1-disable
+--http2-disable
+--http3-alt-svc &lt;ip&gt;:&lt;port&gt;
+
+--tls-bundle &lt;path&gt;       (TLS certificate bundle)
+--tls-public &lt;path&gt;       (TLS certificate public)
+--tls-private &lt;path&gt;      (TLS certificate private)
+--tls-self-rsa            (use self-signed RSA)
+--tls-self-ed25519        (use self-signed Ed25519)
+
+--processes &lt;count&gt;       (of slave processes)
+--threads &lt;count&gt;         (of threads per process)
+--index-all
+--index-paths
+--index-data-meta
+--index-data-content
+
+--hosts-disable           (ignore `Host` header)
+
+--special-pages-disable
+--security-headers-disable
+--security-headers-tls
+
+--limit-memory &lt;MiB&gt;
+--timeout-disable
+
+--report  --quiet  --debug
+
+--dummy
+--dummy-empty
+--dummy-delay &lt;duration&gt;
+
+--profile-cpu &lt;path&gt;
+--profile-mem &lt;path&gt;
+
+--version
+--help          (show this short help)
+--man           (show the full manual)
+
+--sources-md5   (dump an `md5sum` of the sources)
+--sources-cpio  (dump a `cpio.gz` of the sources)
+
+--sbom  --sbom-text  --sbom-json
+</pre>
+<hr class="docutils" />
+<div class="section" id="flags">
+<h1>Flags</h1>
+<p><tt class="docutils literal"><span class="pre">--bind</span> &lt;ip:port&gt;</tt>, <tt class="docutils literal"><span class="pre">--bind-tls</span> &lt;ip:port&gt;</tt>, <tt class="docutils literal"><span class="pre">--bind-2</span> &lt;ip:port&gt;</tt>, <tt class="docutils literal"><span class="pre">--bind-tls-2</span> &lt;ip:port&gt;</tt>, and <tt class="docutils literal"><span class="pre">--bind-quic</span> &lt;ip:port&gt;</tt></p>
+<blockquote>
+<p>The IP and port to listen for requests with:</p>
+<ul class="simple">
+<li>(insecure) HTTP/1.1 for <tt class="docutils literal"><span class="pre">--bind</span></tt>, leveraging <tt class="docutils literal">fasthttp</tt> library;</li>
+<li>(secure) HTTP/1.1 over TLS for <tt class="docutils literal"><span class="pre">--bind-tls</span></tt>, leveraging <tt class="docutils literal">fasthttp</tt> library;</li>
+<li>(insecure) HTTP/1.1 for <tt class="docutils literal"><span class="pre">--bind-2</span></tt>, leveraging Go's <tt class="docutils literal">net/http</tt> library; (not as performant as the <tt class="docutils literal">fasthttp</tt> powered endpoint;)</li>
+<li>(secure) H2 or HTTP/1.1 over TLS for <tt class="docutils literal"><span class="pre">--bind-tls-2</span></tt>, leveraging Go's <tt class="docutils literal">net/http</tt>;  (not as performant as the <tt class="docutils literal">fasthttp</tt> powered endpoint;)</li>
+<li>(secure) H3 over QUIC for <tt class="docutils literal"><span class="pre">--bind-quic</span></tt>, leveraging <tt class="docutils literal"><span class="pre">github.com/lucas-clemente/quic-go</span></tt> library;  (given that H3 is still a new protocol, this must be used with caution;  also one should use the <tt class="docutils literal"><span class="pre">--http3-alt-svc</span> &lt;ip:port&gt;</tt>;)</li>
+<li>if one uses just <tt class="docutils literal"><span class="pre">--bind-tls</span></tt> (without <tt class="docutils literal"><span class="pre">--bind-tls-2</span></tt>, and without <tt class="docutils literal"><span class="pre">--http2-disabled</span></tt>), then the TLS endpoint is split between <tt class="docutils literal">fasthttp</tt> for HTTP/1.1 and Go's <tt class="docutils literal">net/http</tt> for H2;</li>
+</ul>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--tls-bundle</span> &lt;path&gt;</tt>, <tt class="docutils literal"><span class="pre">--tls-public</span> &lt;path&gt;</tt>, and <tt class="docutils literal"><span class="pre">--tls-private</span> &lt;path&gt;</tt> (optional)</p>
+<blockquote>
+<p>If TLS is enabled, these options allows one to specify the certificate to use, either as a single file (a bundle) or separate files (the actual public certificate and the private key).</p>
+<p>If one doesn't specify any of these options, an embedded self-signed certificate will be used.  In such case, one can choose between RSA (the <tt class="docutils literal"><span class="pre">--tls-self-rsa</span></tt> flag) or Ed25519 (the <tt class="docutils literal"><span class="pre">--tls-self-ed25519</span></tt> flag);</p>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--http1-disable</span></tt>, <tt class="docutils literal"><span class="pre">--http2-disable</span></tt></p>
+<blockquote>
+Disables that particular protocol.
+(It can be used only with <tt class="docutils literal"><span class="pre">--bind-tls-2</span></tt>, given that <tt class="docutils literal">fasthttp</tt> only supports HTTP/1.)</blockquote>
+<p><tt class="docutils literal"><span class="pre">--processes</span> &lt;count&gt;</tt> and <tt class="docutils literal"><span class="pre">--threads</span> &lt;count&gt;</tt></p>
+<blockquote>
+<p>The number of processes and threads per each process to start.  (Given Go's concurrency model, the threads count is somewhat a soft limit, hinting to the runtime the desired parallelism level.)</p>
+<p>It is highly recommended to use one process and as many threads as there are cores.</p>
+<p>Depending on the use-case, one can use multiple processes each with a single thread;  this would reduce goroutine contention if it causes problems.
+(However note that if using <tt class="docutils literal"><span class="pre">--archive-inmem</span></tt>, then each process will allocate its own copy of the database in RAM;  in such cases it is highly recommended to use <tt class="docutils literal"><span class="pre">--archive-mmap</span></tt>.)</p>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--archive</span> &lt;path&gt;</tt></p>
+<blockquote>
+The path of the CDB file that contains the archived static content.
+(It can be created with the <tt class="docutils literal"><span class="pre">kawipiko-archiver</span></tt> tool.)</blockquote>
+<p><tt class="docutils literal"><span class="pre">--archive-inmem</span></tt></p>
+<blockquote>
+Reads the CDB file in RAM, and thus all requests are served from RAM without touching the file-system.
+(The memory impact is equal to the size of the CDB archive.  This can be used if enough RAM is available to avoid swapping.)</blockquote>
+<p><tt class="docutils literal"><span class="pre">--archive-mmap</span></tt></p>
+<blockquote>
+(<strong>recommended</strong>) The CDB file is <a class="reference external" href="#mmap">memory mapped</a>, thus reading its data uses the kernel's file-system cache, as opposed to issuing <tt class="docutils literal">read</tt> syscalls.</blockquote>
+<p><tt class="docutils literal"><span class="pre">--archive-preload</span></tt></p>
+<blockquote>
+Before starting to serve requests, read the CDB file so that its data is buffered in the kernel's file-system cache.  (This option can be used with or without <tt class="docutils literal"><span class="pre">--archive-mmap</span></tt>.)</blockquote>
+<p><tt class="docutils literal"><span class="pre">--index-all</span></tt>, <tt class="docutils literal"><span class="pre">--index-paths</span></tt>, <tt class="docutils literal"><span class="pre">--index-data-meta</span></tt>,  and <tt class="docutils literal"><span class="pre">--index-data-content</span></tt></p>
+<blockquote>
+<p>In order to serve a request <tt class="docutils literal">kawipiko</tt> does the following:</p>
+<ul class="simple">
+<li>given the request's path, it is used to locate the corresponding resource's metadata (i.e. response headers) and data (i.e. response body) references;
+by using <tt class="docutils literal"><span class="pre">--index-paths</span></tt> a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource paths combined;  given that the number of resources is acceptable, say up to a couple hundred thousand, one could safely use this option;)</li>
+<li>based on the resource's metadata reference, the actual metadata (i.e. the response headers) is located;
+by using <tt class="docutils literal"><span class="pre">--index-data-meta</span></tt> a RAM-based lookup table is created to eliminate a CDB read operation for this purpose;  (the memory impact is proportional to the size of all resource metadata blocks combined;  given that the metadata blocks are deduplicated, one could safely use this option;  if one also uses <tt class="docutils literal"><span class="pre">--archive-mmap</span></tt> or <tt class="docutils literal"><span class="pre">--archive-inmem</span></tt>, then the memory impact is only proportional to the number of resource metadata blocks;)</li>
+<li>based on the resource's data reference, the actual data (i.e. the response body) is located;
+by using <tt class="docutils literal"><span class="pre">--index-data-content</span></tt> a RAM-based lookup table is created to eliminate a CDB operation operation for this purpose;  (the memory impact is proportional to the size of all resource data blocks combined;  one can use this option to obtain the best performance;  if one also uses <tt class="docutils literal"><span class="pre">--archive-mmap</span></tt> or <tt class="docutils literal"><span class="pre">--archive-inmem</span></tt>, then the memory impact is only proportional to the number of resource data blocks;)</li>
+<li><tt class="docutils literal"><span class="pre">--index-all</span></tt> enables all the options above;</li>
+<li>(depending on the use-case) it is recommended to use <tt class="docutils literal"><span class="pre">--index-paths</span></tt>;  if <tt class="docutils literal"><span class="pre">--exclude-etag</span></tt> was used during archival, one can also use <tt class="docutils literal"><span class="pre">--index-data-meta</span></tt>;</li>
+<li>it is recommended to use either <tt class="docutils literal"><span class="pre">--archive-mmap</span></tt> or  <tt class="docutils literal"><span class="pre">--archive-inmem</span></tt>, else (especially if data is indexed) the resulting effect is that of loading everything in RAM;</li>
+</ul>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--hosts-disable</span></tt></p>
+<blockquote>
+Disables the virtual-hosts feature by ignoring the <cite>Host</cite> header.</blockquote>
+<p><tt class="docutils literal"><span class="pre">--special-pages-disable</span></tt></p>
+<blockquote>
+<p>Disables serving a few special pages internal to the server like:</p>
+<pre class="literal-block">
+/__/heartbeat
+/__/kawipiko/about
+/__/kawipiko/version
+/__/kawipiko/manual.txt
+/__/kawipiko/manual.html
+/__/kawipiko/sbom.txt
+/__/kawipiko/sbom.json
+/__/kawipiko/sources.md5
+/__/kawipiko/sources.cpio
+/__/kawipiko/banners/errors/403
+/__/kawipiko/banners/errors/...
+</pre>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--security-headers-disable</span></tt></p>
+<blockquote>
+<p>Disables adding a few security related headers:</p>
+<pre class="literal-block">
+Referrer-Policy: strict-origin-when-cross-origin
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: sameorigin
+</pre>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--security-headers-tls</span></tt></p>
+<blockquote>
+<p>Enables adding the following TLS related headers to the response:</p>
+<pre class="literal-block">
+Strict-Transport-Security: max-age=31536000
+Content-Security-Policy: upgrade-insecure-requests
+</pre>
+<p>These instruct the browser to always use HTTPS for the served domain.
+(Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)</p>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--report</span></tt></p>
+<blockquote>
+Enables periodic reporting of various metrics.
+Also enables reporting a selection of metrics if certain thresholds are matched (which most likely is a sign of high-load).</blockquote>
+<p><tt class="docutils literal"><span class="pre">--quiet</span></tt></p>
+<blockquote>
+Disables most logging messages.</blockquote>
+<p><tt class="docutils literal"><span class="pre">--debug</span></tt></p>
+<blockquote>
+Enables all logging messages.</blockquote>
+<p><tt class="docutils literal"><span class="pre">--dummy</span></tt>, <tt class="docutils literal"><span class="pre">--dummy-empty</span></tt></p>
+<blockquote>
+<p>It starts the server in a &quot;dummy&quot; mode, ignoring all archive related arguments and always responding with <tt class="docutils literal">hello <span class="pre">world!\n</span></tt> (unless <tt class="docutils literal"><span class="pre">--dummy-empty</span></tt> was used) and without additional headers except the HTTP status line and <tt class="docutils literal"><span class="pre">Content-Length</span></tt>.</p>
+<p>This argument can be used to benchmark the raw performance of the underlying <tt class="docutils literal">fasthttp</tt>, Go's <tt class="docutils literal">net/http</tt>, or QUIC performance;  this is the upper limit of the achievable performance given the underlying technologies.
+(From my own benchmarks <tt class="docutils literal">kawipiko</tt>'s adds only about ~15% overhead when actually serving the <tt class="docutils literal"><span class="pre">hello-world.cdb</span></tt> archive.)</p>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--dummy-delay</span> &lt;duration&gt;</tt></p>
+<blockquote>
+<p>Enables delaying each response with a certain amount (for example <tt class="docutils literal">1s</tt>, <tt class="docutils literal">1ms</tt>, etc.)</p>
+<p>It can be used to simulate the real-world network latencies, perhaps to see how a site with many resources loads in various conditions.
+(For example, see <a class="reference external" href="https://notes.volution.ro/v1/2019/08/notes/e8700e9a/">an experiment</a> I made with an image made out of 1425 tiles.)</p>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--profile-cpu</span> &lt;path&gt;</tt>, and <tt class="docutils literal"><span class="pre">--profile-mem</span> &lt;path&gt;</tt></p>
+<blockquote>
+Enables CPU and memory profiling using Go's profiling infrastructure.</blockquote>
+</div>
+</div>
+</body>
+</html>

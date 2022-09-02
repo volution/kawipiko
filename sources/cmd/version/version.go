@@ -70,6 +70,16 @@ func Main (_executableName string, _special string) () {
 				AbortError (_error, "[292d8865]  unexpected error!")
 			}
 		
+		case "sbom.txt" :
+			if _, _error := os.Stdout.Write (StringToBytes (SbomTxt)); _error != nil {
+				AbortError (_error, "[e8f9540a]  unexpected error!")
+			}
+		
+		case "sbom.json" :
+			if _, _error := os.Stdout.Write (StringToBytes (SbomJson)); _error != nil {
+				AbortError (_error, "[9f9eb7ff]  unexpected error!")
+			}
+		
 		default :
 			panic ("[65a6f35f]")
 	}

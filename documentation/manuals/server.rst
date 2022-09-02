@@ -70,6 +70,8 @@ kawipiko -- blazingly fast static HTTP server
     --sources-md5   (dump an `md5sum` of the sources)
     --sources-cpio  (dump a `cpio.gz` of the sources)
 
+    --sbom  --sbom-text  --sbom-json
+
 
 
 
@@ -157,15 +159,19 @@ Flags
 
 ``--special-pages-disable``
 
-    Disables serving a few special pages internal to the server like:
+    Disables serving a few special pages internal to the server like: ::
 
-      /__/about
-      /__/version
       /__/heartbeat
-      /__/sources.md5
-      /__/sources.cpio
-      /__/banners/errors/403
-      /__/banners/errors/...
+      /__/kawipiko/about
+      /__/kawipiko/version
+      /__/kawipiko/manual.txt
+      /__/kawipiko/manual.html
+      /__/kawipiko/sbom.txt
+      /__/kawipiko/sbom.json
+      /__/kawipiko/sources.md5
+      /__/kawipiko/sources.cpio
+      /__/kawipiko/banners/errors/403
+      /__/kawipiko/banners/errors/...
 
 ``--security-headers-disable``
 

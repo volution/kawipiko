@@ -138,20 +138,32 @@ func (_server *server) ServeUnwrapped (_context *fasthttp.RequestCtx) () {
 		if bytes.Equal (_path, StringToBytes ("/__/heartbeat")) || bytes.HasPrefix (_path, StringToBytes ("/__/heartbeat/")) {
 			_server.ServeStatic (_context, http.StatusOK, HeartbeatDataOk, HeartbeatContentType, HeartbeatContentEncoding, false)
 			return
-		} else if bytes.Equal (_path, StringToBytes ("/__/about")) || bytes.Equal (_path, StringToBytes ("/__/about/")) {
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/about")) || bytes.Equal (_path, StringToBytes ("/__/kawipiko/about/")) {
 			_server.ServeStatic (_context, http.StatusOK, AboutBannerData, AboutBannerContentType, AboutBannerContentEncoding, true)
 			return
-		} else if bytes.Equal (_path, StringToBytes ("/__/version")) || bytes.Equal (_path, StringToBytes ("/__/version/")) {
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/version")) || bytes.Equal (_path, StringToBytes ("/__/kawipiko/version/")) {
 			_server.ServeSpecial (_context, "version", true)
 			return
-		} else if bytes.Equal (_path, StringToBytes ("/__/sources.md5")) {
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/manual.txt")) {
+			_server.ServeSpecial (_context, "manual.txt", true)
+			return
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/manual.html")) {
+			_server.ServeSpecial (_context, "manual.html", true)
+			return
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/sources.md5")) {
 			_server.ServeSpecial (_context, "sources.md5", true)
 			return
-		} else if bytes.Equal (_path, StringToBytes ("/__/sources.cpio")) {
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/sources.cpio")) {
 			_server.ServeSpecial (_context, "sources.cpio", true)
 			return
-		} else if bytes.HasPrefix (_path, StringToBytes ("/__/banners/errors/")) {
-			_code := _path[len ("/__/banners/errors/") :]
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/sbom.txt")) {
+			_server.ServeSpecial (_context, "sbom.txt", true)
+			return
+		} else if bytes.Equal (_path, StringToBytes ("/__/kawipiko/sbom.json")) {
+			_server.ServeSpecial (_context, "sbom.json", true)
+			return
+		} else if bytes.HasPrefix (_path, StringToBytes ("/__/kawipiko/banners/errors/")) {
+			_code := _path[len ("/__/kawipiko/banners/errors/") :]
 			if _code, _error := strconv.Atoi (BytesToString (*NoEscapeBytes (&_code))); _error == nil {
 				_banner, _bannerFound := ErrorBannersData[uint (_code)]
 				if (_code > 0) && _bannerFound {
@@ -522,6 +534,16 @@ func (_server *server) ServeSpecial (_context *fasthttp.RequestCtx, _special str
 			_contentType = MimeTypeText
 			_contentEncoding = "identity"
 		
+		case "manual.txt" :
+			_data = StringToBytes (manualText)
+			_contentType = MimeTypeText
+			_contentEncoding = "identity"
+		
+		case "manual.html" :
+			_data = StringToBytes (manualHtml)
+			_contentType = MimeTypeHtml
+			_contentEncoding = "identity"
+		
 		case "sources.md5" :
 			_data = StringToBytes (embedded.BuildSourcesMd5)
 			_contentType = MimeTypeText
@@ -531,6 +553,16 @@ func (_server *server) ServeSpecial (_context *fasthttp.RequestCtx, _special str
 			_data = embedded.BuildSourcesCpioGz
 			_contentType = MimeTypeText
 			_contentEncoding = "application/x-cpio"
+		
+		case "sbom.txt" :
+			_data = StringToBytes (embedded.SbomTxt)
+			_contentType = MimeTypeText
+			_contentEncoding = "identity"
+		
+		case "sbom.json" :
+			_data = StringToBytes (embedded.SbomJson)
+			_contentType = MimeTypeJson
+			_contentEncoding = "identity"
 		
 		default :
 			panic ("[8546f2bd]")
@@ -709,6 +741,14 @@ func Main () () {
 			
 			case "--sources-cpio" :
 				version.Main ("kawipiko-server", "sources.cpio")
+				return
+			
+			case "--sbom-text", "--sbom-txt", "--sbom" :
+				version.Main ("kawipiko-server", "sbom.txt")
+				return
+			
+			case "--sbom-json" :
+				version.Main ("kawipiko-server", "sbom.json")
 				return
 			
 			case "--help", "-h" :
@@ -2592,6 +2632,9 @@ var usageText string
 
 //go:embed manual.txt
 var manualText string
+
+//go:embed manual.html
+var manualHtml string
 
 func init () {
 	usageText = strings.ReplaceAll (usageText, "@{SCHEMA}", CurrentSchemaVersion)

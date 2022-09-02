@@ -1269,6 +1269,14 @@ func Main () () {
 				version.Main ("kawipiko-archiver", "sources.cpio")
 				return
 			
+			case "--sbom-text", "--sbom-txt", "--sbom" :
+				version.Main ("kawipiko-archiver", "sbom.txt")
+				return
+			
+			case "--sbom-json" :
+				version.Main ("kawipiko-archiver", "sbom.json")
+				return
+			
 			case "--help", "-h" :
 				if _, _error := os.Stdout.WriteString (usageText); _error == nil {
 					return

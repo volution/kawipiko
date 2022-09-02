@@ -57,8 +57,16 @@
 		cp -T -- ./documentation/manuals/server.txt ./sources/cmd/server/manual.txt
 	fi
 	
+	if ! cmp -s -- ./documentation/manuals/server.html ./sources/cmd/server/manual.html ; then
+		cp -T -- ./documentation/manuals/server.html ./sources/cmd/server/manual.html
+	fi
+	
 	if ! cmp -s -- ./documentation/manuals/archiver.txt ./sources/cmd/archiver/manual.txt ; then
 		cp -T -- ./documentation/manuals/archiver.txt ./sources/cmd/archiver/manual.txt
+	fi
+	
+	if ! cmp -s -- ./documentation/manuals/server.html ./sources/cmd/server/manual.html ; then
+		cp -T -- ./documentation/manuals/server.html ./sources/cmd/server/manual.html
 	fi
 !!
 
