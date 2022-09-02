@@ -29,7 +29,6 @@ import "unsafe"
 import "github.com/colinmarc/cdb"
 
 import "github.com/valyala/fasthttp"
-import "github.com/valyala/fasthttp/reuseport"
 
 import "github.com/lucas-clemente/quic-go"
 import "github.com/lucas-clemente/quic-go/http3"
@@ -1780,7 +1779,7 @@ func main_0 () (error) {
 	
 	var _httpPlain1Listener net.Listener
 	if _bindPlain1 != "" {
-		if _listener_0, _error := reuseport.Listen ("tcp4", _bindPlain1); _error == nil {
+		if _listener_0, _error := listenTcp (_bindPlain1); _error == nil {
 			_httpPlain1Listener = _listener_0
 		} else {
 			AbortError (_error, "[d5f51e9f]  [bind-0a.]  failed creating TCP listener!")
@@ -1789,7 +1788,7 @@ func main_0 () (error) {
 	
 	var _httpPlain2Listener net.Listener
 	if _bindPlain2 != "" {
-		if _listener_0, _error := reuseport.Listen ("tcp4", _bindPlain2); _error == nil {
+		if _listener_0, _error := listenTcp (_bindPlain2); _error == nil {
 			_httpPlain2Listener = _listener_0
 		} else {
 			AbortError (_error, "[546075c2]  [bind-0b.]  failed creating TCP listener!")
@@ -1798,7 +1797,7 @@ func main_0 () (error) {
 	
 	var _httpTls1Listener net.Listener
 	if _bindTls1 != "" {
-		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls1); _error == nil {
+		if _listener_0, _error := listenTcp (_bindTls1); _error == nil {
 			_httpTls1Listener = _listener_0
 		} else {
 			AbortError (_error, "[e35cc693]  [bind-1..]  failed creating TCP listener!")
@@ -1807,7 +1806,7 @@ func main_0 () (error) {
 	
 	var _httpTls2Listener net.Listener
 	if _bindTls2 != "" {
-		if _listener_0, _error := reuseport.Listen ("tcp4", _bindTls2); _error == nil {
+		if _listener_0, _error := listenTcp (_bindTls2); _error == nil {
 			_httpTls2Listener = _listener_0
 		} else {
 			AbortError (_error, "[63567445]  [bind-2..]  failed creating TCP listener!")
@@ -1816,7 +1815,7 @@ func main_0 () (error) {
 	
 	var _httpQuicListener net.PacketConn
 	if _bindQuic != "" {
-		if _listener_0, _error := net.ListenPacket ("udp4", _bindQuic); _error == nil {
+		if _listener_0, _error := listenUdp (_bindQuic); _error == nil {
 			_httpQuicListener = _listener_0
 		} else {
 			AbortError (_error, "[3b1bfc15]  [bind-3..]  failed creating UDP listener!")
