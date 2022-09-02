@@ -24,6 +24,7 @@
 			--archive ./examples/hello-world.cdb \
 			--include-folder-listing \
 			--include-etag \
+			--exclude-strip \
 			--progress \
 			--debug \
 			"${@}" \
