@@ -31,12 +31,13 @@ See the `releases page on GitHub <https://github.com/volution/kawipiko/releases>
 
 As a shortcut, the following are the self-contained and statically linked
 all-in-one server and archiver executables
-(for x86_64 / amd64 processors):
+(for x86_64 / amd64 and aarch64 / arm64 processors):
 
- * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--linux--v0.1.0--preview>`__
- * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--freebsd--v0.1.0--preview>`__
- * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--openbsd--v0.1.0--preview>`__
- * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--darwin--v0.1.0--preview>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--linux--x86_64--v0.1.0--preview>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--freebsd--x86_64--v0.1.0--preview>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--openbsd--x86_64--v0.1.0--preview>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--darwin--x86_64--v0.1.0--preview>`__
+ * `<https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--darwin--aarch64--v0.1.0--preview>`__
 
 
 For example, assuming one wants the ``preview`` version,
@@ -45,19 +46,19 @@ one can run the following commands: ::
     curl \
             -s -S -f -L \
             -o /tmp/kawipiko-server \
-            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-server--linux--v0.1.0--preview \
+            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-server--linux--x86_64--v0.1.0--preview \
     #
 
     curl \
             -s -S -f -L \
             -o /tmp/kawipiko-archiver \
-            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-archiver--linux--v0.1.0--preview \
+            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-archiver--linux--x86_64--v0.1.0--preview \
     #
 
     curl \
             -s -S -f -L \
             -o /tmp/kawipiko \
-            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--linux--v0.1.0--preview \
+            https://github.com/volution/kawipiko/releases/download/preview/kawipiko-wrapper--linux--x86_64--v0.1.0--preview \
     #
 
     chmod a=rx /tmp/kawipiko-server

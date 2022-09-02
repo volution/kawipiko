@@ -15,15 +15,27 @@
 !!
 
 
-++<< go / build / all / release / quick
+++<< go / build / all / release
 	printf -- '[ii]  building archiver...\n' >&2
-	"${ZRUN[@]}" ':: go / build / archiver / release / quick' "${@}"
+	"${ZRUN[@]}" ':: go / build / archiver / release' "${@}"
 	printf -- '[ii]  building server...\n' >&2
-	"${ZRUN[@]}" ':: go / build / server / release / quick' "${@}"
+	"${ZRUN[@]}" ':: go / build / server / release' "${@}"
 	printf -- '[ii]  building server-dummy...\n' >&2
-	"${ZRUN[@]}" ':: go / build / server-dummy / release / quick' "${@}"
+	"${ZRUN[@]}" ':: go / build / server-dummy / release' "${@}"
 	printf -- '[ii]  building wrapper...\n' >&2
-	"${ZRUN[@]}" ':: go / build / wrapper / release / quick' "${@}"
+	"${ZRUN[@]}" ':: go / build / wrapper / release' "${@}"
+!!
+
+
+++<< go / build / all / release / quick
+	export -- __BUILD_QUICK=true
+	exec -- "${ZRUN[@]}" ':: go / build / all / release'
+!!
+
+
+++<< go / build / all / publish / quick
+	export -- __BUILD_QUICK=true
+	exec -- "${ZRUN[@]}" ':: go / build / all / publish'
 !!
 
 
@@ -249,7 +261,7 @@
 
 
 
-++<< go / build / all / release
+++<< go / build / all / publish
 	if test "${#}" -ge 1 ; then
 		_platform_0="${1}"
 		shift -- 1
@@ -264,7 +276,7 @@
 	fi
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	for _platform in linux darwin openbsd freebsd ; do
+	for _platform in linux--x86_64 darwin--x86_64 darwin--aarch64 openbsd--x86_64 freebsd--x86_64 android--aarch64 ; do
 		if test "${_platform_0}" != all -a "${_platform_0}" != "${_platform}" ; then
 			continue
 		fi
@@ -272,12 +284,12 @@
 			if test "${_component_0}" != all -a "${_component_0}" != "${_component}" ; then
 				continue
 			fi
-			if test -e "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}" ; then
-				rm -f -- "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}"
+			if test -e "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}" ; then
+				rm -f -- "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}"
 			fi
 		done
 	done
-	for _platform in linux darwin openbsd freebsd ; do
+	for _platform in linux--x86_64 darwin--x86_64 darwin--aarch64 openbsd--x86_64 freebsd--x86_64 android--aarch64 ; do
 		if test "${_platform_0}" != all -a "${_platform_0}" != "${_platform}" ; then
 			continue
 		fi
@@ -285,41 +297,56 @@
 			if test "${_component_0}" != all -a "${_component_0}" != "${_component}" ; then
 				continue
 			fi
-			test ! -e "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}"
+			test ! -e "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}"
 			printf -- '[ii]  building `%s` for `%s`...\n' "${_component}" "${_platform}" >&2
 			_flags=(
 				#?	-buildmode exe
 					-tags netgo
 				)
-			_flags+=(
-					-gcflags 'all=-l=4'
-					-ldflags 'all=-s'
-					-trimpath
-					-a
-				)
-			env GOOS="${_platform}" \
-				nodaemon \
+			if test "${__BUILD_QUICK:-false}" != true ; then
+				_flags+=(
+						-gcflags 'all=-l=4'
+						-ldflags 'all=-s'
+						-trimpath
+						-a
+					)
+			fi
+			case "${_platform}" in
+				( linux--x86_64 )
+					export -- GOOS=linux
+					export -- GOARCH=amd64
+				;;
+				( darwin--x86_64 )
+					export -- GOOS=darwin
+					export -- GOARCH=amd64
+				;;
+				( darwin--aarch64 )
+					export -- GOOS=darwin
+					export -- GOARCH=arm64
+				;;
+				( freebsd--x86_64 )
+					export -- GOOS=freebsd
+					export -- GOARCH=amd64
+				;;
+				( openbsd--x86_64 )
+					export -- GOOS=openbsd
+					export -- GOARCH=amd64
+				;;
+				( android--aarch64 )
+					export -- GOOS=android
+					export -- GOARCH=arm64
+				;;
+				( * )
+					exit -- 1
+				;;
+			esac
+			nodaemon \
 				nice -n 19 -- \
 			"${ZRUN[@]}" ':: go / tool' \
 					build \
 					"${_flags[@]}" \
-					-o "${_outputs}/binaries/release/kawipiko-${_component}--${_platform}" \
+					-o "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}" \
 					-- "./cmd/${_component}.go" \
-			#
-		done
-	done
-!!
-
-
-
-
-<< go / build / all / publish
-	test "${#}" -eq 0
-	for _platform in linux darwin openbsd freebsd ; do
-		for _component in archiver server server-dummy wrapper ; do
-			cp -T -- \
-					"./.outputs/binaries/release/kawipiko-${_component}--${_platform}" \
-					"./.outputs/publish/binaries/kawipiko-${_component}--${_platform}" \
 			#
 		done
 	done
