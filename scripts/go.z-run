@@ -455,10 +455,79 @@
 			get \
 			-v \
 			-d \
-			-u \
 			-- \
 			all \
 	#
+!!
+
+
+<< go / dependencies / update / iterative
+	test "${#}" -eq 0
+	_skipped=(
+			github.com/volution/kawipiko
+		)
+	"${ZRUN[@]}" ':: go / tool' mod tidy
+	_dependencies_hash_old="$( exec -- md5sum -b -- ./sources/go.mod )"
+	readarray -t -- _dependencies \
+		< <( exec -- "${ZRUN[@]}" ':: go / tool' list -m -- all ) \
+	#
+	for _dependency in "${_dependencies[@]}" ; do
+		_dependency="${_dependency%% *}"
+		printf -- '[ii]  updating `%s` @latest...\n' "${_dependency}" >&2
+		for _skipped_0 in "${_skipped[@]}" ; do
+			if test "${_dependency}" == "${_skipped_0}" ; then
+				printf -- '[ww]    -> skipping!\n' >&2
+				continue 2
+			fi
+		done
+		if "${ZRUN[@]}" ':: go / tool' \
+				get \
+				-v \
+				-- \
+				"${_dependency}@latest" \
+		; then
+			continue
+		else
+			printf -- '[ee]    -> failed @latest!\n' >&2
+		fi
+		printf -- '[ii]  updating `%s` @minor...\n' "${_dependency}" >&2
+		if "${ZRUN[@]}" ':: go / tool' \
+				get \
+				-v \
+				-u \
+				-- \
+				"${_dependency}" \
+		; then
+			printf -- '[ee]    -> succeeded @minor!\n' >&2
+			continue
+		else
+			printf -- '[ee]    -> failed @minor!\n' >&2
+		fi
+		printf -- '[ii]  updating `%s` @patch...\n' "${_dependency}" >&2
+		if "${ZRUN[@]}" ':: go / tool' \
+				get \
+				-v \
+				-u=patch \
+				-- \
+				"${_dependency}" \
+		; then
+			printf -- '[ee]    -> succeeded @patch!\n' >&2
+			continue
+		else
+			printf -- '[ee]    -> failed @patch!\n' >&2
+		fi
+	done
+	"${ZRUN[@]}" ':: go / tool' mod tidy
+	_dependencies_hash_new="$( exec -- md5sum -b -- ./sources/go.mod )"
+	if test "${_dependencies_hash_new}" != "${_dependencies_hash_old}" ; then
+		printf -- '\n\n\n[--]\n' >&2
+		printf -- '[ww]  dependencies graph changed;  restarting!\n' >&2
+		printf -- '[--]\n\n\n\n' >&2
+		exec -- "${ZRUN[@]}" ':: go / dependencies / update / iterative'
+	else
+		printf -- '\n\n\n[--]\n' >&2
+		printf -- '[ww]  dependencies graph stable;  exiting!\n' >&2
+	fi
 !!
 
 
