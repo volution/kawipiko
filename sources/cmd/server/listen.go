@@ -5,6 +5,7 @@ package server
 
 import "runtime"
 import "net"
+import "os"
 
 
 import "github.com/valyala/tcplisten"
@@ -15,7 +16,20 @@ import "github.com/valyala/fasthttp/reuseport"
 
 func listenTcp (_endpoint string) (net.Listener, error) {
 	
-	if runtime.GOOS == "android" {
+	_useTcpListen := false
+	
+	if ! _useTcpListen {
+		if (runtime.GOOS == "android") {
+			_useTcpListen = true
+		}
+	}
+	if ! _useTcpListen {
+		if _, _error := os.Stat ("/proc/sys/net/core/somaxconn"); _error != nil {
+			_useTcpListen = true
+		}
+	}
+	
+	if _useTcpListen {
 		var _config = & tcplisten.Config {
 				ReusePort : true,
 				DeferAccept : true,
