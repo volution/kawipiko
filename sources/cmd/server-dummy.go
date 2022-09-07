@@ -15,7 +15,7 @@ import "github.com/valyala/fasthttp/reuseport"
 
 
 
-func main () () {
+func main () {
 	
 	
 	runtime.GOMAXPROCS (1)

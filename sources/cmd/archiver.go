@@ -8,7 +8,7 @@ import . "github.com/volution/kawipiko/cmd/archiver"
 
 
 
-func main () () {
+func main () {
 	Main ()
 }
 

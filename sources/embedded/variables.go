@@ -40,7 +40,7 @@ var UNAME_FINGERPRINT string = "{unknown-fingerprint}"
 
 
 
-func init () () {
+func init () {
 	
 	var _uname unix.Utsname
 	if _error := unix.Uname (&_uname); _error != nil {

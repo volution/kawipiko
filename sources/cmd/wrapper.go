@@ -13,7 +13,7 @@ import "github.com/volution/kawipiko/cmd/version"
 
 
 
-func main () () {
+func main () {
 	
 	if len (os.Args) >= 2 {
 		
