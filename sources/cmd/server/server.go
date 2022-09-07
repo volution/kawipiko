@@ -1786,18 +1786,14 @@ func main_0 () (error) {
 	
 	
 	
-	_httpQuicServer := & http3.Server {}
-	
-	_httpQuicServer.Server = & http.Server {
-			
+	_httpQuicServer := & http3.Server {
 			Handler : _server,
 			TLSConfig : nil,
-			
 		}
 	
 	_tls3Config := _tls1Config.Clone ()
 	_tls3Config.NextProtos = []string { "h3", "h3-29" }
-	_httpQuicServer.Server.TLSConfig = _tls3Config
+	_httpQuicServer.TLSConfig = _tls3Config
 	
 	_httpQuicServer.QuicConfig = & quic.Config {
 			
@@ -1817,15 +1813,16 @@ func main_0 () (error) {
 			
 			InitialStreamReceiveWindow : 512 * 1024,
 			MaxStreamReceiveWindow : 2 * 1024 * 1024,
-			KeepAlive : true,
+			KeepAlivePeriod : 60 * time.Second,
 			
 		}
 	
-	if !_quiet {
-		_httpQuicServer.Server.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [a6af7354]  [quic-h3.]  |  ", 0)
-	} else {
-		_httpQuicServer.Server.ErrorLog = log.New (ioutil.Discard, "", 0)
-	}
+	// FIXME:  Control the error logging!
+	//if !_quiet {
+	//	_httpQuicServer.ErrorLog = log.New (os.Stderr, log.Prefix () + "[ee] [a6af7354]  [quic-h3.]  |  ", 0)
+	//} else {
+	//	_httpQuicServer.ErrorLog = log.New (ioutil.Discard, "", 0)
+	//}
 	
 	
 	
