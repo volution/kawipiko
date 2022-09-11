@@ -1035,7 +1035,7 @@ func main_0 () (error) {
 		if _seccompEnabled && (_processes > 1) {
 			AbortError (nil, "[69c06e0c]  Linux seccomp is not supported with multiple processes!")
 		}
-		if _seccompEnabled && ((_profilingCpu != "") || (_profilingMem != "")) {
+		if _seccompEnabled && ((_profileCpu != "") || (_profileMem != "")) {
 			AbortError (nil, "[1fb06ca1]  Linux seccomp is not supported with profiling!")
 		}
 		
@@ -1045,19 +1045,6 @@ func main_0 () (error) {
 		if (_processes > 1) && (_bindQuic != "") {
 			AbortError (nil, "[d6db77ba]  QUIC is only available with a single process!")
 		}
-	}
-	
-	
-	
-	
-	// --------------------------------------------------------------------------------
-	// --------------------------------------------------------------------------------
-	
-	
-	
-	
-	if _seccompEnabled {
-		seccompApplyPhase1 ()
 	}
 	
 	
@@ -1086,6 +1073,19 @@ func main_0 () (error) {
 		if _error := SysSetrlimit (_limitMemory); _error != nil {
 			AbortError (_error, "[4da96378]  failed to configure memory limit!")
 		}
+	}
+	
+	
+	
+	
+	// --------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------
+	
+	
+	
+	
+	if _seccompEnabled {
+		seccompApplyPhase1 ()
 	}
 	
 	
@@ -2185,7 +2185,7 @@ func main_0 () (error) {
 			if !_quiet {
 				log.Printf ("[ii] [4cf834b0]  [quic-h3.]  starting QUIC server...\n")
 			}
-			if _error := _server.httpQuicServer.Serve (_httpQuicListener); (_error != nil) && (_error.Error () != "server closed") {
+			if _error := _server.httpQuicServer.Serve (_httpQuicListener); (_error != nil) && (_error.Error () != "quic: Server closed") {
 				AbortError (_error, "[73e700c5]  [quic-h3.]  failed executing server!")
 			}
 			if !_quiet {

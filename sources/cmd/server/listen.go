@@ -19,6 +19,12 @@ func listenTcp (_endpoint string) (net.Listener, error) {
 	_useTcpListen := false
 	
 	if ! _useTcpListen {
+		if seccompApplied {
+			_useTcpListen = true
+		}
+	}
+	
+	if ! _useTcpListen {
 		if (runtime.GOOS == "android") {
 			_useTcpListen = true
 		}
