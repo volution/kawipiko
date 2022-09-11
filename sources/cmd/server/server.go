@@ -1422,6 +1422,18 @@ func main_0 () (error) {
 	
 	
 	
+	var _tlsCertificate *tls.Certificate
+	if _tlsPrivate != "" {
+		if _certificate_0, _error := tls.LoadX509KeyPair (_tlsPublic, _tlsPrivate); _error == nil {
+			_tlsCertificate = & _certificate_0
+		} else {
+			AbortError (_error, "[ecdf443d]  [tls.....]  failed loading TLS certificate!")
+		}
+	}
+	
+	
+	
+	
 	// --------------------------------------------------------------------------------
 	// --------------------------------------------------------------------------------
 	
@@ -1718,12 +1730,8 @@ func main_0 () (error) {
 		}
 	
 	if (_bindTls1 != "") || (_bindTls2 != "") {
-		if _tlsPrivate != "" {
-			if _certificate, _error := tls.LoadX509KeyPair (_tlsPublic, _tlsPrivate); _error == nil {
-				_tls1Config.Certificates = append (_tls1Config.Certificates, _certificate)
-			} else {
-				AbortError (_error, "[ecdf443d]  [tls.....]  failed loading TLS certificate!")
-			}
+		if _tlsCertificate != nil {
+			_tls1Config.Certificates = append (_tls1Config.Certificates, *_tlsCertificate)
 		}
 		if len (_tls1Config.Certificates) == 0 {
 			var _tlsPublic, _tlsPrivate []byte
@@ -1746,11 +1754,12 @@ func main_0 () (error) {
 				_tlsPublic = DefaultTlsRsaCertificatePublic
 				_tlsPrivate = DefaultTlsRsaCertificatePrivate
 			}
-			if _certificate, _error := tls.X509KeyPair (_tlsPublic, _tlsPrivate); _error == nil {
-				_tls1Config.Certificates = append (_tls1Config.Certificates, _certificate)
+			if _certificate_0, _error := tls.X509KeyPair (_tlsPublic, _tlsPrivate); _error == nil {
+				_tlsCertificate = & _certificate_0
 			} else {
 				AbortError (_error, "[98ba6d23]  [tls.....]  failed parsing TLS certificate!")
 			}
+			_tls1Config.Certificates = append (_tls1Config.Certificates, *_tlsCertificate)
 		}
 	}
 	
