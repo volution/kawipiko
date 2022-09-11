@@ -19,12 +19,12 @@ kawipiko -- blazingly fast static HTTP server
 ::
 
     --sources <path>
-
     --archive <path>
 
     --compress <gzip | zopfli | brotli | identity>
     --compress-level <number>
     --compress-cache <path>
+    --sources-cache  <path>
 
     --exclude-index
     --exclude-strip
@@ -80,7 +80,7 @@ Flags
     * (by "algorithm default", it is meant "what that algorithm considers the recommended default compression level";)
     * ``kawipiko`` by default uses the maximum compression level for each algorithm;  (i.e. ``9`` for ``gzip``, ``30`` for ``zopfli``, and ``-2`` for ``brotli``;)
 
-``--sources-cache <path>``, and ``--compress-cache <path>``
+``--compress-cache <path>``, and ``--sources-cache <path>``
 
     At the given path a single file is created (that is an BBolt database), that will be used to cache the following information:
 

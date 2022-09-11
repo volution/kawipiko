@@ -2,14 +2,12 @@
   kawipiko-archiver
 
     --sources <path>
-
     --archive <path>
 
     --compress <gzip | zopfli | brotli | identity>
     --compress-level <number>
-
-    --sources-cache <path>
     --compress-cache <path>
+    --sources-cache  <path>
 
     --exclude-index
     --exclude-strip

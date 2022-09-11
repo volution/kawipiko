@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "KAWIPIKO-SERVER" "1" "2022-09-02" "volution.ro" "kawipiko"
+.TH "KAWIPIKO-SERVER" "1" "2022-09-11" "volution.ro" "kawipiko"
 .SH NAME
 kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 .INDENT 0.0
@@ -69,6 +69,7 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 
 \-\-processes <count>       (of slave processes)
 \-\-threads <count>         (of threads per process)
+
 \-\-index\-all
 \-\-index\-paths
 \-\-index\-data\-meta
@@ -80,7 +81,9 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 \-\-security\-headers\-disable
 \-\-security\-headers\-tls
 
-\-\-limit\-memory <MiB>
+\-\-seccomp\-enable
+\-\-limit\-descriptors <count>
+\-\-limit\-memory      <MiB>
 \-\-timeout\-disable
 
 \-\-report  \-\-quiet  \-\-debug
@@ -289,6 +292,25 @@ Content\-Security\-Policy: upgrade\-insecure\-requests
 .sp
 These instruct the browser to always use HTTPS for the served domain.
 (Useful even without HTTPS, when used behind a TLS terminator, load\-balancer or proxy that do support HTTPS.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-seccomp\-enable\fP
+.INDENT 0.0
+.INDENT 3.5
+On Linux, and if supported, enable a strict \fBseccomp\fP filter to reduce the potential attack surface in case of a security issue.
+.sp
+The current filter is the minimal set of \fBsyscall\fP\(aqs required to have the server working (thus quite safe).
+At each stage (opening the archive, indexing the archive, serving the archive) the non\-required \fBsyscall\fP\(aqs are filtered.
+.sp
+(At the moment the filter is quite strict and determined by experimentation.  If you enable \fBseccomp\fP and the server is \fBkill\fP\-ed, check \fBauditd\fP logs for the problematic \fBsyscall\fP and open an issue report.)
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-limit\-descriptors\fP, and \fB\-\-limit\-memory\fP
+.INDENT 0.0
+.INDENT 3.5
+Constrains resource usage by configuring via \fBsetrlimit\fP either \fBRLIMIT_NOFILE\fP (in case of descriptors) or both \fBRLIMIT_DATA\fP and \fBRLIMIT_AS\fP (in case of memory).
 .UNINDENT
 .UNINDENT
 .sp

@@ -370,12 +370,12 @@ ul.auto-toc {
 </pre>
 <pre class="literal-block">
 --sources &lt;path&gt;
-
 --archive &lt;path&gt;
 
 --compress &lt;gzip | zopfli | brotli | identity&gt;
 --compress-level &lt;number&gt;
 --compress-cache &lt;path&gt;
+--sources-cache  &lt;path&gt;
 
 --exclude-index
 --exclude-strip
@@ -420,7 +420,7 @@ The path to the target CDB file that contains the archived static content.</bloc
 <li><tt class="docutils literal">kawipiko</tt> by default uses the maximum compression level for each algorithm;  (i.e. <tt class="docutils literal">9</tt> for <tt class="docutils literal">gzip</tt>, <tt class="docutils literal">30</tt> for <tt class="docutils literal">zopfli</tt>, and <tt class="docutils literal"><span class="pre">-2</span></tt> for <tt class="docutils literal">brotli</tt>;)</li>
 </ul>
 </blockquote>
-<p><tt class="docutils literal"><span class="pre">--sources-cache</span> &lt;path&gt;</tt>, and <tt class="docutils literal"><span class="pre">--compress-cache</span> &lt;path&gt;</tt></p>
+<p><tt class="docutils literal"><span class="pre">--compress-cache</span> &lt;path&gt;</tt>, and <tt class="docutils literal"><span class="pre">--sources-cache</span> &lt;path&gt;</tt></p>
 <blockquote>
 <p>At the given path a single file is created (that is an BBolt database), that will be used to cache the following information:</p>
 <ul class="simple">

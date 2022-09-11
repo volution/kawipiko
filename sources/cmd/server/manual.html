@@ -392,6 +392,7 @@ ul.auto-toc {
 
 --processes &lt;count&gt;       (of slave processes)
 --threads &lt;count&gt;         (of threads per process)
+
 --index-all
 --index-paths
 --index-data-meta
@@ -403,7 +404,9 @@ ul.auto-toc {
 --security-headers-disable
 --security-headers-tls
 
---limit-memory &lt;MiB&gt;
+--seccomp-enable
+--limit-descriptors &lt;count&gt;
+--limit-memory      &lt;MiB&gt;
 --timeout-disable
 
 --report  --quiet  --debug
@@ -524,6 +527,16 @@ Content-Security-Policy: upgrade-insecure-requests
 <p>These instruct the browser to always use HTTPS for the served domain.
 (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)</p>
 </blockquote>
+<p><tt class="docutils literal"><span class="pre">--seccomp-enable</span></tt></p>
+<blockquote>
+<p>On Linux, and if supported, enable a strict <tt class="docutils literal">seccomp</tt> filter to reduce the potential attack surface in case of a security issue.</p>
+<p>The current filter is the minimal set of <tt class="docutils literal">syscall</tt>'s required to have the server working (thus quite safe).
+At each stage (opening the archive, indexing the archive, serving the archive) the non-required <tt class="docutils literal">syscall</tt>'s are filtered.</p>
+<p>(At the moment the filter is quite strict and determined by experimentation.  If you enable <tt class="docutils literal">seccomp</tt> and the server is <tt class="docutils literal">kill</tt>-ed, check <tt class="docutils literal">auditd</tt> logs for the problematic <tt class="docutils literal">syscall</tt> and open an issue report.)</p>
+</blockquote>
+<p><tt class="docutils literal"><span class="pre">--limit-descriptors</span></tt>, and <tt class="docutils literal"><span class="pre">--limit-memory</span></tt></p>
+<blockquote>
+Constrains resource usage by configuring via <tt class="docutils literal">setrlimit</tt> either <tt class="docutils literal">RLIMIT_NOFILE</tt> (in case of descriptors) or both <tt class="docutils literal">RLIMIT_DATA</tt> and <tt class="docutils literal">RLIMIT_AS</tt> (in case of memory).</blockquote>
 <p><tt class="docutils literal"><span class="pre">--report</span></tt></p>
 <blockquote>
 Enables periodic reporting of various metrics.

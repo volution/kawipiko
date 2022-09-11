@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "KAWIPIKO-ARCHIVER" "1" "2022-09-02" "volution.ro" "kawipiko"
+.TH "KAWIPIKO-ARCHIVER" "1" "2022-09-11" "volution.ro" "kawipiko"
 .SH NAME
 kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 .INDENT 0.0
@@ -47,12 +47,12 @@ kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 .nf
 .ft C
 \-\-sources <path>
-
 \-\-archive <path>
 
 \-\-compress <gzip | zopfli | brotli | identity>
 \-\-compress\-level <number>
 \-\-compress\-cache <path>
+\-\-sources\-cache  <path>
 
 \-\-exclude\-index
 \-\-exclude\-strip
@@ -124,7 +124,7 @@ The compression level can be chosen, the value depending on the algorithm:
 .UNINDENT
 .UNINDENT
 .sp
-\fB\-\-sources\-cache <path>\fP, and \fB\-\-compress\-cache <path>\fP
+\fB\-\-compress\-cache <path>\fP, and \fB\-\-sources\-cache <path>\fP
 .INDENT 0.0
 .INDENT 3.5
 At the given path a single file is created (that is an BBolt database), that will be used to cache the following information:

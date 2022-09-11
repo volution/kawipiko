@@ -9,12 +9,12 @@ NAME
           >> kawipiko-archiver --man
 
           --sources <path>
-
           --archive <path>
 
           --compress <gzip | zopfli | brotli | identity>
           --compress-level <number>
           --compress-cache <path>
+          --sources-cache  <path>
 
           --exclude-index
           --exclude-strip
@@ -80,7 +80,7 @@ FLAGS
           • kawipiko by default uses the maximum compression level for each
             algorithm;  (i.e. 9 for gzip, 30 for zopfli, and -2 for brotli;)
 
-       --sources-cache <path>, and --compress-cache <path>
+       --compress-cache <path>, and --sources-cache <path>
           At the given path a single file is created (that is an BBolt
           database), that will be used to cache the following information:
 
@@ -213,4 +213,4 @@ SYMLINKS, HARDLINKS, LOOPS, AND DUPLICATED FILES
 
 
 
-volution.ro                       2022-09-02              KAWIPIKO-ARCHIVER(1)
+volution.ro                       2022-09-11              KAWIPIKO-ARCHIVER(1)

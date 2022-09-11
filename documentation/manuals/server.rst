@@ -40,6 +40,7 @@ kawipiko -- blazingly fast static HTTP server
 
     --processes <count>       (of slave processes)
     --threads <count>         (of threads per process)
+
     --index-all
     --index-paths
     --index-data-meta
@@ -51,7 +52,9 @@ kawipiko -- blazingly fast static HTTP server
     --security-headers-disable
     --security-headers-tls
 
-    --limit-memory <MiB>
+    --seccomp-enable
+    --limit-descriptors <count>
+    --limit-memory      <MiB>
     --timeout-disable
 
     --report  --quiet  --debug
@@ -191,6 +194,19 @@ Flags
 
     These instruct the browser to always use HTTPS for the served domain.
     (Useful even without HTTPS, when used behind a TLS terminator, load-balancer or proxy that do support HTTPS.)
+
+``--seccomp-enable``
+
+    On Linux, and if supported, enable a strict ``seccomp`` filter to reduce the potential attack surface in case of a security issue.
+
+    The current filter is the minimal set of ``syscall``'s required to have the server working (thus quite safe).
+    At each stage (opening the archive, indexing the archive, serving the archive) the non-required ``syscall``'s are filtered.
+
+    (At the moment the filter is quite strict and determined by experimentation.  If you enable ``seccomp`` and the server is ``kill``-ed, check ``auditd`` logs for the problematic ``syscall`` and open an issue report.)
+
+``--limit-descriptors``, and ``--limit-memory``
+
+    Constrains resource usage by configuring via ``setrlimit`` either ``RLIMIT_NOFILE`` (in case of descriptors) or both ``RLIMIT_DATA`` and ``RLIMIT_AS`` (in case of memory).
 
 ``--report``
 

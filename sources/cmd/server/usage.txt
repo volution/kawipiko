@@ -36,7 +36,9 @@
     --security-headers-disable
     --security-headers-tls
 
-    --limit-memory <MiB>
+    --secomp-enable
+    --limit-descriptors <count>
+    --limit-memory      <MiB>
     --timeout-disable
 
     --report  --quiet  --debug
