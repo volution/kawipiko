@@ -1386,16 +1386,6 @@ func main_0 () (error) {
 			}
 			
 		}
-		
-		if _schemaVersion, _error := _cdbReader.GetWithCdbHash ([]byte (NamespaceSchemaVersion)); _error == nil {
-			if _schemaVersion == nil {
-				AbortError (nil, "[09316866]  [cdb.....]  missing archive schema version!")
-			} else if string (_schemaVersion) != CurrentSchemaVersion {
-				AbortError (nil, "[e6482cf7]  [cdb.....]  invalid archive schema version!")
-			}
-		} else {
-			AbortError (_error, "[87cae197]  [cdb.....]  failed opening archive!")
-		}
 	}
 	
 	
@@ -1403,6 +1393,23 @@ func main_0 () (error) {
 	
 	// --------------------------------------------------------------------------------
 	// --------------------------------------------------------------------------------
+	
+	
+	
+	
+	
+	
+	
+	
+	if _schemaVersion, _error := _cdbReader.GetWithCdbHash ([]byte (NamespaceSchemaVersion)); _error == nil {
+		if _schemaVersion == nil {
+			AbortError (nil, "[09316866]  [cdb.....]  missing archive schema version!")
+		} else if string (_schemaVersion) != CurrentSchemaVersion {
+			AbortError (nil, "[e6482cf7]  [cdb.....]  invalid archive schema version!")
+		}
+	} else {
+		AbortError (_error, "[87cae197]  [cdb.....]  failed opening archive!")
+	}
 	
 	
 	
