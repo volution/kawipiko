@@ -89,6 +89,16 @@
 			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
 			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
 		)
+	_seccomp="${__BUILD_SECCOMP:-false}"
+	if test "${_seccomp}" == true ; then
+		_tags+=(
+				seccomp
+			)
+		_ldflags+=(
+				-linkmode external
+				-extldflags -static
+			)
+	fi
 	_flags+=(
 			-tags "$( printf -- '%s,' "${_tags[@]}" )"
 			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
