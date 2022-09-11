@@ -825,6 +825,7 @@ func main_0 () (error) {
 	var _dummyDelay time.Duration
 	var _profileCpu string
 	var _profileMem string
+	var _limitDescriptors uint
 	var _limitMemory uint
 	var _seccompEnabled bool
 	
@@ -876,6 +877,7 @@ func main_0 () (error) {
 		_dummyDelay_0 := _flags.Duration ("dummy-delay", 0, "")
 		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
 		_profileMem_0 := _flags.String ("profile-mem", "", "")
+		_limitDescriptors_0 := _flags.Uint ("limit-descriptors", 0, "")
 		_limitMemory_0 := _flags.Uint ("limit-memory", 0, "")
 		_seccompEnabled_0 := _flags.Bool ("seccomp-enable", false, "")
 		
@@ -913,6 +915,7 @@ func main_0 () (error) {
 		_dummyDelay = *_dummyDelay_0
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
+		_limitDescriptors = *_limitDescriptors_0
 		_limitMemory = *_limitMemory_0
 		_seccompEnabled = *_seccompEnabled_0
 		
@@ -1025,6 +1028,9 @@ func main_0 () (error) {
 			AbortError (nil, "[b0177488]  maximum number of allowed threads in total is 1024!")
 		}
 		
+		if (_limitDescriptors != 0) && ((_limitDescriptors > (128 * 1024)) || (_limitDescriptors < 128)) {
+			AbortError (nil, "[10a440d7]  maximum descriptors limit is between 128 and 131072!")
+		}
 		if (_limitMemory != 0) && ((_limitMemory > (16 * 1024)) || (_limitMemory < 128)) {
 			AbortError (nil, "[2781f54c]  maximum memory limit is between 128 and 16384 MiB!")
 		}
@@ -1056,23 +1062,8 @@ func main_0 () (error) {
 	
 	
 	
-	runtime.GOMAXPROCS (int (_threads))
-	
-	debug.SetGCPercent (50)
-	debug.SetMaxThreads (int (128 * (_threads / 64 + 1)))
-	debug.SetMaxStack (32 * 1024)
-	
-	
-	_httpReduceMemory := false
-	
-	
-	if _limitMemory > 0 {
-		if !_quiet && _isMaster {
-			log.Printf ("[ii] [2c130d70]  limiting memory to %d MiB;\n", _limitMemory)
-		}
-		if _error := SysSetrlimit (_limitMemory); _error != nil {
-			AbortError (_error, "[4da96378]  failed to configure memory limit!")
-		}
+	if _seccompEnabled {
+		seccompApplyPhase1 ()
 	}
 	
 	
@@ -1084,8 +1075,32 @@ func main_0 () (error) {
 	
 	
 	
-	if _seccompEnabled {
-		seccompApplyPhase1 ()
+	runtime.GOMAXPROCS (int (_threads))
+	
+	debug.SetGCPercent (50)
+	debug.SetMaxThreads (int (128 * (_threads / 64 + 1)))
+	debug.SetMaxStack (32 * 1024)
+	
+	
+	_httpReduceMemory := false
+	
+	
+	if _limitDescriptors > 0 {
+		if !_quiet && _isMaster {
+			log.Printf ("[ii] [33a2c5e9]  [limits..]  limiting descriptors to %d;\n", _limitDescriptors)
+		}
+		if _error := SysSetrlimitDescriptors (_limitDescriptors); _error != nil {
+			AbortError (_error, "[3dc44251]  failed to configure descriptors limit!")
+		}
+	}
+	
+	if _limitMemory > 0 {
+		if !_quiet && _isMaster {
+			log.Printf ("[ii] [2c130d70]  [limits..]  limiting memory to %d MiB;\n", _limitMemory)
+		}
+		if _error := SysSetrlimitMemory (_limitMemory); _error != nil {
+			AbortError (_error, "[4da96378]  failed to configure memory limit!")
+		}
 	}
 	
 	
@@ -1175,6 +1190,9 @@ func main_0 () (error) {
 		}
 		if _timeoutDisabled {
 			_processArguments = append (_processArguments, "--timeout-disable")
+		}
+		if _limitDescriptors != 0 {
+			_processArguments = append (_processArguments, "--limit-descriptors", fmt.Sprintf ("%d", _limitDescriptors))
 		}
 		if _limitMemory != 0 {
 			_processArguments = append (_processArguments, "--limit-memory", fmt.Sprintf ("%d", _limitMemory))

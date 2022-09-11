@@ -96,6 +96,8 @@ var _seccompPhase1Syscalls = append ([]string {
 		
 		"mmap",
 		
+		"setrlimit",
+		
 		"seccomp",
 		"prctl",
 		
