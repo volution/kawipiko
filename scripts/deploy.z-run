@@ -9,6 +9,7 @@
 
 
 --:: deploy / rsync / * / linux / x86_64 :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' linux--x86_64 "${@}"
+--:: deploy / rsync / * / linux / x86_64 / seccomp :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' linux--x86_64--seccomp "${@}"
 --:: deploy / rsync / * / darwin / x86_64 :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' darwin--x86_64 "${@}"
 --:: deploy / rsync / * / darwin / aarch64 :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' darwin--aarch64 "${@}"
 --:: deploy / rsync / * / freebsd / x86_64 :: exec -- "${ZRUN[@]}" ':: deploy / rsync / *' freebsd--x86_64 "${@}"
@@ -78,7 +79,11 @@
 			if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
 				continue
 			fi
-			for _os in linux--x86_64 darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
+			for _os in linux--x86_64 linux--x86_64--seccomp darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
+				case "${_main}::${_os}" in
+					( kawipiko-server::linux--x86_64--seccomp ) ;;
+					( *::linux--x86_64--seccomp ) continue ;;
+				esac
 				if test -e "./.publish/${_os}/${_main}--${_os}--v${_build_version}${_build_suffix}" ; then
 					printf -- '[ee]  release already exists for `%s` for `%s`!\n' "${_main}" "${_os}" >&2
 					exit -- 1
@@ -133,12 +138,17 @@
 	
 	printf -- '[ii]  publishing all for `%s`...\n' "${_build_version}${_build_suffix}" >&2
 	
-	for _os in linux--x86_64 darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
+	for _os in linux--x86_64 linux--x86_64--seccomp darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
 		for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
 			
 			if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
 				continue
 			fi
+			
+			case "${_main}::${_os}" in
+				( kawipiko-server::linux--x86_64--seccomp ) ;;
+				( *::linux--x86_64--seccomp ) continue ;;
+			esac
 			
 			printf -- '[ii]  publishing `%s` for `%s` for `%s`...\n' "${_main}" "${_os}" "${_build_version}${_build_suffix}" >&2
 			printf -- '[--]\n' >&2
@@ -185,12 +195,17 @@
 		
 		printf -- '[ii]  publishing all for `%s` (on GitHub)...\n' "${_build_version}${_build_suffix}" >&2
 		
-		for _os in linux--x86_64 darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
+		for _os in linux--x86_64 linux--x86_64--seccomp darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
 			for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
 				
 				if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
 					continue
 				fi
+				
+				case "${_main}::${_os}" in
+					( kawipiko-server::linux--x86_64--seccomp ) ;;
+					( *::linux--x86_64--seccomp ) continue ;;
+				esac
 				
 				printf -- '[ii]  publishing `%s` for `%s` for `%s` (on GitHub)...\n' "${_main}" "${_os}" "${_build_version}${_build_suffix}" >&2
 				
@@ -235,10 +250,14 @@
 		if test "${_main_0}" != all -a "${_main_0}" != "${_main}" ; then
 			continue
 		fi
-		for _os in linux--x86_64 darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
+		for _os in linux--x86_64 linux--x86_64--seccomp darwin--x86_64 darwin--aarch64 freebsd--x86_64 openbsd--x86_64 android--aarch64 ; do
 			if test "${_os_0}" != all -a "${_os_0}" != "${_os}" ; then
 				continue
 			fi
+			case "${_main}::${_os}" in
+				( kawipiko-server::linux--x86_64--seccomp ) ;;
+				( *::linux--x86_64--seccomp ) continue ;;
+			esac
 			"${ZRUN[@]}" ':: go / build / all / publish' "${_os}" "${_main#kawipiko-}"
 		done
 	done

@@ -334,30 +334,8 @@
 	fi
 	test "${#}" -eq 0
 	"${ZRUN[@]}" ':: sources / embedded / bundle'
-	_tags=(
-			netgo
-		)
-	_flags=(
-		#?	-buildmode exe
-		)
-	_gcflags=()
-	_ldflags=()
-	if test "${__BUILD_QUICK:-false}" != true ; then
-		_flags+=( -trimpath -a )
-		_gcflags+=( 'all=-l=4' )
-		_ldflags+=( 'all=-s' )
-	fi
-	_ldflags+=(
-			-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
-			-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
-		)
-	_flags+=(
-			-tags "$( printf -- '%s,' "${_tags[@]}" )"
-			-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
-			-ldflags "$( printf -- '%s ' "${_ldflags[@]}" )"
-		)
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	for _platform in linux--x86_64 darwin--x86_64 darwin--aarch64 openbsd--x86_64 freebsd--x86_64 android--aarch64 ; do
+	for _platform in linux--x86_64 linux--x86_64--seccomp darwin--x86_64 darwin--aarch64 openbsd--x86_64 freebsd--x86_64 android--aarch64 ; do
 		if test "${_platform_0}" != all -a "${_platform_0}" != "${_platform}" ; then
 			continue
 		fi
@@ -365,12 +343,16 @@
 			if test "${_component_0}" != all -a "${_component_0}" != "${_component}" ; then
 				continue
 			fi
+			case "${_component}::${_platform}" in
+				( server::linux--x86_64--seccomp ) ;;
+				( *::linux--x86_64--seccomp ) continue ;;
+			esac
 			if test -e "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}" ; then
 				rm -f -- "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}"
 			fi
 		done
 	done
-	for _platform in linux--x86_64 darwin--x86_64 darwin--aarch64 openbsd--x86_64 freebsd--x86_64 android--aarch64 ; do
+	for _platform in linux--x86_64 linux--x86_64--seccomp darwin--x86_64 darwin--aarch64 openbsd--x86_64 freebsd--x86_64 android--aarch64 ; do
 		if test "${_platform_0}" != all -a "${_platform_0}" != "${_platform}" ; then
 			continue
 		fi
@@ -378,10 +360,14 @@
 			if test "${_component_0}" != all -a "${_component_0}" != "${_component}" ; then
 				continue
 			fi
+			case "${_component}::${_platform}" in
+				( server::linux--x86_64--seccomp ) ;;
+				( *::linux--x86_64--seccomp ) continue ;;
+			esac
 			test ! -e "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}"
 			printf -- '[ii]  building `%s` for `%s`...\n' "${_component}" "${_platform}" >&2
 			case "${_platform}" in
-				( linux--x86_64 )
+				( linux--x86_64 | linux--x86_64--seccomp )
 					export -- GOOS=linux
 					export -- GOARCH=amd64
 				;;
@@ -409,6 +395,42 @@
 					exit -- 1
 				;;
 			esac
+			if test "${_platform}" == linux--x86_64--seccomp ; then
+				_seccomp=true
+			else
+				_seccomp=false
+			fi
+			_tags=(
+					netgo
+				)
+			_flags=(
+				#?	-buildmode exe
+				)
+			_gcflags=()
+			_ldflags=()
+			if test "${__BUILD_QUICK:-false}" != true ; then
+				_flags+=( -trimpath -a )
+				_gcflags+=( 'all=-l=4' )
+				_ldflags+=( 'all=-s' )
+			fi
+			_ldflags+=(
+					-X "github.com/volution/kawipiko/embedded.BUILD_TARGET=release"
+					-X "github.com/volution/kawipiko/embedded.BUILD_GIT_HASH=$( exec -- cat -- ./.outputs/markers/build-git-hash.txt )"
+				)
+			if test "${_seccomp}" == true ; then
+				_tags+=(
+						seccomp
+					)
+				_ldflags+=(
+						-linkmode external
+						-extldflags -static
+					)
+			fi
+			_flags+=(
+					-tags "$( printf -- '%s,' "${_tags[@]}" )"
+					-gcflags "$( printf -- '%s ' "${_gcflags[@]}" )"
+					-ldflags "$( printf -- '%s ' "${_ldflags[@]}" )"
+				)
 			nodaemon \
 				nice -n 19 -- \
 			"${ZRUN[@]}" ':: go / tool' \
