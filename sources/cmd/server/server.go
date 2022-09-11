@@ -826,6 +826,7 @@ func main_0 () (error) {
 	var _profileCpu string
 	var _profileMem string
 	var _limitMemory uint
+	var _seccompEnabled bool
 	
 	var _isFirst bool
 	var _isMaster bool
@@ -876,6 +877,7 @@ func main_0 () (error) {
 		_profileCpu_0 := _flags.String ("profile-cpu", "", "")
 		_profileMem_0 := _flags.String ("profile-mem", "", "")
 		_limitMemory_0 := _flags.Uint ("limit-memory", 0, "")
+		_seccompEnabled_0 := _flags.Bool ("seccomp-enable", false, "")
 		
 		FlagsParse (_flags, 0, 0)
 		
@@ -912,6 +914,7 @@ func main_0 () (error) {
 		_profileCpu = *_profileCpu_0
 		_profileMem = *_profileMem_0
 		_limitMemory = *_limitMemory_0
+		_seccompEnabled = *_seccompEnabled_0
 		
 		if _slave == 0 {
 			_isMaster = true
@@ -1024,6 +1027,16 @@ func main_0 () (error) {
 		
 		if (_limitMemory != 0) && ((_limitMemory > (16 * 1024)) || (_limitMemory < 128)) {
 			AbortError (nil, "[2781f54c]  maximum memory limit is between 128 and 16384 MiB!")
+		}
+		
+		if _seccompEnabled && !seccompSupported {
+			AbortError (nil, "[d4d22d4e]  Linux seccomp is not supported with this build!")
+		}
+		if _seccompEnabled && (_processes > 1) {
+			AbortError (nil, "[69c06e0c]  Linux seccomp is not supported with multiple processes!")
+		}
+		if _seccompEnabled && ((_profilingCpu != "") || (_profilingMem != "")) {
+			AbortError (nil, "[1fb06ca1]  Linux seccomp is not supported with profiling!")
 		}
 		
 		if (_processes > 1) && ((_profileCpu != "") || (_profileMem != "")) {
@@ -1152,6 +1165,9 @@ func main_0 () (error) {
 		}
 		if _limitMemory != 0 {
 			_processArguments = append (_processArguments, "--limit-memory", fmt.Sprintf ("%d", _limitMemory))
+		}
+		if _seccompEnabled {
+			_processArguments = append (_processArguments, "--seccomp-enable")
 		}
 		if _quiet {
 			_processArguments = append (_processArguments, "--quiet")

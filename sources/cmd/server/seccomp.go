@@ -1,5 +1,11 @@
 
 package server
 
-import _ "github.com/volution/kawipiko/lib/seccomp"
+
+import "github.com/volution/kawipiko/lib/seccomp"
+
+
+
+
+var seccompSupported = seccomp.Supported
 
