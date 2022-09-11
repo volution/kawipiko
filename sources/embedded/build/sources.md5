@@ -10,7 +10,7 @@ cef8c47ab114754d4494f034c2c1b71e *cmd/server.go
 684efec581b429faf66ab626038508e9 *cmd/server/manual.html
 34f91ee0888ec8b176ff5aae07e10849 *cmd/server/manual.txt
 9428d718942259bef16b7b523d4509ea *cmd/server/seccomp.go
-19ac3be0e257fcccb7ba6ed0d1418c32 *cmd/server/server.go
+f94122ad0e10da2cfbeea5c610bcb9d6 *cmd/server/server.go
 2e8b751b14da6f818072ae28098a7872 *cmd/server/usage.txt
 817cc48537e49768fa3fc2ff9b3a13e5 *cmd/version/seccomp.go
 a537415ee68ba48c1ec7f0e51a665ab6 *cmd/version/version.go
