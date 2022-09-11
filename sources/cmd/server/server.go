@@ -2014,6 +2014,7 @@ func main_0 () (error) {
 	
 	
 	var _splitListenerClose func () ()
+	var _splitListenerStart func () ()
 	if (_httpTls1Listener != nil) && (_httpTls2Listener == nil) && !_http2Disabled {
 		log.Printf ("[ii] [1098a405]  [bind-1..]  listening on `https://%s/` (using Go HTTP supporting only HTTP/2 split);\n", _bindTls1)
 		_tls1Config.NextProtos = append ([]string { "h2" }, _tls1Config.NextProtos ...)
@@ -2034,7 +2035,7 @@ func main_0 () (error) {
 				LogError (_error, "[a5bce477]  [bind-1..]  failed closing TLS listener!")
 			}
 		}
-		go func () () {
+		_splitListenerStart = func () () {
 				for {
 					if _connection_0, _error := _tlsListener.Accept (); _error == nil {
 						go func () () {
@@ -2069,7 +2070,7 @@ func main_0 () (error) {
 						break
 					}
 				}
-			} ()
+			}
 		_httpTls1Listener = _httpTls1Listener_0
 		_httpTls2Listener = _httpTls2Listener_0
 	} else {
@@ -2153,6 +2154,20 @@ func main_0 () (error) {
 			}
 			if !_quiet {
 				log.Printf ("[ii] [aca4a14f]  [fasthttp]  stopped FastHTTP server;\n")
+			}
+		} ()
+	}
+	
+	if _splitListenerStart != nil {
+		_waiter.Add (1)
+		go func () () {
+			defer _waiter.Done ()
+			if !_quiet {
+				log.Printf ("[ii] [bdfd32c0]  [bind-1..]  starting HTTP/2 splitter...\n")
+			}
+			_splitListenerStart ()
+			if !_quiet {
+				log.Printf ("[ii] [5f3807ae]  [bind-1..]  stopped HTTP/2 splitter;\n")
 			}
 		} ()
 	}
@@ -2261,6 +2276,9 @@ func main_0 () (error) {
 				_waiter.Add (1)
 				go func () () {
 					defer _waiter.Done ()
+					if !_quiet {
+						log.Printf ("[ii] [6cfb7bc3]  [bind-1..]  stopping HTTP/2 splitter...\n")
+					}
 					_splitListenerClose ()
 				} ()
 			}
