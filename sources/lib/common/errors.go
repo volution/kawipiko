@@ -35,8 +35,8 @@ func LogError (_error error, _message string) () {
 		if logErrorMessageProper.MatchString (_errorString) {
 			log.Printf ("[ee] %s\n", _errorString)
 		} else {
-			log.Printf ("[ee] [c776ae31]  %q\n", _errorString)
-			log.Printf ("[ee] [ddd6baae]  %#v\n", _error)
+			log.Printf ("[ee] [c776ae31]  ||  %T  ||  %q\n", _error, _errorString)
+			log.Printf ("[ee] [ddd6baae]  ||  %T  ||  %#v\n", _error, _error)
 		}
 	}
 }
