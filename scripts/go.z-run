@@ -439,6 +439,11 @@
 					-o "${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}" \
 					-- "./cmd/${_component}.go" \
 			#
+			strip \
+					--strip-all \
+					-- \
+					"${_outputs}/binaries/publish/kawipiko-${_component}--${_platform}" \
+			#
 		done
 	done
 !!
