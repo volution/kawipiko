@@ -119,6 +119,17 @@ but deployment and configuration simplicity,
 plus efficient management and storage of large collections of many small files.
 
 
+In relation to ``kawipiko`` I've also published a few articles on my own site:
+
+* `Securing my static site server with seccomp <https://notes.volution.ro/v1/2022/09/remarks/794866f7/>`__
+  -- describes how I have employed Linux's ``seccomp`` syscall filtering to improve the security by reducing the attack surface;
+* `Static site hosting hurdres <https://notes.volution.ro/v1/2022/09/notes/b08118d8/>`__
+  -- describes the reasoning behind implementing this simple HTTP server;
+* `A visual comparison between HTTP/1.1 and HTTP/2 <https://notes.volution.ro/v1/2019/08/notes/e8700e9a/>`__
+  -- a few experiments in how Firefox and Chromium handle lots of resource loading over HTTP/1.1 vs HTTP/2;
+  (the server used for the expermients was ``kawipiko``;)
+
+
 
 
 --------
