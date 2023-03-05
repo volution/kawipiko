@@ -316,7 +316,7 @@ Installation
 ============
 
 
-See the `dedicated installation document <./documentation/installation.rst>`__.
+See the `dedicated installation document <./documentation/readme/installation.rst>`__.
 
 
 
@@ -447,7 +447,7 @@ Benchmarks
 ==========
 
 
-See the `dedicated benchmarks document <./documentation/benchmarks.rst>`__.
+See the `dedicated benchmarks document <./documentation/readme/benchmarks.rst>`__.
 
 
 
@@ -639,5 +639,5 @@ References
 ==========
 
 
-See the `dedicated references document <./documentation/references.rst>`__.
+See the `dedicated references document <./documentation/readme/references.rst>`__.
 

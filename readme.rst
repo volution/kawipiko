@@ -1,1 +1,1 @@
-./documentation/readme.rst
+./documentation/readme/readme.rst
