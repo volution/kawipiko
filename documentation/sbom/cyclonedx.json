@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.4",
-  "serialNumber": "urn:uuid:45e20b5d-0a6f-4bf4-b80b-d7296422be00",
+  "serialNumber": "urn:uuid:280885e1-28c5-48cf-9b06-7efd551b230c",
   "version": 1,
   "metadata": {
-    "timestamp": "2022-09-02T14:06:40+03:00",
+    "timestamp": "2023-03-05T16:46:55+02:00",
     "tools": [
       {
         "vendor": "CycloneDX",
@@ -45,11 +45,11 @@
       }
     ],
     "component": {
-      "bom-ref": "pkg:golang/github.com/volution/kawipiko@v0.0.0-20220902105946-bbca9d709647?type=module",
+      "bom-ref": "pkg:golang/github.com/volution/kawipiko@v0.0.0-20230305134519-09c0edffcf04?type=module",
       "type": "application",
       "name": "github.com/volution/kawipiko",
-      "version": "v0.0.0-20220902105946-bbca9d709647",
-      "purl": "pkg:golang/github.com/volution/kawipiko@v0.0.0-20220902105946-bbca9d709647?type=module",
+      "version": "v0.0.0-20230305134519-09c0edffcf04",
+      "purl": "pkg:golang/github.com/volution/kawipiko@v0.0.0-20230305134519-09c0edffcf04?type=module",
       "externalReferences": [
         {
           "url": "https://github.com/volution/kawipiko",
@@ -59,6 +59,64 @@
     }
   },
   "components": [
+    {
+      "bom-ref": "pkg:golang/github.com/Masterminds/goutils@v1.1.1?type=module",
+      "type": "library",
+      "name": "github.com/Masterminds/goutils",
+      "version": "v1.1.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e6752b8a2dc53132f976253cd2e9c456f35ebf0d671f8f995780d22d524b4982"
+        }
+      ],
+      "purl": "pkg:golang/github.com/Masterminds/goutils@v1.1.1?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/Masterminds/goutils",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "Apache-2.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/Masterminds/semver@v1.5.0?type=module",
+      "type": "library",
+      "name": "github.com/Masterminds/semver",
+      "version": "v1.5.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1fae66b8c93358a12e3439df97d77bd0652316788728745b14f181b99dd0130c"
+        }
+      ],
+      "purl": "pkg:golang/github.com/Masterminds/semver@v1.5.0?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/Masterminds/semver",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "MIT"
+            }
+          }
+        ]
+      }
+    },
     {
       "bom-ref": "pkg:golang/github.com/andybalholm/brotli@v1.0.4?type=module",
       "type": "library",
@@ -75,35 +133,6 @@
       "externalReferences": [
         {
           "url": "https://github.com/andybalholm/brotli",
-          "type": "vcs"
-        }
-      ],
-      "evidence": {
-        "licenses": [
-          {
-            "license": {
-              "id": "MIT"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "bom-ref": "pkg:golang/github.com/cheekybits/genny@v1.0.0?type=module",
-      "type": "library",
-      "name": "github.com/cheekybits/genny",
-      "version": "v1.0.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "b8619ae277a2fa3db4ace49e0de3f939fd765d59bb4c651de1d240f510e2b5f1"
-        }
-      ],
-      "purl": "pkg:golang/github.com/cheekybits/genny@v1.0.0?type=module",
-      "externalReferences": [
-        {
-          "url": "https://github.com/cheekybits/genny",
           "type": "vcs"
         }
       ],
@@ -167,18 +196,18 @@
       ]
     },
     {
-      "bom-ref": "pkg:golang/github.com/fsnotify/fsnotify@v1.5.1?type=module",
+      "bom-ref": "pkg:golang/github.com/fsnotify/fsnotify@v1.5.4?type=module",
       "type": "library",
       "name": "github.com/fsnotify/fsnotify",
-      "version": "v1.5.1",
+      "version": "v1.5.4",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9997105075505105a83d75edb9ff72b845cab9d915dacc75134e9469d296a602"
+          "content": "8d16c6708c3a3f631ea9dc2ea341f5a7a2552db2f90c72802a56277733305592"
         }
       ],
-      "purl": "pkg:golang/github.com/fsnotify/fsnotify@v1.5.1?type=module",
+      "purl": "pkg:golang/github.com/fsnotify/fsnotify@v1.5.4?type=module",
       "externalReferences": [
         {
           "url": "https://github.com/fsnotify/fsnotify",
@@ -196,18 +225,18 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/github.com/go-task/slim-sprig@v0.0.0-20210107165309-348f09dbbbc0?type=module",
+      "bom-ref": "pkg:golang/github.com/go-task/slim-sprig@v2.20.0+incompatible?type=module",
       "type": "library",
       "name": "github.com/go-task/slim-sprig",
-      "version": "v0.0.0-20210107165309-348f09dbbbc0",
+      "version": "v2.20.0+incompatible",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a75d38927e3a43c59dbc7ba7209f5d0328cf56dac13e14abdca4f6c94b2de372"
+          "content": "e178776c3ccedbd8f84d634e23edb8b9b734bdb545320d8f3275cac4ae78fc20"
         }
       ],
-      "purl": "pkg:golang/github.com/go-task/slim-sprig@v0.0.0-20210107165309-348f09dbbbc0?type=module",
+      "purl": "pkg:golang/github.com/go-task/slim-sprig@v2.20.0+incompatible?type=module",
       "externalReferences": [
         {
           "url": "https://github.com/go-task/slim-sprig",
@@ -225,18 +254,134 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/github.com/klauspost/compress@v1.14.3?type=module",
+      "bom-ref": "pkg:golang/github.com/golang/mock@v1.6.0?type=module",
       "type": "library",
-      "name": "github.com/klauspost/compress",
-      "version": "v1.14.3",
+      "name": "github.com/golang/mock",
+      "version": "v1.6.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d0bf558ffa24b8b2b36389b7671edaaef09356083325ba3e4dccf9c526c9ef9"
+          "content": "12b4c1f9e7dba30440468d7734d771c898e2d9e81dc4b190851698f8352e9907"
         }
       ],
-      "purl": "pkg:golang/github.com/klauspost/compress@v1.14.3?type=module",
+      "purl": "pkg:golang/github.com/golang/mock@v1.6.0?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/golang/mock",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "Apache-2.0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/google/uuid@v1.3.0?type=module",
+      "type": "library",
+      "name": "github.com/google/uuid",
+      "version": "v1.3.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b7a2625e09b05cc8c4b3c56eb172099360571ec9fec31f0165d4daa19e5fbbb2"
+        }
+      ],
+      "purl": "pkg:golang/github.com/google/uuid@v1.3.0?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/google/uuid",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "BSD-3-Clause"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/huandu/xstrings@v1.3.2?type=module",
+      "type": "library",
+      "name": "github.com/huandu/xstrings",
+      "version": "v1.3.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f5f0b203cea956eb1376ac4929755f3ea0bfc85d627500f77ebec758cb859dc"
+        }
+      ],
+      "purl": "pkg:golang/github.com/huandu/xstrings@v1.3.2?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/huandu/xstrings",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "MIT"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/imdario/mergo@v0.3.13?type=module",
+      "type": "library",
+      "name": "github.com/imdario/mergo",
+      "version": "v0.3.13",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "945ccfe7b6ea4bfc2ca8ab2c0869ad2c06fc034c0a8cb1abbdedaadcf3d57019"
+        }
+      ],
+      "purl": "pkg:golang/github.com/imdario/mergo@v0.3.13?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/imdario/mergo",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "BSD-3-Clause"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/klauspost/compress@v1.15.9?type=module",
+      "type": "library",
+      "name": "github.com/klauspost/compress",
+      "version": "v1.15.9",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c0a4635fa251b4376b13dab06b86ff0a2a7b0023ac854238b26a4241a9ea8d26"
+        }
+      ],
+      "purl": "pkg:golang/github.com/klauspost/compress@v1.15.9?type=module",
       "externalReferences": [
         {
           "url": "https://github.com/klauspost/compress",
@@ -254,18 +399,47 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/github.com/lucas-clemente/quic-go@v0.25.0?type=module",
+      "bom-ref": "pkg:golang/github.com/klauspost/cpuid/v2@v2.1.1?type=module",
       "type": "library",
-      "name": "github.com/lucas-clemente/quic-go",
-      "version": "v0.25.0",
+      "name": "github.com/klauspost/cpuid/v2",
+      "version": "v2.1.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2be5fd1af77b257b0e1ed53437689c676370debc7cdae05e8f798fe022e089b7"
+          "content": "b74c14aa3a30766f1ecdd755e64d2d2d6564955baf2c9a681de6f8581772766d"
         }
       ],
-      "purl": "pkg:golang/github.com/lucas-clemente/quic-go@v0.25.0?type=module",
+      "purl": "pkg:golang/github.com/klauspost/cpuid/v2@v2.1.1?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/klauspost/cpuid",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "MIT"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:golang/github.com/lucas-clemente/quic-go@v0.29.0?type=module",
+      "type": "library",
+      "name": "github.com/lucas-clemente/quic-go",
+      "version": "v0.29.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "570d261937e65aa1b38788f1fe43329ac22414aeab12b1559a0fadf512eb9d91"
+        }
+      ],
+      "purl": "pkg:golang/github.com/lucas-clemente/quic-go@v0.29.0?type=module",
       "externalReferences": [
         {
           "url": "https://github.com/lucas-clemente/quic-go",
@@ -312,21 +486,21 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/github.com/marten-seemann/qtls-go1-16@v0.1.4?type=module",
+      "bom-ref": "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.2?type=module",
       "type": "library",
-      "name": "github.com/marten-seemann/qtls-go1-16",
-      "version": "v0.1.4",
+      "name": "github.com/marten-seemann/qtls-go1-18",
+      "version": "v0.1.2",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c5b1db3861a1ade9d5b4823a0a8f1a9212c476b6b0c01da21e5e728494699dca"
+          "content": "247ea39b36ddbb3d084d543b4a17af2b5d00bf9fa30442801cc9ed5e6215ee43"
         }
       ],
-      "purl": "pkg:golang/github.com/marten-seemann/qtls-go1-16@v0.1.4?type=module",
+      "purl": "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.2?type=module",
       "externalReferences": [
         {
-          "url": "https://github.com/marten-seemann/qtls-go1-16",
+          "url": "https://github.com/marten-seemann/qtls-go1-18",
           "type": "vcs"
         }
       ],
@@ -341,50 +515,21 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/github.com/marten-seemann/qtls-go1-17@v0.1.0?type=module",
+      "bom-ref": "pkg:golang/github.com/marten-seemann/qtls-go1-19@v0.1.0?type=module",
       "type": "library",
-      "name": "github.com/marten-seemann/qtls-go1-17",
+      "name": "github.com/marten-seemann/qtls-go1-19",
       "version": "v0.1.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fd820aece71b708aa5effc51cdc27b66b8b30dab729a4881bddc0b40678f319"
+          "content": "acb14a0fff66a7fbaad5260662e559866f37c24994f79a4ae5d7f71ae7f26185"
         }
       ],
-      "purl": "pkg:golang/github.com/marten-seemann/qtls-go1-17@v0.1.0?type=module",
+      "purl": "pkg:golang/github.com/marten-seemann/qtls-go1-19@v0.1.0?type=module",
       "externalReferences": [
         {
-          "url": "https://github.com/marten-seemann/qtls-go1-17",
-          "type": "vcs"
-        }
-      ],
-      "evidence": {
-        "licenses": [
-          {
-            "license": {
-              "id": "BSD-3-Clause"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "bom-ref": "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.0-beta.1?type=module",
-      "type": "library",
-      "name": "github.com/marten-seemann/qtls-go1-18",
-      "version": "v0.1.0-beta.1",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "127cf337d7cf52451c93fd42b98d4597305a218328881b1dc133663469305143"
-        }
-      ],
-      "purl": "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.0-beta.1?type=module",
-      "externalReferences": [
-        {
-          "url": "https://github.com/marten-seemann/qtls-go1-18",
+          "url": "https://github.com/marten-seemann/qtls-go1-19",
           "type": "vcs"
         }
       ],
@@ -457,6 +602,35 @@
       }
     },
     {
+      "bom-ref": "pkg:golang/github.com/seccomp/libseccomp-golang@v0.10.0?type=module",
+      "type": "library",
+      "name": "github.com/seccomp/libseccomp-golang",
+      "version": "v0.10.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "680e1ba7efd9ce2d019d6676175c20341b39813a66fa76b6ad633a33d6232e96"
+        }
+      ],
+      "purl": "pkg:golang/github.com/seccomp/libseccomp-golang@v0.10.0?type=module",
+      "externalReferences": [
+        {
+          "url": "https://github.com/seccomp/libseccomp-golang",
+          "type": "vcs"
+        }
+      ],
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "BSD-2-Clause"
+            }
+          }
+        ]
+      }
+    },
+    {
       "bom-ref": "pkg:golang/github.com/valyala/bytebufferpool@v1.0.0?type=module",
       "type": "library",
       "name": "github.com/valyala/bytebufferpool",
@@ -486,18 +660,18 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/github.com/valyala/fasthttp@v1.33.0?type=module",
+      "bom-ref": "pkg:golang/github.com/valyala/fasthttp@v1.40.0?type=module",
       "type": "library",
       "name": "github.com/valyala/fasthttp",
-      "version": "v1.33.0",
+      "version": "v1.40.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "98704a77df09e4d717b8175d823be29b58b7916ce59e0d52ccb86b9c1394f60f"
+          "content": "091abfd3431faee3c614b4d0298f1bfbc49f74aeb44f1373b6344c9c7d2dd587"
         }
       ],
-      "purl": "pkg:golang/github.com/valyala/fasthttp@v1.33.0?type=module",
+      "purl": "pkg:golang/github.com/valyala/fasthttp@v1.40.0?type=module",
       "externalReferences": [
         {
           "url": "https://github.com/valyala/fasthttp",
@@ -544,18 +718,18 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/github.com/zeebo/blake3@v0.2.2?type=module",
+      "bom-ref": "pkg:golang/github.com/zeebo/blake3@v0.2.3?type=module",
       "type": "library",
       "name": "github.com/zeebo/blake3",
-      "version": "v0.2.2",
+      "version": "v0.2.3",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75d1fd7d422579fe6bfa9aaf2528468125c577a73b939e1e417678f21363a2d4"
+          "content": "4c5a0b5ec8de5ea44d17149b937e4393862db3313f3104062b5d011f8a6da138"
         }
       ],
-      "purl": "pkg:golang/github.com/zeebo/blake3@v0.2.2?type=module",
+      "purl": "pkg:golang/github.com/zeebo/blake3@v0.2.3?type=module",
       "externalReferences": [
         {
           "url": "https://github.com/zeebo/blake3",
@@ -596,18 +770,18 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
+      "bom-ref": "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
       "type": "library",
       "name": "golang.org/x/crypto",
-      "version": "v0.0.0-20220214200702-86341886e292",
+      "version": "v0.0.0-20220829220503-c86fa9a7ed90",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7fe97043e1ad9a0a18f80d98690c6548e9c38d7710ed944b58e1db0ba1ed46a1"
+          "content": "63f82c31c14e711fba4ba7f761e30a97983e7593045aa733e42ce3fc65986e43"
         }
       ],
-      "purl": "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
+      "purl": "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
       "evidence": {
         "licenses": [
           {
@@ -619,18 +793,41 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/golang.org/x/mod@v0.5.1?type=module",
+      "bom-ref": "pkg:golang/golang.org/x/exp@v0.0.0-20220907003533-145caa8ea1d0?type=module",
+      "type": "library",
+      "name": "golang.org/x/exp",
+      "version": "v0.0.0-20220907003533-145caa8ea1d0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d7b938e238b7285606f785d2e501050bca72b8e94c87722847ebe4993666249b"
+        }
+      ],
+      "purl": "pkg:golang/golang.org/x/exp@v0.0.0-20220907003533-145caa8ea1d0?type=module",
+      "evidence": {
+        "licenses": [
+          {
+            "license": {
+              "id": "BSD-3-Clause"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "bom-ref": "pkg:golang/golang.org/x/mod@v0.6.0-dev.0.20220419223038-86c51ed26bb4?type=module",
       "type": "library",
       "name": "golang.org/x/mod",
-      "version": "v0.5.1",
+      "version": "v0.6.0-dev.0.20220419223038-86c51ed26bb4",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "389c6843faf29e817475c09d23b70b3e4b70fe147672e7aa61f8e6e37a2a2b7f"
+          "content": "eb3a698f1cc2ba567291848bc950d86e77817db6812103d831ebe0d1b130bf6b"
         }
       ],
-      "purl": "pkg:golang/golang.org/x/mod@v0.5.1?type=module",
+      "purl": "pkg:golang/golang.org/x/mod@v0.6.0-dev.0.20220419223038-86c51ed26bb4?type=module",
       "evidence": {
         "licenses": [
           {
@@ -642,18 +839,18 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module",
+      "bom-ref": "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module",
       "type": "library",
       "name": "golang.org/x/net",
-      "version": "v0.0.0-20220127200216-cd36cc0744dd",
+      "version": "v0.0.0-20220906165146-f3363e06e74c",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3bb0d8b3ecf144418b2b32a8310aedac469ca5bd19557039ac8c32944d977219"
+          "content": "c8ab9f51c0f0b9c539bab77ee74fcea5bb78018a6ab6193bc07a47a24f1fd65a"
         }
       ],
-      "purl": "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module",
+      "purl": "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module",
       "evidence": {
         "licenses": [
           {
@@ -665,18 +862,18 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module",
+      "bom-ref": "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
       "type": "library",
       "name": "golang.org/x/sys",
-      "version": "v0.0.0-20220209214540-3681064d5158",
+      "version": "v0.0.0-20220907062415-87db552b00fd",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae6f821d2a4f1045b622c5d489bd5385a1c88ee055663c4d8122a604b15f0f87"
+          "content": "01978813383ef110842c962af30f8e0cb5711602cc322812c0efdf7ca3c477d5"
         }
       ],
-      "purl": "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module",
+      "purl": "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
       "evidence": {
         "licenses": [
           {
@@ -711,41 +908,18 @@
       }
     },
     {
-      "bom-ref": "pkg:golang/golang.org/x/tools@v0.1.9?type=module",
+      "bom-ref": "pkg:golang/golang.org/x/tools@v0.1.12?type=module",
       "type": "library",
       "name": "golang.org/x/tools",
-      "version": "v0.1.9",
+      "version": "v0.1.12",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8fd2ac32268fd5cdc1d0e4d01ad874fe4fa688b19380bb001540ab176bcb705f"
+          "content": "56f7824cadfc036ae44bc66a158db91c80c5b1c5f95fd3a812125ddeab909975"
         }
       ],
-      "purl": "pkg:golang/golang.org/x/tools@v0.1.9?type=module",
-      "evidence": {
-        "licenses": [
-          {
-            "license": {
-              "id": "BSD-3-Clause"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "bom-ref": "pkg:golang/golang.org/x/xerrors@v0.0.0-20200804184101-5ec99f83aff1?type=module",
-      "type": "library",
-      "name": "golang.org/x/xerrors",
-      "version": "v0.0.0-20200804184101-5ec99f83aff1",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "828d5b2bf0ff045655d88f1c21077534a119fb4a304931b57c34dc8b822a15c1"
-        }
-      ],
-      "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20200804184101-5ec99f83aff1?type=module",
+      "purl": "pkg:golang/golang.org/x/tools@v0.1.12?type=module",
       "evidence": {
         "licenses": [
           {
@@ -788,22 +962,27 @@
   ],
   "dependencies": [
     {
-      "ref": "pkg:golang/github.com/volution/kawipiko@v0.0.0-20220902105946-bbca9d709647?type=module",
+      "ref": "pkg:golang/github.com/volution/kawipiko@v0.0.0-20230305134519-09c0edffcf04?type=module",
       "dependsOn": [
         "pkg:golang/github.com/andybalholm/brotli@v1.0.4?type=module",
         "pkg:golang/github.com/cipriancraciun/go-cdb-lib@v0.0.0-20190809203657-d959ce9cc674?type=module",
         "pkg:golang/github.com/foobaz/go-zopfli@v0.0.0-20140122214029-7432051485e2?type=module",
-        "pkg:golang/github.com/lucas-clemente/quic-go@v0.25.0?type=module",
-        "pkg:golang/github.com/valyala/fasthttp@v1.33.0?type=module",
-        "pkg:golang/github.com/zeebo/blake3@v0.2.2?type=module",
-        "pkg:golang/go.etcd.io/bbolt@v1.3.6?type=module"
+        "pkg:golang/github.com/lucas-clemente/quic-go@v0.29.0?type=module",
+        "pkg:golang/github.com/valyala/fasthttp@v1.40.0?type=module",
+        "pkg:golang/github.com/valyala/tcplisten@v1.0.0?type=module",
+        "pkg:golang/github.com/zeebo/blake3@v0.2.3?type=module",
+        "pkg:golang/go.etcd.io/bbolt@v1.3.6?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/github.com/andybalholm/brotli@v1.0.4?type=module"
+      "ref": "pkg:golang/github.com/Masterminds/goutils@v1.1.1?type=module"
     },
     {
-      "ref": "pkg:golang/github.com/cheekybits/genny@v1.0.0?type=module"
+      "ref": "pkg:golang/github.com/Masterminds/semver@v1.5.0?type=module"
+    },
+    {
+      "ref": "pkg:golang/github.com/andybalholm/brotli@v1.0.4?type=module"
     },
     {
       "ref": "pkg:golang/github.com/cipriancraciun/go-cdb-lib@v0.0.0-20190809203657-d959ce9cc674?type=module"
@@ -812,150 +991,179 @@
       "ref": "pkg:golang/github.com/foobaz/go-zopfli@v0.0.0-20140122214029-7432051485e2?type=module"
     },
     {
-      "ref": "pkg:golang/github.com/fsnotify/fsnotify@v1.5.1?type=module",
+      "ref": "pkg:golang/github.com/fsnotify/fsnotify@v1.5.4?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/github.com/go-task/slim-sprig@v0.0.0-20210107165309-348f09dbbbc0?type=module"
+      "ref": "pkg:golang/github.com/go-task/slim-sprig@v2.20.0+incompatible?type=module"
     },
     {
-      "ref": "pkg:golang/github.com/klauspost/compress@v1.14.3?type=module"
-    },
-    {
-      "ref": "pkg:golang/github.com/lucas-clemente/quic-go@v0.25.0?type=module",
+      "ref": "pkg:golang/github.com/golang/mock@v1.6.0?type=module",
       "dependsOn": [
-        "pkg:golang/github.com/cheekybits/genny@v1.0.0?type=module",
+        "pkg:golang/golang.org/x/mod@v0.6.0-dev.0.20220419223038-86c51ed26bb4?type=module",
+        "pkg:golang/golang.org/x/tools@v0.1.12?type=module"
+      ]
+    },
+    {
+      "ref": "pkg:golang/github.com/google/uuid@v1.3.0?type=module"
+    },
+    {
+      "ref": "pkg:golang/github.com/huandu/xstrings@v1.3.2?type=module"
+    },
+    {
+      "ref": "pkg:golang/github.com/imdario/mergo@v0.3.13?type=module"
+    },
+    {
+      "ref": "pkg:golang/github.com/klauspost/compress@v1.15.9?type=module"
+    },
+    {
+      "ref": "pkg:golang/github.com/klauspost/cpuid/v2@v2.1.1?type=module",
+      "dependsOn": [
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
+      ]
+    },
+    {
+      "ref": "pkg:golang/github.com/lucas-clemente/quic-go@v0.29.0?type=module",
+      "dependsOn": [
+        "pkg:golang/github.com/fsnotify/fsnotify@v1.5.4?type=module",
+        "pkg:golang/github.com/go-task/slim-sprig@v2.20.0+incompatible?type=module",
+        "pkg:golang/github.com/golang/mock@v1.6.0?type=module",
         "pkg:golang/github.com/marten-seemann/qpack@v0.2.1?type=module",
-        "pkg:golang/github.com/marten-seemann/qtls-go1-16@v0.1.4?type=module",
-        "pkg:golang/github.com/marten-seemann/qtls-go1-17@v0.1.0?type=module",
-        "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.0-beta.1?type=module",
+        "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.2?type=module",
+        "pkg:golang/github.com/marten-seemann/qtls-go1-19@v0.1.0?type=module",
+        "pkg:golang/github.com/nxadm/tail@v1.4.8?type=module",
         "pkg:golang/github.com/onsi/ginkgo@v1.16.5?type=module",
-        "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
-        "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
+        "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
+        "pkg:golang/golang.org/x/exp@v0.0.0-20220907003533-145caa8ea1d0?type=module",
+        "pkg:golang/golang.org/x/mod@v0.6.0-dev.0.20220419223038-86c51ed26bb4?type=module",
+        "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
+        "pkg:golang/golang.org/x/text@v0.3.7?type=module",
+        "pkg:golang/golang.org/x/tools@v0.1.12?type=module",
+        "pkg:golang/gopkg.in/tomb.v1@v1.0.0-20141024135613-dd632973f1e7?type=module"
       ]
     },
     {
       "ref": "pkg:golang/github.com/marten-seemann/qpack@v0.2.1?type=module",
       "dependsOn": [
         "pkg:golang/github.com/onsi/ginkgo@v1.16.5?type=module",
-        "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module"
+        "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/github.com/marten-seemann/qtls-go1-16@v0.1.4?type=module",
+      "ref": "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.2?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
+        "pkg:golang/github.com/golang/mock@v1.6.0?type=module",
+        "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/github.com/marten-seemann/qtls-go1-17@v0.1.0?type=module",
+      "ref": "pkg:golang/github.com/marten-seemann/qtls-go1-19@v0.1.0?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
-      ]
-    },
-    {
-      "ref": "pkg:golang/github.com/marten-seemann/qtls-go1-18@v0.1.0-beta.1?type=module",
-      "dependsOn": [
-        "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
+        "pkg:golang/github.com/golang/mock@v1.6.0?type=module",
+        "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
       ]
     },
     {
       "ref": "pkg:golang/github.com/nxadm/tail@v1.4.8?type=module",
       "dependsOn": [
-        "pkg:golang/github.com/fsnotify/fsnotify@v1.5.1?type=module",
+        "pkg:golang/github.com/fsnotify/fsnotify@v1.5.4?type=module",
         "pkg:golang/gopkg.in/tomb.v1@v1.0.0-20141024135613-dd632973f1e7?type=module"
       ]
     },
     {
       "ref": "pkg:golang/github.com/onsi/ginkgo@v1.16.5?type=module",
       "dependsOn": [
-        "pkg:golang/github.com/go-task/slim-sprig@v0.0.0-20210107165309-348f09dbbbc0?type=module",
+        "pkg:golang/github.com/go-task/slim-sprig@v2.20.0+incompatible?type=module",
         "pkg:golang/github.com/nxadm/tail@v1.4.8?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module",
-        "pkg:golang/golang.org/x/tools@v0.1.9?type=module"
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
+        "pkg:golang/golang.org/x/tools@v0.1.12?type=module"
       ]
+    },
+    {
+      "ref": "pkg:golang/github.com/seccomp/libseccomp-golang@v0.10.0?type=module"
     },
     {
       "ref": "pkg:golang/github.com/valyala/bytebufferpool@v1.0.0?type=module"
     },
     {
-      "ref": "pkg:golang/github.com/valyala/fasthttp@v1.33.0?type=module",
+      "ref": "pkg:golang/github.com/valyala/fasthttp@v1.40.0?type=module",
       "dependsOn": [
         "pkg:golang/github.com/andybalholm/brotli@v1.0.4?type=module",
-        "pkg:golang/github.com/klauspost/compress@v1.14.3?type=module",
+        "pkg:golang/github.com/klauspost/compress@v1.15.9?type=module",
         "pkg:golang/github.com/valyala/bytebufferpool@v1.0.0?type=module",
         "pkg:golang/github.com/valyala/tcplisten@v1.0.0?type=module",
-        "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
-        "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module",
-        "pkg:golang/golang.org/x/text@v0.3.7?type=module"
+        "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
+        "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
       ]
     },
     {
       "ref": "pkg:golang/github.com/valyala/tcplisten@v1.0.0?type=module"
     },
     {
-      "ref": "pkg:golang/github.com/zeebo/blake3@v0.2.2?type=module",
+      "ref": "pkg:golang/github.com/zeebo/blake3@v0.2.3?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
+        "pkg:golang/github.com/klauspost/cpuid/v2@v2.1.1?type=module"
       ]
     },
     {
       "ref": "pkg:golang/go.etcd.io/bbolt@v1.3.6?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
+      "ref": "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module",
+        "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
         "pkg:golang/golang.org/x/text@v0.3.7?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/golang.org/x/mod@v0.5.1?type=module",
+      "ref": "pkg:golang/golang.org/x/exp@v0.0.0-20220907003533-145caa8ea1d0?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/crypto@v0.0.0-20220214200702-86341886e292?type=module",
-        "pkg:golang/golang.org/x/tools@v0.1.9?type=module",
-        "pkg:golang/golang.org/x/xerrors@v0.0.0-20200804184101-5ec99f83aff1?type=module"
+        "pkg:golang/golang.org/x/mod@v0.6.0-dev.0.20220419223038-86c51ed26bb4?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
+        "pkg:golang/golang.org/x/tools@v0.1.12?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module",
+      "ref": "pkg:golang/golang.org/x/mod@v0.6.0-dev.0.20220419223038-86c51ed26bb4?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module",
+        "pkg:golang/golang.org/x/crypto@v0.0.0-20220829220503-c86fa9a7ed90?type=module",
+        "pkg:golang/golang.org/x/tools@v0.1.12?type=module"
+      ]
+    },
+    {
+      "ref": "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module",
+      "dependsOn": [
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
         "pkg:golang/golang.org/x/text@v0.3.7?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module"
+      "ref": "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module"
     },
     {
       "ref": "pkg:golang/golang.org/x/text@v0.3.7?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/tools@v0.1.9?type=module"
+        "pkg:golang/golang.org/x/tools@v0.1.12?type=module"
       ]
     },
     {
-      "ref": "pkg:golang/golang.org/x/tools@v0.1.9?type=module",
+      "ref": "pkg:golang/golang.org/x/tools@v0.1.12?type=module",
       "dependsOn": [
-        "pkg:golang/golang.org/x/mod@v0.5.1?type=module",
-        "pkg:golang/golang.org/x/net@v0.0.0-20220127200216-cd36cc0744dd?type=module",
-        "pkg:golang/golang.org/x/sys@v0.0.0-20220209214540-3681064d5158?type=module",
-        "pkg:golang/golang.org/x/text@v0.3.7?type=module",
-        "pkg:golang/golang.org/x/xerrors@v0.0.0-20200804184101-5ec99f83aff1?type=module"
+        "pkg:golang/golang.org/x/mod@v0.6.0-dev.0.20220419223038-86c51ed26bb4?type=module",
+        "pkg:golang/golang.org/x/net@v0.0.0-20220906165146-f3363e06e74c?type=module",
+        "pkg:golang/golang.org/x/sys@v0.0.0-20220907062415-87db552b00fd?type=module",
+        "pkg:golang/golang.org/x/text@v0.3.7?type=module"
       ]
-    },
-    {
-      "ref": "pkg:golang/golang.org/x/xerrors@v0.0.0-20200804184101-5ec99f83aff1?type=module"
     },
     {
       "ref": "pkg:golang/gopkg.in/tomb.v1@v1.0.0-20141024135613-dd632973f1e7?type=module"
