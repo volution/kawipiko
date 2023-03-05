@@ -2,7 +2,7 @@
 
 
 
-.. image:: ./documentation/logo.png
+.. image:: ./documentation/assets/github-banner.png
 
 
 
