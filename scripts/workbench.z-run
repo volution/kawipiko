@@ -1,0 +1,140 @@
+#!/dev/null
+
+
+
+
+::// workbench / ...
+
+
+
+
+<< workbench / initialize
+	
+	test "${#}" -eq 0
+	
+	"${ZRUN[@]}" ':: workbench / initialize / go'
+!!
+
+
+
+
+<< workbench / initialize / go
+	
+	test "${#}" -eq 0
+	
+	_outputs="$( exec -- "${ZRUN[@]}" ':: workbench / outputs' )"
+	test -d "${_outputs}"
+	
+	_sources="${__SOURCES}"
+	test -d "${_sources}"
+	
+	GOPATH="${_outputs}/go"
+	GOBIN="${_outputs}/go/bin"
+	GOTMPDIR="${_outputs}/go/tmp"
+	GOCACHE="${_outputs}/go/cache"
+	_gosrc="${_outputs}/go/src"
+	_gopkg="${_outputs}/go/pkg"
+	_binaries="${_outputs}/binaries"
+	_markers="${_outputs}/markers"
+	
+	for _folder in "${GOPATH}" "${GOBIN}" "${GOTMPDIR}" "${GOTMPDIR}" "${GOCACHE}" "${_gosrc}" "${_gopkg}" "${_binaries}" "${_markers}" ; do
+		if test ! -e "${_folder}" ; then
+			mkdir -- "${_folder}"
+		fi
+	done
+!!
+
+
+
+
+--<< workbench / scratch
+	
+	test "${#}" -eq 0
+	
+	if test -e ./.scratch ; then
+		_scratch="$( exec -- readlink -e -- ./.scratch )"
+	elif test -h ./.scratch ; then
+		_scratch="$( exec -- readlink -f -- ./.scratch )"
+		mkdir -- "${_scratch}"
+	elif test -e "${HOME}/go/.scratch" ; then
+		_scratch="$( exec -- readlink -e -- "${HOME}/go/.scratch" )"
+	else
+		_scratch="${TMPDIR:-/tmp}/go--scratch--${UID}"
+	fi
+	
+	_scratch="$( exec -- readlink -e -- "${_scratch}" )"
+	
+	printf -- '%s\n' "${_scratch}"
+!!
+
+
+
+
+--<< workbench / outputs
+	
+	test "${#}" -eq 0
+	
+	_outputs="${__OUTPUTS}"
+	
+	if test ! -e "${_outputs}" -o -h "${_outputs}" ; then
+		
+		_scratch="$( exec -- "${ZRUN}" ':: workbench / scratch' )"
+		_outputs_store="${_scratch}/${UNAME_NODE}--${UNAME_FINGERPRINT}--${ZRUN_WORKSPACE_IDENTIFIER}"
+		if test ! -d "${_outputs_store}" ; then
+			mkdir -- "${_outputs_store}"
+		fi
+		_outputs_store="$( exec -- readlink -e -- "${_outputs_store}" )"
+		
+		ln -s -f -T -- "${_outputs_store}" "${_outputs}"
+	fi
+	
+	test -d "${_outputs}"
+	
+	printf -- '%s\n' "${_outputs}"
+!!
+
+
+
+
+--<< workbench / publish
+	
+	_publish="${__PUBLISH}"
+	test -d "${_publish}"
+	
+	printf -- '%s\n' "${_publish}"
+!!
+
+
+
+
+<< workbench / initialize / python
+	test "${#}" -eq 0
+	
+	_outputs="$( exec -- "${ZRUN[@]}" ':: workbench / outputs' )"
+	
+	if test -d "${_outputs}/python" ; then
+		exit -- 0
+	fi
+	
+	mkdir -- "${_outputs}/python"
+	
+	virtualenv \
+			--python python3 \
+			--clear \
+			--symlinks \
+			--no-setuptools \
+			--no-wheel \
+			--no-download \
+			-- \
+			"${_outputs}/python" \
+	#
+	
+	"${_outputs}/python/bin/pip" install --upgrade --compile -- pip
+	"${_outputs}/python/bin/pip" install --upgrade --compile -- wheel
+	"${_outputs}/python/bin/pip" install --upgrade --compile -- setuptools
+	
+	"${_outputs}/python/bin/pip" install --compile -- docutils
+	"${_outputs}/python/bin/pip" install --compile -- restview
+!!
+
+

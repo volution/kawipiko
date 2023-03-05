@@ -1,33 +1,36 @@
 #!/dev/null
 
 
-&&== env-fallback __BUILD_QUICK false
-
-
-::// workspace / ...
-::// execute / ...
-::// clients / ...
-::// examples / ...
-::// benchmark / ...
-::// go / ...
-::// documentation / ...
-::// tools / ...
-::// tls / ...
+::// watch / ...
 ::// *
 
 
-&& _/go.z-run
-&& _/execute.z-run
-&& _/clients.z-run
-&& _/examples.z-run
-&& _/benchmark.z-run
-&& _/workspace.z-run
+&& _/environment.z-run
+
+
+&& _/workbench.z-run
 && _/sources.z-run
+&& _/go.z-run
+
+
+&& _/execute.z-run
+&& _/examples.z-run
+
+
 && _/documentation.z-run
+
+
+&& _/deploy.z-run
+
+
+&& _/generate.z-run
+
+
+&& _/clients.z-run
+&& _/benchmark.z-run
 && _/tools.z-run
 && _/tls.z-run
 
-&& _/deploy.z-run
 
 &&?? _/.local.z-run
 

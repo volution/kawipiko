@@ -3,6 +3,11 @@
 
 
 
+::// benchmark / ...
+
+
+
+
 :: benchmark / server / http-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 1
 :: benchmark / server / http-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 2 --threads 1
 :: benchmark / server / http-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 2
@@ -172,7 +177,7 @@
 
 
 --<< benchmark / server
-	"${ZRUN[@]}" ':: go / build / server / release / quick'
+	"${ZRUN[@]}" ':: go / build / kawipiko-server / release / native'
 	test "${#}" -ge 1
 	_mode="${1}"
 	shift -- 1
@@ -249,7 +254,7 @@
 	exec -- \
 		"${ZRUN[@]}" ':: benchmark / execute / server' \
 		noenvironment \
-	./.outputs/binaries/release/kawipiko-server \
+	./.outputs/binaries/kawipiko-server--release--native \
 			--archive "${_archive}" \
 			"${_arguments[@]}" \
 			"${@}" \
@@ -277,7 +282,7 @@
 
 
 << benchmark / server / profile / cpu / analyze
-	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/kawipiko-server--release--native
 	exec -- go tool pprof \
 			"${@}" \
 			-- ./.outputs/server-cpu.txt \
@@ -285,7 +290,7 @@
 !!
 
 << benchmark / server / profile / cpu / analyze / web
-	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/kawipiko-server--release--native
 	exec -- go tool pprof \
 			-http 127.108.221.132:8080 \
 			-no_browser \
@@ -303,7 +308,7 @@
 
 
 << benchmark / server / profile / mem / analyze
-	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/kawipiko-server--release--native
 	exec -- go tool pprof \
 			"${@}" \
 			-- ./.outputs/server-mem.txt \
@@ -311,7 +316,7 @@
 !!
 
 << benchmark / server / profile / mem / analyze / web
-	export -- PPROF_BINARY_PATH=./.outputs/binaries/release/kawipiko-server
+	export -- PPROF_BINARY_PATH=./.outputs/binaries/kawipiko-server--release--native
 	exec -- go tool pprof \
 			-http 127.226.119.8:8080 \
 			-no_browser \
@@ -383,7 +388,7 @@
 :: benchmark / dummy / fasthttp / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 2 2 "${@}"
 
 --<< benchmark / dummy / fasthttp
-	"${ZRUN[@]}" ':: go / build / server-dummy / release / quick'
+	"${ZRUN[@]}" ':: go / build / kawipiko-server-dummy / release / native'
 	test "${#}" -ge 2
 	_count="${1}"
 	_threads="${2}"
@@ -392,7 +397,7 @@
 		"${ZRUN[@]}" ':: benchmark / execute / multiple' "${_count}" \
 		"${ZRUN[@]}" ':: benchmark / execute / server' \
 		noenvironment \
-	./.outputs/binaries/release/kawipiko-server-dummy \
+	./.outputs/binaries/kawipiko-server-dummy--release--native \
 			"127.9.185.194:8080" \
 			"${_threads}" \
 			"${@}" \

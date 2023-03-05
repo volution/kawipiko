@@ -1,0 +1,12 @@
+#!/dev/null
+
+
+
+
+&&== env-path __SOURCES ./sources
+&&== env-path __EMBEDDED ./sources/embedded
+
+&&== env-path __OUTPUTS ./.outputs
+&&== env-path __PUBLISH ./.publish
+
+

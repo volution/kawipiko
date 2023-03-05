@@ -3,72 +3,81 @@
 
 
 
+::// execute / ...
+
+
+
+
 ++<< execute / server / debug
-	"${ZRUN[@]}" ':: go / build / server / debug'
-	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-server "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-server / debug / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-server--debug--native "${@}"
 !!
 
 << execute / server / release
-	"${ZRUN[@]}" ':: go / build / server / release'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-server / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-server--release--native "${@}"
 !!
 
 << execute / server / release / quick
-	"${ZRUN[@]}" ':: go / build / server / release / quick'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server "${@}"
+	export -- __BUILD_QUICK=true
+	"${ZRUN[@]}" ':: go / build / kawipiko-server / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-server--release--native "${@}"
 !!
 
 
 
 
 ++<< execute / archiver / debug
-	"${ZRUN[@]}" ':: go / build / archiver / debug'
-	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-archiver "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-archiver / debug / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-archiver--debug--native "${@}"
 !!
 
 << execute / archiver / release
-	"${ZRUN[@]}" ':: go / build / archiver / release'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-archiver "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-archiver / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-archiver--release--native "${@}"
 !!
 
 << execute / archiver / release / quick
-	"${ZRUN[@]}" ':: go / build / archiver / release / quick'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-archiver "${@}"
+	export -- __BUILD_QUICK=true
+	"${ZRUN[@]}" ':: go / build / kawipiko-archiver / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-archiver--release--native "${@}"
 !!
 
 
 
 
 << execute / wrapper / debug
-	"${ZRUN[@]}" ':: go / build / wrapper / debug'
-	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-wrapper "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-wrapper / debug / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-wrapper--debug--native "${@}"
 !!
 
 << execute / wrapper / release
-	"${ZRUN[@]}" ':: go / build / wrapper / release'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-wrapper "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-wrapper / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-wrapper--release--native "${@}"
 !!
 
 << execute / wrapper / release / quick
-	"${ZRUN[@]}" ':: go / build / wrapper / release / quick'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-wrapper "${@}"
+	export -- __BUILD_QUICK=true
+	"${ZRUN[@]}" ':: go / build / kawipiko-wrapper / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-wrapper--release--native "${@}"
 !!
 
 
 
 
 << execute / server-dummy / debug
-	"${ZRUN[@]}" ':: go / build / server-dummy / debug'
-	exec -- env -i -- ./.outputs/binaries/debug/kawipiko-server-dummy "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-server-dummy / debug / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-server-dummy--debug--native "${@}"
 !!
 
 << execute / server-dummy / release
-	"${ZRUN[@]}" ':: go / build / server-dummy / release'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server-dummy "${@}"
+	"${ZRUN[@]}" ':: go / build / kawipiko-server-dummy / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-server-dummy--release--native "${@}"
 !!
 
 << execute / server-dummy / release / quick
-	"${ZRUN[@]}" ':: go / build / server-dummy / release / quick'
-	exec -- env -i -- ./.outputs/binaries/release/kawipiko-server-dummy "${@}"
+	export -- __BUILD_QUICK=true
+	"${ZRUN[@]}" ':: go / build / kawipiko-server-dummy / release / native'
+	exec -- env -i -- ./.outputs/binaries/kawipiko-server-dummy--release--native "${@}"
 !!
 
