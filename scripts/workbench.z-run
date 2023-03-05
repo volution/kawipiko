@@ -12,7 +12,7 @@
 	
 	test "${#}" -eq 0
 	
-	"${ZRUN[@]}" ':: workbench / initialize / go'
+	"${ZRUN}" ':: workbench / initialize / go'
 !!
 
 
@@ -22,7 +22,7 @@
 	
 	test "${#}" -eq 0
 	
-	_outputs="$( exec -- "${ZRUN[@]}" ':: workbench / outputs' )"
+	_outputs="$( exec -- "${ZRUN}" ':: workbench / outputs' )"
 	test -d "${_outputs}"
 	
 	_sources="${__SOURCES}"
@@ -110,7 +110,7 @@
 << workbench / initialize / python
 	test "${#}" -eq 0
 	
-	_outputs="$( exec -- "${ZRUN[@]}" ':: workbench / outputs' )"
+	_outputs="$( exec -- "${ZRUN}" ':: workbench / outputs' )"
 	
 	if test -d "${_outputs}/python" ; then
 		exit -- 0

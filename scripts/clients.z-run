@@ -9,11 +9,11 @@
 
 
 << clients / nghttp / https
-	exec -- "${ZRUN[@]}" ':: clients / nghttp' https 127.9.185.194:8443 "${@}"
+	exec -- "${ZRUN}" ':: clients / nghttp' https 127.9.185.194:8443 "${@}"
 !!
 
 << clients / nghttp / http2
-	exec -- "${ZRUN[@]}" ':: clients / nghttp' https 127.9.185.194:8444 "${@}"
+	exec -- "${ZRUN}" ':: clients / nghttp' https 127.9.185.194:8444 "${@}"
 !!
 
 --<< clients / nghttp
@@ -32,7 +32,7 @@
 		_path=''
 	fi
 	exec -- \
-	"${ZRUN[@]}" ':: tools / nghttp' \
+	"${ZRUN}" ':: tools / nghttp' \
 			--null-out \
 			--stat \
 			"${@}" \
@@ -45,15 +45,15 @@
 
 
 << clients / curl / http
-	exec -- "${ZRUN[@]}" ':: clients / curl' http 127.9.185.194:8080 "${@}" --http1.1
+	exec -- "${ZRUN}" ':: clients / curl' http 127.9.185.194:8080 "${@}" --http1.1
 !!
 
 << clients / curl / https
-	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.9.185.194:8443 "${@}" --http1.1
+	exec -- "${ZRUN}" ':: clients / curl' https 127.9.185.194:8443 "${@}" --http1.1
 !!
 
 << clients / curl / http2
-	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.9.185.194:8444 "${@}" --http2
+	exec -- "${ZRUN}" ':: clients / curl' https 127.9.185.194:8444 "${@}" --http2
 !!
 
 << clients / curl
@@ -72,7 +72,7 @@
 		_path=''
 	fi
 	exec -- \
-	"${ZRUN[@]}" ':: tools / curl' \
+	"${ZRUN}" ':: tools / curl' \
 			--compressed \
 			--output /dev/stdout \
 			--dump-header /dev/stdout \

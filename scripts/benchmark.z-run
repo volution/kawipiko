@@ -8,176 +8,176 @@
 
 
 
-:: benchmark / server / http-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 1
-:: benchmark / server / http-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 2 --threads 1
-:: benchmark / server / http-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 2
-:: benchmark / server / http-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-fast "${@}" --processes 2 --threads 2
+:: benchmark / server / http-fast / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 1
+:: benchmark / server / http-fast / 2x1 :: exec -- "${ZRUN}" ':: benchmark / server' http-fast "${@}" --processes 2 --threads 1
+:: benchmark / server / http-fast / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' http-fast "${@}" --processes 1 --threads 2
+:: benchmark / server / http-fast / 2x2 :: exec -- "${ZRUN}" ':: benchmark / server' http-fast "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 1 --threads 1
-:: benchmark / server / http-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 2 --threads 1
-:: benchmark / server / http-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 1 --threads 2
-:: benchmark / server / http-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-go "${@}" --processes 2 --threads 2
+:: benchmark / server / http-go / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' http-go "${@}" --processes 1 --threads 1
+:: benchmark / server / http-go / 2x1 :: exec -- "${ZRUN}" ':: benchmark / server' http-go "${@}" --processes 2 --threads 1
+:: benchmark / server / http-go / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' http-go "${@}" --processes 1 --threads 2
+:: benchmark / server / http-go / 2x2 :: exec -- "${ZRUN}" ':: benchmark / server' http-go "${@}" --processes 2 --threads 2
 
-:: benchmark / server / https-fast / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 1 --threads 1
-:: benchmark / server / https-fast / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 2 --threads 1
-:: benchmark / server / https-fast / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 1 --threads 2
-:: benchmark / server / https-fast / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-fast "${@}" --processes 2 --threads 2
+:: benchmark / server / https-fast / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' https-fast "${@}" --processes 1 --threads 1
+:: benchmark / server / https-fast / 2x1 :: exec -- "${ZRUN}" ':: benchmark / server' https-fast "${@}" --processes 2 --threads 1
+:: benchmark / server / https-fast / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' https-fast "${@}" --processes 1 --threads 2
+:: benchmark / server / https-fast / 2x2 :: exec -- "${ZRUN}" ':: benchmark / server' https-fast "${@}" --processes 2 --threads 2
 
-:: benchmark / server / https-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 1 --threads 1
-:: benchmark / server / https-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 2 --threads 1
-:: benchmark / server / https-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 1 --threads 2
-:: benchmark / server / https-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-go "${@}" --processes 2 --threads 2
+:: benchmark / server / https-go / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' https-go "${@}" --processes 1 --threads 1
+:: benchmark / server / https-go / 2x1 :: exec -- "${ZRUN}" ':: benchmark / server' https-go "${@}" --processes 2 --threads 1
+:: benchmark / server / https-go / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' https-go "${@}" --processes 1 --threads 2
+:: benchmark / server / https-go / 2x2 :: exec -- "${ZRUN}" ':: benchmark / server' https-go "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http2-go / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 1 --threads 1
-:: benchmark / server / http2-go / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 2 --threads 1
-:: benchmark / server / http2-go / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 1 --threads 2
-:: benchmark / server / http2-go / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-go "${@}" --processes 2 --threads 2
+:: benchmark / server / http2-go / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' http2-go "${@}" --processes 1 --threads 1
+:: benchmark / server / http2-go / 2x1 :: exec -- "${ZRUN}" ':: benchmark / server' http2-go "${@}" --processes 2 --threads 1
+:: benchmark / server / http2-go / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' http2-go "${@}" --processes 1 --threads 2
+:: benchmark / server / http2-go / 2x2 :: exec -- "${ZRUN}" ':: benchmark / server' http2-go "${@}" --processes 2 --threads 2
 
-:: benchmark / server / https-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 1 --threads 1
-:: benchmark / server / https-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 2 --threads 1
-:: benchmark / server / https-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 1 --threads 2
-:: benchmark / server / https-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' https-split "${@}" --processes 2 --threads 2
+:: benchmark / server / https-split / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' https-split "${@}" --processes 1 --threads 1
+:: benchmark / server / https-split / 2x1 :: exec -- "${ZRUN}" ':: benchmark / server' https-split "${@}" --processes 2 --threads 1
+:: benchmark / server / https-split / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' https-split "${@}" --processes 1 --threads 2
+:: benchmark / server / https-split / 2x2 :: exec -- "${ZRUN}" ':: benchmark / server' https-split "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http2-split / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 1 --threads 1
-:: benchmark / server / http2-split / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 2 --threads 1
-:: benchmark / server / http2-split / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 1 --threads 2
-:: benchmark / server / http2-split / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http2-split "${@}" --processes 2 --threads 2
+:: benchmark / server / http2-split / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' http2-split "${@}" --processes 1 --threads 1
+:: benchmark / server / http2-split / 2x1 :: exec -- "${ZRUN}" ':: benchmark / server' http2-split "${@}" --processes 2 --threads 1
+:: benchmark / server / http2-split / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' http2-split "${@}" --processes 1 --threads 2
+:: benchmark / server / http2-split / 2x2 :: exec -- "${ZRUN}" ':: benchmark / server' http2-split "${@}" --processes 2 --threads 2
 
-:: benchmark / server / http3-quic / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http3-quic "${@}" --processes 1 --threads 1
-:: benchmark / server / http3-quic / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http3-quic "${@}" --processes 1 --threads 2
+:: benchmark / server / http3-quic / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' http3-quic "${@}" --processes 1 --threads 1
+:: benchmark / server / http3-quic / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' http3-quic "${@}" --processes 1 --threads 2
 
-:: benchmark / server / http-all / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-all "${@}" --processes 1 --threads 1
-:: benchmark / server / http-all / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / server' http-all "${@}" --processes 1 --threads 2
-
-
-:: benchmark / wrk / http / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 16384 --timeout 6s
-:: benchmark / wrk / http / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 4096
-:: benchmark / wrk / http / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 2048
-:: benchmark / wrk / http / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 1024
-:: benchmark / wrk / http / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 512
-:: benchmark / wrk / http / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 256
-:: benchmark / wrk / http / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 128
-:: benchmark / wrk / http / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 64
-:: benchmark / wrk / http / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 32
-:: benchmark / wrk / http / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 16
-:: benchmark / wrk / http / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 8
-:: benchmark / wrk / http / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 4
-:: benchmark / wrk / http / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 2
-:: benchmark / wrk / http / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 1
-
-:: benchmark / wrk / https / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 16384 --timeout 6s
-:: benchmark / wrk / https / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 4096
-:: benchmark / wrk / https / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 2048
-:: benchmark / wrk / https / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 1024
-:: benchmark / wrk / https / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 512
-:: benchmark / wrk / https / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 256
-:: benchmark / wrk / https / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 128
-:: benchmark / wrk / https / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 64
-:: benchmark / wrk / https / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 32
-:: benchmark / wrk / https / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 16
-:: benchmark / wrk / https / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 8
-:: benchmark / wrk / https / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 4
-:: benchmark / wrk / https / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 2
-:: benchmark / wrk / https / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 1
+:: benchmark / server / http-all / 1x1 :: exec -- "${ZRUN}" ':: benchmark / server' http-all "${@}" --processes 1 --threads 1
+:: benchmark / server / http-all / 1x2 :: exec -- "${ZRUN}" ':: benchmark / server' http-all "${@}" --processes 1 --threads 2
 
 
-:: benchmark / h1load / http / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 16384 -w 6000
-:: benchmark / h1load / http / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 4096
-:: benchmark / h1load / http / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 2048
-:: benchmark / h1load / http / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 1024
-:: benchmark / h1load / http / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 512
-:: benchmark / h1load / http / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 256
-:: benchmark / h1load / http / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 128
-:: benchmark / h1load / http / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 64
-:: benchmark / h1load / http / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 32
-:: benchmark / h1load / http / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 2 -c 16
-:: benchmark / h1load / http / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 8
-:: benchmark / h1load / http / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 4
-:: benchmark / h1load / http / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 2
-:: benchmark / h1load / http / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / http' "${@}" -t 1 -c 1
+:: benchmark / wrk / http / 16384 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 16384 --timeout 6s
+:: benchmark / wrk / http / 4096 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 4096
+:: benchmark / wrk / http / 2048 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 2048
+:: benchmark / wrk / http / 1024 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 1024
+:: benchmark / wrk / http / 512 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 512
+:: benchmark / wrk / http / 256 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 256
+:: benchmark / wrk / http / 128 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 128
+:: benchmark / wrk / http / 64 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 64
+:: benchmark / wrk / http / 32 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 32
+:: benchmark / wrk / http / 16 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 2 --connections 16
+:: benchmark / wrk / http / 8 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 8
+:: benchmark / wrk / http / 4 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 4
+:: benchmark / wrk / http / 2 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 2
+:: benchmark / wrk / http / 1 :: exec -- "${ZRUN}" ':: benchmark / wrk / http' "${@}" --threads 1 --connections 1
 
-:: benchmark / h1load / https / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 16384 -w 6000
-:: benchmark / h1load / https / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 4096
-:: benchmark / h1load / https / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 2048
-:: benchmark / h1load / https / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 1024
-:: benchmark / h1load / https / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 512
-:: benchmark / h1load / https / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 256
-:: benchmark / h1load / https / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 128
-:: benchmark / h1load / https / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 64
-:: benchmark / h1load / https / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 32
-:: benchmark / h1load / https / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 2 -c 16
-:: benchmark / h1load / https / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 8
-:: benchmark / h1load / https / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 4
-:: benchmark / h1load / https / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 2
-:: benchmark / h1load / https / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h1load / https' "${@}" -t 1 -c 1
-
-
-:: benchmark / h2load / https / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 16384 --h1 --connection-inactivity-timeout 6s
-:: benchmark / h2load / https / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 4096 --h1
-:: benchmark / h2load / https / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 2048 --h1
-:: benchmark / h2load / https / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 1024 --h1
-:: benchmark / h2load / https / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 512 --h1
-:: benchmark / h2load / https / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 256 --h1
-:: benchmark / h2load / https / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 128 --h1
-:: benchmark / h2load / https / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 64 --h1
-:: benchmark / h2load / https / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 32 --h1
-:: benchmark / h2load / https / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 16 --h1
-:: benchmark / h2load / https / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 8 --h1
-:: benchmark / h2load / https / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 4 --h1
-:: benchmark / h2load / https / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 2 --h1
-:: benchmark / h2load / https / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 1 --h1
-
-:: benchmark / h2load / http2 / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 16384 --connection-inactivity-timeout 6s
-:: benchmark / h2load / http2 / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 4096
-:: benchmark / h2load / http2 / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 2048
-:: benchmark / h2load / http2 / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 1024
-:: benchmark / h2load / http2 / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 512
-:: benchmark / h2load / http2 / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 256
-:: benchmark / h2load / http2 / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 128
-:: benchmark / h2load / http2 / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 64
-:: benchmark / h2load / http2 / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 32
-:: benchmark / h2load / http2 / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 16
-:: benchmark / h2load / http2 / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 8
-:: benchmark / h2load / http2 / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 4
-:: benchmark / h2load / http2 / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 2
-:: benchmark / h2load / http2 / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 1
-
-:: benchmark / h2load / http3 / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 16384 --connection-inactivity-timeout 6s
-:: benchmark / h2load / http3 / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 4096
-:: benchmark / h2load / http3 / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 2048
-:: benchmark / h2load / http3 / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 1024
-:: benchmark / h2load / http3 / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 512
-:: benchmark / h2load / http3 / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 256
-:: benchmark / h2load / http3 / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 128
-:: benchmark / h2load / http3 / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 64
-:: benchmark / h2load / http3 / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 32
-:: benchmark / h2load / http3 / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 16
-:: benchmark / h2load / http3 / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 8
-:: benchmark / h2load / http3 / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 4
-:: benchmark / h2load / http3 / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 2
-:: benchmark / h2load / http3 / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 1
+:: benchmark / wrk / https / 16384 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 16384 --timeout 6s
+:: benchmark / wrk / https / 4096 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 4096
+:: benchmark / wrk / https / 2048 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 2048
+:: benchmark / wrk / https / 1024 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 1024
+:: benchmark / wrk / https / 512 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 512
+:: benchmark / wrk / https / 256 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 256
+:: benchmark / wrk / https / 128 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 128
+:: benchmark / wrk / https / 64 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 64
+:: benchmark / wrk / https / 32 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 32
+:: benchmark / wrk / https / 16 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 2 --connections 16
+:: benchmark / wrk / https / 8 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 8
+:: benchmark / wrk / https / 4 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 4
+:: benchmark / wrk / https / 2 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 2
+:: benchmark / wrk / https / 1 :: exec -- "${ZRUN}" ':: benchmark / wrk / https' "${@}" --threads 1 --connections 1
 
 
-:: benchmark / hey / http / 16384 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 16384 -t 6s
-:: benchmark / hey / http / 4096 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 4096
-:: benchmark / hey / http / 2048 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 2048
-:: benchmark / hey / http / 1024 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 1024
-:: benchmark / hey / http / 512 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 512
-:: benchmark / hey / http / 256 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 256
-:: benchmark / hey / http / 128 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 128
-:: benchmark / hey / http / 64 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 64
-:: benchmark / hey / http / 32 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 32
-:: benchmark / hey / http / 16 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 16
-:: benchmark / hey / http / 8 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 8
-:: benchmark / hey / http / 4 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 4
-:: benchmark / hey / http / 2 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 2
-:: benchmark / hey / http / 1 :: exec -- "${ZRUN[@]}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 1
+:: benchmark / h1load / http / 16384 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 16384 -w 6000
+:: benchmark / h1load / http / 4096 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 4096
+:: benchmark / h1load / http / 2048 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 2048
+:: benchmark / h1load / http / 1024 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 1024
+:: benchmark / h1load / http / 512 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 512
+:: benchmark / h1load / http / 256 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 256
+:: benchmark / h1load / http / 128 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 128
+:: benchmark / h1load / http / 64 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 64
+:: benchmark / h1load / http / 32 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 32
+:: benchmark / h1load / http / 16 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 2 -c 16
+:: benchmark / h1load / http / 8 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 1 -c 8
+:: benchmark / h1load / http / 4 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 1 -c 4
+:: benchmark / h1load / http / 2 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 1 -c 2
+:: benchmark / h1load / http / 1 :: exec -- "${ZRUN}" ':: benchmark / h1load / http' "${@}" -t 1 -c 1
+
+:: benchmark / h1load / https / 16384 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 16384 -w 6000
+:: benchmark / h1load / https / 4096 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 4096
+:: benchmark / h1load / https / 2048 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 2048
+:: benchmark / h1load / https / 1024 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 1024
+:: benchmark / h1load / https / 512 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 512
+:: benchmark / h1load / https / 256 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 256
+:: benchmark / h1load / https / 128 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 128
+:: benchmark / h1load / https / 64 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 64
+:: benchmark / h1load / https / 32 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 32
+:: benchmark / h1load / https / 16 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 2 -c 16
+:: benchmark / h1load / https / 8 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 1 -c 8
+:: benchmark / h1load / https / 4 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 1 -c 4
+:: benchmark / h1load / https / 2 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 1 -c 2
+:: benchmark / h1load / https / 1 :: exec -- "${ZRUN}" ':: benchmark / h1load / https' "${@}" -t 1 -c 1
+
+
+:: benchmark / h2load / https / 16384 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 16384 --h1 --connection-inactivity-timeout 6s
+:: benchmark / h2load / https / 4096 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 4096 --h1
+:: benchmark / h2load / https / 2048 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 2048 --h1
+:: benchmark / h2load / https / 1024 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 1024 --h1
+:: benchmark / h2load / https / 512 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 512 --h1
+:: benchmark / h2load / https / 256 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 256 --h1
+:: benchmark / h2load / https / 128 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 128 --h1
+:: benchmark / h2load / https / 64 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 64 --h1
+:: benchmark / h2load / https / 32 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 32 --h1
+:: benchmark / h2load / https / 16 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 2 --clients 16 --h1
+:: benchmark / h2load / https / 8 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 8 --h1
+:: benchmark / h2load / https / 4 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 4 --h1
+:: benchmark / h2load / https / 2 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 2 --h1
+:: benchmark / h2load / https / 1 :: exec -- "${ZRUN}" ':: benchmark / h2load / https' "${@}" --threads 1 --clients 1 --h1
+
+:: benchmark / h2load / http2 / 16384 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 16384 --connection-inactivity-timeout 6s
+:: benchmark / h2load / http2 / 4096 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 4096
+:: benchmark / h2load / http2 / 2048 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 2048
+:: benchmark / h2load / http2 / 1024 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 1024
+:: benchmark / h2load / http2 / 512 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 512
+:: benchmark / h2load / http2 / 256 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 256
+:: benchmark / h2load / http2 / 128 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 128
+:: benchmark / h2load / http2 / 64 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 64
+:: benchmark / h2load / http2 / 32 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 32
+:: benchmark / h2load / http2 / 16 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 2 --clients 16
+:: benchmark / h2load / http2 / 8 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 8
+:: benchmark / h2load / http2 / 4 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 4
+:: benchmark / h2load / http2 / 2 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 2
+:: benchmark / h2load / http2 / 1 :: exec -- "${ZRUN}" ':: benchmark / h2load / http2' "${@}" --threads 1 --clients 1
+
+:: benchmark / h2load / http3 / 16384 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 16384 --connection-inactivity-timeout 6s
+:: benchmark / h2load / http3 / 4096 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 4096
+:: benchmark / h2load / http3 / 2048 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 2048
+:: benchmark / h2load / http3 / 1024 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 1024
+:: benchmark / h2load / http3 / 512 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 512
+:: benchmark / h2load / http3 / 256 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 256
+:: benchmark / h2load / http3 / 128 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 128
+:: benchmark / h2load / http3 / 64 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 64
+:: benchmark / h2load / http3 / 32 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 32
+:: benchmark / h2load / http3 / 16 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 2 --clients 16
+:: benchmark / h2load / http3 / 8 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 8
+:: benchmark / h2load / http3 / 4 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 4
+:: benchmark / h2load / http3 / 2 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 2
+:: benchmark / h2load / http3 / 1 :: exec -- "${ZRUN}" ':: benchmark / h2load / http3' "${@}" --threads 1 --clients 1
+
+
+:: benchmark / hey / http / 16384 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 16384 -t 6s
+:: benchmark / hey / http / 4096 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 4096
+:: benchmark / hey / http / 2048 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 2048
+:: benchmark / hey / http / 1024 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 1024
+:: benchmark / hey / http / 512 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 512
+:: benchmark / hey / http / 256 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 256
+:: benchmark / hey / http / 128 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 128
+:: benchmark / hey / http / 64 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 64
+:: benchmark / hey / http / 32 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 32
+:: benchmark / hey / http / 16 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 2 -c 16
+:: benchmark / hey / http / 8 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 8
+:: benchmark / hey / http / 4 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 4
+:: benchmark / hey / http / 2 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 2
+:: benchmark / hey / http / 1 :: exec -- "${ZRUN}" ':: benchmark / hey / http' "${@}" -cpus 1 -c 1
 
 
 
 
 --<< benchmark / server
-	"${ZRUN[@]}" ':: go / build / kawipiko-server / release / native'
+	"${ZRUN}" ':: go / build / kawipiko-server / release / native'
 	test "${#}" -ge 1
 	_mode="${1}"
 	shift -- 1
@@ -252,7 +252,7 @@
 		#	--timeout-disable
 		)
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		"${ZRUN}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.outputs/binaries/kawipiko-server--release--native \
 			--archive "${_archive}" \
@@ -266,7 +266,7 @@
 
 << benchmark / server / profile / cpu
 	test "${#}" -ge 1
-	exec -- "${ZRUN[@]}" ':: benchmark / server' \
+	exec -- "${ZRUN}" ':: benchmark / server' \
 			"${@}" \
 			--profile-cpu ./.outputs/server-cpu.txt \
 	#
@@ -274,7 +274,7 @@
 
 << benchmark / server / profile / mem
 	test "${#}" -ge 1
-	exec -- "${ZRUN[@]}" ':: benchmark / server' \
+	exec -- "${ZRUN}" ':: benchmark / server' \
 			"${@}" \
 			--profile-mem ./.outputs/server-mem.txt \
 	#
@@ -339,8 +339,8 @@
 
 
 
-:: benchmark / nginx / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / nginx' 1 "${@}"
-:: benchmark / nginx / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / nginx' 2 "${@}"
+:: benchmark / nginx / 1x1 :: exec -- "${ZRUN}" ':: benchmark / nginx' 1 "${@}"
+:: benchmark / nginx / 2x1 :: exec -- "${ZRUN}" ':: benchmark / nginx' 2 "${@}"
 
 << benchmark / nginx
 	test "${#}" -ge 1
@@ -366,8 +366,8 @@
 			-p .
 		)
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / multiple' "${_count}" \
-		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		"${ZRUN}" ':: benchmark / execute / multiple' "${_count}" \
+		"${ZRUN}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.bin/nginx \
 			"${_arguments[@]}" \
@@ -382,20 +382,20 @@
 
 
 
-:: benchmark / dummy / fasthttp / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 1 1 "${@}"
-:: benchmark / dummy / fasthttp / 1x2 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 1 2 "${@}"
-:: benchmark / dummy / fasthttp / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 2 1 "${@}"
-:: benchmark / dummy / fasthttp / 2x2 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / fasthttp' 2 2 "${@}"
+:: benchmark / dummy / fasthttp / 1x1 :: exec -- "${ZRUN}" ':: benchmark / dummy / fasthttp' 1 1 "${@}"
+:: benchmark / dummy / fasthttp / 1x2 :: exec -- "${ZRUN}" ':: benchmark / dummy / fasthttp' 1 2 "${@}"
+:: benchmark / dummy / fasthttp / 2x1 :: exec -- "${ZRUN}" ':: benchmark / dummy / fasthttp' 2 1 "${@}"
+:: benchmark / dummy / fasthttp / 2x2 :: exec -- "${ZRUN}" ':: benchmark / dummy / fasthttp' 2 2 "${@}"
 
 --<< benchmark / dummy / fasthttp
-	"${ZRUN[@]}" ':: go / build / kawipiko-server-dummy / release / native'
+	"${ZRUN}" ':: go / build / kawipiko-server-dummy / release / native'
 	test "${#}" -ge 2
 	_count="${1}"
 	_threads="${2}"
 	shift -- 2
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / multiple' "${_count}" \
-		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		"${ZRUN}" ':: benchmark / execute / multiple' "${_count}" \
+		"${ZRUN}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.outputs/binaries/kawipiko-server-dummy--release--native \
 			"127.9.185.194:8080" \
@@ -407,7 +407,7 @@
 
 << benchmark / dummy / haproxy / 1x2
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		"${ZRUN}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.bin/haproxy \
 			-db \
@@ -417,16 +417,16 @@
 !!
 
 
-:: benchmark / dummy / nginx / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / nginx' 1 "${@}"
-:: benchmark / dummy / nginx / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / nginx' 2 "${@}"
+:: benchmark / dummy / nginx / 1x1 :: exec -- "${ZRUN}" ':: benchmark / dummy / nginx' 1 "${@}"
+:: benchmark / dummy / nginx / 2x1 :: exec -- "${ZRUN}" ':: benchmark / dummy / nginx' 2 "${@}"
 
 --<< benchmark / dummy / nginx
 	test "${#}" -ge 1
 	_count="${1}"
 	shift -- 1
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / multiple' "${_count}" \
-		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		"${ZRUN}" ':: benchmark / execute / multiple' "${_count}" \
+		"${ZRUN}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.bin/nginx \
 			-c ./examples/dummy/nginx-dummy.conf \
@@ -437,15 +437,15 @@
 !!
 
 
-:: benchmark / dummy / nodejs / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / nodejs' 1 "${@}"
+:: benchmark / dummy / nodejs / 1x1 :: exec -- "${ZRUN}" ':: benchmark / dummy / nodejs' 1 "${@}"
 
 --<< benchmark / dummy / nodejs
 	test "${#}" -ge 1
 	_count="${1}"
 	shift -- 1
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / multiple' "${_count}" \
-		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		"${ZRUN}" ':: benchmark / execute / multiple' "${_count}" \
+		"${ZRUN}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.bin/node16 \
 			-- \
@@ -456,16 +456,16 @@
 !!
 
 
-:: benchmark / dummy / httpterm / 1x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / httpterm' 1 "${@}"
-:: benchmark / dummy / httpterm / 2x1 :: exec -- "${ZRUN[@]}" ':: benchmark / dummy / httpterm' 2 "${@}"
+:: benchmark / dummy / httpterm / 1x1 :: exec -- "${ZRUN}" ':: benchmark / dummy / httpterm' 1 "${@}"
+:: benchmark / dummy / httpterm / 2x1 :: exec -- "${ZRUN}" ':: benchmark / dummy / httpterm' 2 "${@}"
 
 --<< benchmark / dummy / httpterm
 	test "${#}" -ge 1
 	_count="${1}"
 	shift -- 1
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / multiple' "${_count}" \
-		"${ZRUN[@]}" ':: benchmark / execute / server' \
+		"${ZRUN}" ':: benchmark / execute / multiple' "${_count}" \
+		"${ZRUN}" ':: benchmark / execute / server' \
 		noenvironment \
 	./.bin/httpterm \
 			-db \
@@ -482,11 +482,11 @@
 
 
 << benchmark / wrk / http
-	exec -- "${ZRUN[@]}" ':: benchmark / wrk' http 127.9.185.194:8080 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / wrk' http 127.9.185.194:8080 "${@}"
 !!
 
 << benchmark / wrk / https
-	exec -- "${ZRUN[@]}" ':: benchmark / wrk' https 127.9.185.194:8443 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / wrk' https 127.9.185.194:8443 "${@}"
 !!
 
 --<< benchmark / wrk
@@ -505,8 +505,8 @@
 		_path=''
 	fi
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / client' \
-	"${ZRUN[@]}" ':: tools / wrk' \
+		"${ZRUN}" ':: benchmark / execute / client' \
+	"${ZRUN}" ':: tools / wrk' \
 			"${@}" \
 			-- \
 			"${_url_base}/${_path}" \
@@ -517,11 +517,11 @@
 
 
 << benchmark / wrk / with-paths / http
-	exec -- "${ZRUN[@]}" ':: benchmark / wrk / with-paths' http 127.9.185.194:8080 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / wrk / with-paths' http 127.9.185.194:8080 "${@}"
 !!
 
 << benchmark / wrk / with-paths / https
-	exec -- "${ZRUN[@]}" ':: benchmark / wrk / with-paths' https 127.9.185.194:8443 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / wrk / with-paths' https 127.9.185.194:8443 "${@}"
 !!
 
 --<< benchmark / wrk / with-paths
@@ -532,8 +532,8 @@
 	_paths="${1}"
 	shift -- 1
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / client' \
-	"${ZRUN[@]}" ':: tools / wrk' \
+		"${ZRUN}" ':: benchmark / execute / client' \
+	"${ZRUN}" ':: tools / wrk' \
 			"${@}" \
 			--script ../kawipiko-examples/sources/wrk-paths-from-file.lua \
 			-- \
@@ -546,11 +546,11 @@
 
 
 << benchmark / h1load / http
-	exec -- "${ZRUN[@]}" ':: benchmark / h1load' http 127.9.185.194:8080 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / h1load' http 127.9.185.194:8080 "${@}"
 !!
 
 << benchmark / h1load / https
-	exec -- "${ZRUN[@]}" ':: benchmark / h1load' https 127.9.185.194:8443 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / h1load' https 127.9.185.194:8443 "${@}"
 !!
 
 --<< benchmark / h1load
@@ -569,8 +569,8 @@
 		_path=''
 	fi
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / client' \
-	"${ZRUN[@]}" ':: tools / h1load' \
+		"${ZRUN}" ':: benchmark / execute / client' \
+	"${ZRUN}" ':: tools / h1load' \
 			"${@}" \
 			"${_url_base}/${_path}" \
 	#
@@ -580,15 +580,15 @@
 
 
 << benchmark / h2load / https
-	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8443 "${@}" --npn-list=http/1.1
+	exec -- "${ZRUN}" ':: benchmark / h2load' https 127.9.185.194:8443 "${@}" --npn-list=http/1.1
 !!
 
 << benchmark / h2load / http2
-	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8444 "${@}" --npn-list=h2
+	exec -- "${ZRUN}" ':: benchmark / h2load' https 127.9.185.194:8444 "${@}" --npn-list=h2
 !!
 
 << benchmark / h2load / http3
-	exec -- "${ZRUN[@]}" ':: benchmark / h2load' https 127.9.185.194:8445 "${@}" --npn-list=h3
+	exec -- "${ZRUN}" ':: benchmark / h2load' https 127.9.185.194:8445 "${@}" --npn-list=h3
 !!
 
 --<< benchmark / h2load
@@ -607,8 +607,8 @@
 		_path=''
 	fi
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / client' \
-	"${ZRUN[@]}" ':: tools / h2load' \
+		"${ZRUN}" ':: benchmark / execute / client' \
+	"${ZRUN}" ':: tools / h2load' \
 			"${@}" \
 			-- \
 			"${_url_base}/${_path}" \
@@ -619,11 +619,11 @@
 
 
 << benchmark / hey / http
-	exec -- "${ZRUN[@]}" ':: benchmark / hey' http 127.9.185.194:8080 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / hey' http 127.9.185.194:8080 "${@}"
 !!
 
 << benchmark / hey / https
-	exec -- "${ZRUN[@]}" ':: benchmark / hey' https 127.9.185.194:8443 "${@}"
+	exec -- "${ZRUN}" ':: benchmark / hey' https 127.9.185.194:8443 "${@}"
 !!
 
 --<< benchmark / hey
@@ -642,8 +642,8 @@
 		_path=''
 	fi
 	exec -- \
-		"${ZRUN[@]}" ':: benchmark / execute / client' \
-	"${ZRUN[@]}" ':: tools / hey' \
+		"${ZRUN}" ':: benchmark / execute / client' \
+	"${ZRUN}" ':: tools / hey' \
 			"${@}" \
 			-- \
 			"${_url_base}/${_path}" \
@@ -661,7 +661,7 @@
 	test "${#}" -ge 1
 	_nodaemon="$( exec -- readlink -e -- "$( type -P -- nodaemon )" )"
 	if test ! "/proc/${PPID}/exe" -ef "${_nodaemon}" ; then
-		exec -- nodaemon "${ZRUN[@]}" ':: benchmark / execute / server' "${@}"
+		exec -- nodaemon "${ZRUN}" ':: benchmark / execute / server' "${@}"
 	fi
 	_wrapper=()
 	if test "${1}" == noenvironment ; then
@@ -694,7 +694,7 @@
 	test "${#}" -ge 1
 	_nodaemon="$( exec -- readlink -e -- "$( type -P -- nodaemon )" )"
 	if test ! "/proc/${PPID}/exe" -ef "${_nodaemon}" ; then
-		exec -- nodaemon "${ZRUN[@]}" ':: benchmark / execute / client' "${@}"
+		exec -- nodaemon "${ZRUN}" ':: benchmark / execute / client' "${@}"
 	fi
 	_wrapper=()
 	if test "${1}" == noenvironment ; then
@@ -727,7 +727,7 @@
 	test "${#}" -ge 2
 	_nodaemon="$( exec -- readlink -e -- "$( type -P -- nodaemon )" )"
 	if test ! "/proc/${PPID}/exe" -ef "${_nodaemon}" ; then
-		exec -- nodaemon "${ZRUN[@]}" ':: benchmark / execute / multiple' "${@}"
+		exec -- nodaemon "${ZRUN}" ':: benchmark / execute / multiple' "${@}"
 	fi
 	_count="$( printf -- '%d' "${1}" )"
 	shift -- 1

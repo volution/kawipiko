@@ -12,10 +12,10 @@
 	
 	test "${#}" -eq 0
 	
-	"${ZRUN[@]}" ':: tls / generate / self-signed'
-	"${ZRUN[@]}" ':: tls / generate / testing / ca'
-	"${ZRUN[@]}" ':: tls / generate / testing / server'
-	"${ZRUN[@]}" ':: tls / generate / testing / client'
+	"${ZRUN}" ':: tls / generate / self-signed'
+	"${ZRUN}" ':: tls / generate / testing / ca'
+	"${ZRUN}" ':: tls / generate / testing / server'
+	"${ZRUN}" ':: tls / generate / testing / client'
 !!
 
 

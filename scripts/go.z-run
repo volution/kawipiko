@@ -8,8 +8,8 @@
 
 
 
---:: watch / go / build / * / debug :: exec -- "${ZRUN[@]}" ':: sources / watch' ':: go / build / * / debug' "${@}"
---:: watch / go / execute / * / debug :: exec -- "${ZRUN[@]}" ':: sources / watch' ':: go / execute / * / debug' "${@}"
+--:: watch / go / build / * / debug :: exec -- "${ZRUN}" ':: sources / watch' ':: go / build / * / debug' "${@}"
+--:: watch / go / execute / * / debug :: exec -- "${ZRUN}" ':: sources / watch' ':: go / execute / * / debug' "${@}"
 
 
 
@@ -22,7 +22,7 @@
 	
 	export -- __BUILD_SUFFIX=native
 	
-	"${ZRUN[@]}" ':: go / build / * / debug' "${_main}"
+	"${ZRUN}" ':: go / build / * / debug' "${_main}"
 	
 	export -n -- \
 			ZRUN_LIBRARY_SOURCE= \
@@ -47,7 +47,7 @@
 	
 	export -- __BUILD_SUFFIX=native
 	
-	"${ZRUN[@]}" ':: go / build / * / release' "${_main}"
+	"${ZRUN}" ':: go / build / * / release' "${_main}"
 	
 	export -n -- \
 			ZRUN_LIBRARY_SOURCE= \
@@ -74,7 +74,7 @@
 	
 	test "${#}" -eq 0
 	
-	"${ZRUN[@]}" ':: sources / embedded / prepare'
+	"${ZRUN}" ':: sources / embedded / prepare'
 	
 	_binaries="$( exec -- readlink -e -- ./.outputs/binaries )"
 	
@@ -113,7 +113,7 @@
 	
 	exec -- \
 		nice -n 19 -- \
-	"${ZRUN[@]}" ':: go / tool' \
+	"${ZRUN}" ':: go / tool' \
 			build \
 			-o "${_binaries}/${_main}--debug--${_suffix}" \
 			-tags "${_tags}" \
@@ -136,7 +136,7 @@
 	
 	test "${#}" -eq 0
 	
-	"${ZRUN[@]}" ':: sources / embedded / bundle'
+	"${ZRUN}" ':: sources / embedded / bundle'
 	
 	_binaries="$( exec -- readlink -e -- ./.outputs/binaries )"
 	
@@ -185,7 +185,7 @@
 	fi
 	
 	nice -n 19 -- \
-	"${ZRUN[@]}" ':: go / tool' \
+	"${ZRUN}" ':: go / tool' \
 			build \
 			-o "${_binaries}/${_main}--release--${_suffix}.new" \
 			-tags "${_tags}" \
@@ -214,49 +214,49 @@
 ++<< go / build / all / debug
 	for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
 		printf -- '[ii]  building `%s`...\n' "${_main}" >&2
-		"${ZRUN[@]}" ':: go / build / * / debug / all' "${_main}" "${@}"
+		"${ZRUN}" ':: go / build / * / debug / all' "${_main}" "${@}"
 	done
 !!
 
 --<< go / build / * / debug / all
 	
 	printf -- '[ii]  building for `%s`...\n' 'native' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / native' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / native' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'linux / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / linux / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / linux / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'linux / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / linux / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / linux / aarch64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'linux / armv6' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / linux / armv6' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / linux / armv6' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'linux / x86_64--seccomp' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / linux / x86_64--seccomp' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / linux / x86_64--seccomp' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'darwin / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / darwin / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / darwin / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'darwin / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / darwin / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / darwin / aarch64' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'freebsd / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / freebsd / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / freebsd / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'freebsd / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / freebsd / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / freebsd / aarch64' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'openbsd / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / openbsd / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / openbsd / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'openbsd / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / openbsd / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / openbsd / aarch64' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'android / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / android / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / android / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'android / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / debug / android / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / debug / android / aarch64' "${@}"
 !!
 
 --<< go / build / * / debug / native
 	export -- __BUILD_SUFFIX=native
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / linux / x86_64--seccomp
@@ -264,21 +264,21 @@
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=linux--x86_64--seccomp
 	export -- __BUILD_SECCOMP=true
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / linux / x86_64
 	export -- GOOS=linux
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=linux--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / linux / aarch64
 	export -- GOOS=linux
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=linux--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / linux / armv6
@@ -286,63 +286,63 @@
 	export -- GOARCH=arm
 	export -- GOARM=6
 	export -- __BUILD_SUFFIX=linux--armv6
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / darwin / x86_64
 	export -- GOOS=darwin
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=darwin--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / darwin / aarch64
 	export -- GOOS=darwin
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=darwin--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / freebsd / x86_64
 	export -- GOOS=freebsd
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=freebsd--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / freebsd / aarch64
 	export -- GOOS=freebsd
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=freebsd--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / openbsd / x86_64
 	export -- GOOS=openbsd
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=openbsd--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / openbsd / aarch64
 	export -- GOOS=openbsd
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=openbsd--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / android / x86_64
 	export -- GOOS=android
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=android--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 --<< go / build / * / debug / android / aarch64
 	export -- GOOS=android
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=android--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / debug' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / debug' "${@}"
 !!
 
 
@@ -350,55 +350,55 @@
 
 ++<< go / build / all / release / quick
 	export -- __BUILD_QUICK=true
-	exec -- "${ZRUN[@]}" ':: go / build / all / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / all / release' "${@}"
 !!
 
 ++<< go / build / all / release
 	for _main in kawipiko-wrapper kawipiko-archiver kawipiko-server kawipiko-server-dummy ; do
 		printf -- '[ii]  building `%s`...\n' "${_main}" >&2
-		"${ZRUN[@]}" ':: go / build / * / release / all' "${_main}" "${@}"
+		"${ZRUN}" ':: go / build / * / release / all' "${_main}" "${@}"
 	done
 !!
 
 --<< go / build / * / release / all
 	
 	printf -- '[ii]  building for `%s`...\n' 'native' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / native' "${@}"
+	"${ZRUN}" ':: go / build / * / release / native' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'linux / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / linux / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / linux / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'linux / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / linux / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / linux / aarch64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'linux / armv6' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / linux / armv6' "${@}"
+	"${ZRUN}" ':: go / build / * / release / linux / armv6' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'linux / x86_64--seccomp' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / linux / x86_64--seccomp' "${@}"
+	"${ZRUN}" ':: go / build / * / release / linux / x86_64--seccomp' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'darwin / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / darwin / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / darwin / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'darwin / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / darwin / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / darwin / aarch64' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'freebsd / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / freebsd / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / freebsd / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'freebsd / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / freebsd / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / freebsd / aarch64' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'openbsd / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / openbsd / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / openbsd / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'openbsd / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / openbsd / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / openbsd / aarch64' "${@}"
 	
 	printf -- '[ii]  building for `%s`...\n' 'android / x86_64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / android / x86_64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / android / x86_64' "${@}"
 	printf -- '[ii]  building for `%s`...\n' 'android / aarch64' >&2
-	"${ZRUN[@]}" ':: go / build / * / release / android / aarch64' "${@}"
+	"${ZRUN}" ':: go / build / * / release / android / aarch64' "${@}"
 !!
 
 --<< go / build / * / release / native
 	export -- __BUILD_SUFFIX=native
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / linux / x86_64--seccomp
@@ -406,21 +406,21 @@
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=linux--x86_64--seccomp
 	export -- __BUILD_SECCOMP=true
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / linux / x86_64
 	export -- GOOS=linux
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=linux--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / linux / aarch64
 	export -- GOOS=linux
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=linux--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / linux / armv6
@@ -428,63 +428,63 @@
 	export -- GOARCH=arm
 	export -- GOARM=6
 	export -- __BUILD_SUFFIX=linux--armv6
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / darwin / x86_64
 	export -- GOOS=darwin
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=darwin--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / darwin / aarch64
 	export -- GOOS=darwin
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=darwin--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / freebsd / x86_64
 	export -- GOOS=freebsd
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=freebsd--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / freebsd / aarch64
 	export -- GOOS=freebsd
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=freebsd--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / openbsd / x86_64
 	export -- GOOS=openbsd
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=openbsd--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / openbsd / aarch64
 	export -- GOOS=openbsd
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=openbsd--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / android / x86_64
 	export -- GOOS=android
 	export -- GOARCH=amd64
 	export -- __BUILD_SUFFIX=android--x86_64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 --<< go / build / * / release / android / aarch64
 	export -- GOOS=android
 	export -- GOARCH=arm64
 	export -- __BUILD_SUFFIX=android--aarch64
-	exec -- "${ZRUN[@]}" ':: go / build / * / release' "${@}"
+	exec -- "${ZRUN}" ':: go / build / * / release' "${@}"
 !!
 
 
@@ -492,7 +492,7 @@
 
 << go / dependencies / include
 	test "${#}" -ge 1
-	exec -- "${ZRUN[@]}" ':: go / tool' \
+	exec -- "${ZRUN}" ':: go / tool' \
 			get \
 			-v \
 			-d \
@@ -504,7 +504,7 @@
 
 << go / dependencies / update
 	test "${#}" -eq 0
-	exec -- "${ZRUN[@]}" ':: go / tool' \
+	exec -- "${ZRUN}" ':: go / tool' \
 			get \
 			-v \
 			-d \
@@ -520,10 +520,10 @@
 	_skipped=(
 			github.com/volution/kawipiko
 		)
-	"${ZRUN[@]}" ':: go / tool' mod tidy
+	"${ZRUN}" ':: go / tool' mod tidy
 	_dependencies_hash_old="$( exec -- md5sum -b -- ./sources/go.mod )"
 	readarray -t -- _dependencies \
-		< <( exec -- "${ZRUN[@]}" ':: go / tool' list -m -- all ) \
+		< <( exec -- "${ZRUN}" ':: go / tool' list -m -- all ) \
 	#
 	for _dependency in "${_dependencies[@]}" ; do
 		_dependency="${_dependency%% *}"
@@ -534,7 +534,7 @@
 				continue 2
 			fi
 		done
-		if "${ZRUN[@]}" ':: go / tool' \
+		if "${ZRUN}" ':: go / tool' \
 				get \
 				-v \
 				-- \
@@ -545,7 +545,7 @@
 			printf -- '[ee]    -> failed @latest!\n' >&2
 		fi
 		printf -- '[ii]  updating `%s` @minor...\n' "${_dependency}" >&2
-		if "${ZRUN[@]}" ':: go / tool' \
+		if "${ZRUN}" ':: go / tool' \
 				get \
 				-v \
 				-u \
@@ -558,7 +558,7 @@
 			printf -- '[ee]    -> failed @minor!\n' >&2
 		fi
 		printf -- '[ii]  updating `%s` @patch...\n' "${_dependency}" >&2
-		if "${ZRUN[@]}" ':: go / tool' \
+		if "${ZRUN}" ':: go / tool' \
 				get \
 				-v \
 				-u=patch \
@@ -571,13 +571,13 @@
 			printf -- '[ee]    -> failed @patch!\n' >&2
 		fi
 	done
-	"${ZRUN[@]}" ':: go / tool' mod tidy
+	"${ZRUN}" ':: go / tool' mod tidy
 	_dependencies_hash_new="$( exec -- md5sum -b -- ./sources/go.mod )"
 	if test "${_dependencies_hash_new}" != "${_dependencies_hash_old}" ; then
 		printf -- '\n\n\n[--]\n' >&2
 		printf -- '[ww]  dependencies graph changed;  restarting!\n' >&2
 		printf -- '[--]\n\n\n\n' >&2
-		exec -- "${ZRUN[@]}" ':: go / dependencies / update / iterative'
+		exec -- "${ZRUN}" ':: go / dependencies / update / iterative'
 	else
 		printf -- '\n\n\n[--]\n' >&2
 		printf -- '[ww]  dependencies graph stable;  exiting!\n' >&2
@@ -587,7 +587,7 @@
 
 << go / dependencies / list
 	test "${#}" -eq 0
-	exec -- "${ZRUN[@]}" ':: go / tool' \
+	exec -- "${ZRUN}" ':: go / tool' \
 			list \
 			-m \
 			-- \
@@ -598,7 +598,7 @@
 
 << go / dependencies / tidy
 	test "${#}" -eq 0
-	exec -- "${ZRUN[@]}" ':: go / tool' \
+	exec -- "${ZRUN}" ':: go / tool' \
 			mod tidy \
 	#
 !!
@@ -606,7 +606,7 @@
 
 << go / dependencies / verify
 	test "${#}" -eq 0
-	exec -- "${ZRUN[@]}" ':: go / tool' \
+	exec -- "${ZRUN}" ':: go / tool' \
 			mod verify \
 	#
 !!
@@ -614,10 +614,10 @@
 
 << go / dependencies / upgrade
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: go / dependencies / update'
-	"${ZRUN[@]}" ':: go / dependencies / tidy'
-	"${ZRUN[@]}" ':: go / dependencies / verify'
-	"${ZRUN[@]}" ':: go / dependencies / list'
+	"${ZRUN}" ':: go / dependencies / update'
+	"${ZRUN}" ':: go / dependencies / tidy'
+	"${ZRUN}" ':: go / dependencies / verify'
+	"${ZRUN}" ':: go / dependencies / list'
 !!
 
 
@@ -631,7 +631,7 @@
 		mv -T -- ./vendors ./sources/vendor
 	fi
 	
-	"${ZRUN[@]}" ':: go / tool' \
+	"${ZRUN}" ':: go / tool' \
 			mod vendor \
 	#
 	
@@ -707,7 +707,7 @@
 << go / build / kawipiko-server / analyze
 	test "${#}" -eq 0
 	_outputs="$( exec -- readlink -e -- ./.outputs )"
-	exec -- "${ZRUN[@]}" ':: go / tool' \
+	exec -- "${ZRUN}" ':: go / tool' \
 			build \
 			-o "${_outputs}/binaries/kawipiko-server--analyze" \
 			-gcflags '-m' \
@@ -719,7 +719,7 @@
 
 
 << go / build / kawipiko-server / analyze / escapes
-	"${ZRUN[@]}" ':: go / build / kawipiko-server / analyze' "${@}" \
+	"${ZRUN}" ':: go / build / kawipiko-server / analyze' "${@}" \
 		2>&1 \
 	| grep -F -e ' escapes ' \
 	| LC_ALL=C sort -n -k 2,2 -t ':'

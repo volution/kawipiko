@@ -9,22 +9,22 @@
 
 
 << examples / curl / http
-	exec -- "${ZRUN[@]}" ':: clients / curl' http 127.153.215.30:8080 "${@}" --http1.1
+	exec -- "${ZRUN}" ':: clients / curl' http 127.153.215.30:8080 "${@}" --http1.1
 !!
 
 << examples / curl / https
-	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.153.215.30:8443 "${@}" --http1.1
+	exec -- "${ZRUN}" ':: clients / curl' https 127.153.215.30:8443 "${@}" --http1.1
 !!
 
 << examples / curl / http2
-	exec -- "${ZRUN[@]}" ':: clients / curl' https 127.153.215.30:8444 "${@}" --http2
+	exec -- "${ZRUN}" ':: clients / curl' https 127.153.215.30:8444 "${@}" --http2
 !!
 
 
 
 
 << examples / hello-world / archive
-	"${ZRUN[@]}" ':: execute / archiver / debug' \
+	"${ZRUN}" ':: execute / archiver / debug' \
 			--sources ./examples/hello-world \
 			--archive ./examples/hello-world.cdb \
 			--include-folder-listing \
@@ -43,7 +43,7 @@
 
 
 << examples / hello-world / serve
-	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
+	exec -- "${ZRUN}" ':: execute / server / debug' \
 			\
 			--archive ./examples/hello-world.cdb \
 			--archive-inmem \
@@ -62,7 +62,7 @@
 
 
 << examples / hello-world / serve / http-fast
-	exec -- "${ZRUN[@]}" ':: examples / hello-world / serve' \
+	exec -- "${ZRUN}" ':: examples / hello-world / serve' \
 			\
 			--bind 127.153.215.30:8080 \
 			\
@@ -72,7 +72,7 @@
 
 
 << examples / hello-world / serve / http-all
-	exec -- "${ZRUN[@]}" ':: examples / hello-world / serve' \
+	exec -- "${ZRUN}" ':: examples / hello-world / serve' \
 			\
 			--bind 127.153.215.30:8080 \
 			--bind-2 127.153.215.30:8081 \
@@ -89,7 +89,7 @@
 
 
 << examples / huge / archive
-	exec -- "${ZRUN[@]}" ':: execute / archiver / debug' \
+	exec -- "${ZRUN}" ':: execute / archiver / debug' \
 			--sources ./.outputs/examples/huge \
 			--archive ./.outputs/examples/huge.cdb \
 			--compress gzip \
@@ -104,7 +104,7 @@
 
 
 << examples / huge / serve
-	exec -- "${ZRUN[@]}" ':: execute / server / debug' \
+	exec -- "${ZRUN}" ':: execute / server / debug' \
 			--archive ./.outputs/examples/huge.cdb \
 			--archive-mmap \
 			--processes 1 \
@@ -117,7 +117,7 @@
 
 
 << examples / huge / serve / http-fast
-	exec -- "${ZRUN[@]}" ':: examples / huge / serve' \
+	exec -- "${ZRUN}" ':: examples / huge / serve' \
 			\
 			--bind 127.153.215.30:8080 \
 			\
@@ -127,7 +127,7 @@
 
 
 << examples / huge / serve / http-all
-	exec -- "${ZRUN[@]}" ':: examples / huge / serve' \
+	exec -- "${ZRUN}" ':: examples / huge / serve' \
 			\
 			--bind 127.153.215.30:8080 \
 			--bind-2 127.153.215.30:8081 \

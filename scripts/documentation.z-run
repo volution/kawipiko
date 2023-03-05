@@ -10,14 +10,14 @@
 
 << documentation / all / render
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: documentation / manuals / render'
-	"${ZRUN[@]}" ':: sources / embedded / documentation'
+	"${ZRUN}" ':: documentation / manuals / render'
+	"${ZRUN}" ':: sources / embedded / documentation'
 !!
 
 << documentation / all / render / forced
 	test "${#}" -eq 0
-	"${ZRUN[@]}" ':: documentation / manuals / render'
-	"${ZRUN[@]}" ':: sources / embedded / documentation'
+	"${ZRUN}" ':: documentation / manuals / render'
+	"${ZRUN}" ':: sources / embedded / documentation'
 !!
 
 
