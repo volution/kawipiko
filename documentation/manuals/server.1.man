@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "KAWIPIKO-SERVER" "1" "2022-09-11" "volution.ro" "kawipiko"
+.TH "KAWIPIKO-SERVER" "1" "2023-03-05" "volution.ro" "kawipiko"
 .SH NAME
 kawipiko -- blazingly fast static HTTP server \- kawipiko-server
 .INDENT 0.0
@@ -339,7 +339,7 @@ Enables all logging messages.
 \fB\-\-dummy\fP, \fB\-\-dummy\-empty\fP
 .INDENT 0.0
 .INDENT 3.5
-It starts the server in a "dummy" mode, ignoring all archive related arguments and always responding with \fBhello world!\en\fP (unless \fB\-\-dummy\-empty\fP was used) and without additional headers except the HTTP status line and \fBContent\-Length\fP\&.
+It starts the server in a \(dqdummy\(dq mode, ignoring all archive related arguments and always responding with \fBhello world!\en\fP (unless \fB\-\-dummy\-empty\fP was used) and without additional headers except the HTTP status line and \fBContent\-Length\fP\&.
 .sp
 This argument can be used to benchmark the raw performance of the underlying \fBfasthttp\fP, Go\(aqs \fBnet/http\fP, or QUIC performance;  this is the upper limit of the achievable performance given the underlying technologies.
 (From my own benchmarks \fBkawipiko\fP\(aqs adds only about ~15% overhead when actually serving the \fBhello\-world.cdb\fP archive.)

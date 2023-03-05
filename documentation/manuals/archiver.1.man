@@ -27,7 +27,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
-.TH "KAWIPIKO-ARCHIVER" "1" "2022-09-11" "volution.ro" "kawipiko"
+.TH "KAWIPIKO-ARCHIVER" "1" "2023-03-05" "volution.ro" "kawipiko"
 .SH NAME
 kawipiko -- blazingly fast static HTTP server \- kawipiko-archiver
 .INDENT 0.0
@@ -117,7 +117,7 @@ The compression level can be chosen, the value depending on the algorithm:
 .IP \(bu 2
 \fBbrotli\fP \-\- \fB\-1\fP for algorithm default, \fB0\fP to \fB9\fP for fast to slow, \fB\-2\fP for extreme;
 .IP \(bu 2
-(by "algorithm default", it is meant "what that algorithm considers the recommended default compression level";)
+(by \(dqalgorithm default\(dq, it is meant \(dqwhat that algorithm considers the recommended default compression level\(dq;)
 .IP \(bu 2
 \fBkawipiko\fP by default uses the maximum compression level for each algorithm;  (i.e. \fB9\fP for \fBgzip\fP, \fB30\fP for \fBzopfli\fP, and \fB\-2\fP for \fBbrotli\fP;)
 .UNINDENT
@@ -146,7 +146,7 @@ Using these caches allows one to very quickly rebuild an archive when only a cou
 .INDENT 0.0
 .INDENT 3.5
 Disables using \fB_index.*\fP and \fBindex.*\fP files (where \fB\&.*\fP is one of \fB\&.html\fP, \fB\&.htm\fP, \fB\&.xhtml\fP, \fB\&.xht\fP, \fB\&.txt\fP, \fB\&.json\fP, and \fB\&.xml\fP) to respond to a request whose URL path ends in \fB/\fP (corresponding to the folder wherein \fB_index.*\fP or \fBindex.*\fP file is located).
-(This can be used to implement "slash" blog style URL\(aqs like \fB/blog/whatever/\fP which maps to \fB/blog/whatever/index.html\fP\&.)
+(This can be used to implement \(dqslash\(dq blog style URL\(aqs like \fB/blog/whatever/\fP which maps to \fB/blog/whatever/index.html\fP\&.)
 .UNINDENT
 .UNINDENT
 .sp
@@ -154,7 +154,7 @@ Disables using \fB_index.*\fP and \fBindex.*\fP files (where \fB\&.*\fP is one o
 .INDENT 0.0
 .INDENT 3.5
 Disables using a file with the suffix \fB\&.html\fP, \fB\&.htm\fP, \fB\&.xhtml\fP, \fB\&.xht\fP, and \fB\&.txt\fP to respond to a request whose URL does not exactly match an existing file.
-(This can be used to implement "suffix\-less" blog style URL\(aqs like \fB/blog/whatever\fP which maps to \fB/blog/whatever.html\fP\&.)
+(This can be used to implement \(dqsuffix\-less\(dq blog style URL\(aqs like \fB/blog/whatever\fP which maps to \fB/blog/whatever.html\fP\&.)
 .UNINDENT
 .UNINDENT
 .sp
@@ -226,7 +226,7 @@ any file that exactly matches the following: \fBThumbs.db\fP, \fB\&.DS_Store\fP;
 .UNINDENT
 .SH WILDCARD FILES
 .sp
-By placing a file whose name matches \fB_wildcard.*\fP (i.e. with the prefix \fB_wildcard.\fP and any other suffix), it will be used to respond to any request whose URL fails to find a "better" match.
+By placing a file whose name matches \fB_wildcard.*\fP (i.e. with the prefix \fB_wildcard.\fP and any other suffix), it will be used to respond to any request whose URL fails to find a \(dqbetter\(dq match.
 .sp
 These wildcard files respect the folder hierarchy, in that wildcard files in (direct or transitive) subfolders override the wildcard file in their parents (direct or transitive).
 .sp
@@ -260,7 +260,7 @@ https://example.com/some\-path    https://example.com/    308
 .UNINDENT
 .SH SYMLINKS, HARDLINKS, LOOPS, AND DUPLICATED FILES
 .sp
-You freely use symlinks (including pointing outside of the content root) and they will be crawled during archival respecting the "logical" hierarchy they introduce.
+You freely use symlinks (including pointing outside of the content root) and they will be crawled during archival respecting the \(dqlogical\(dq hierarchy they introduce.
 (Any loop that you introduce into the hierarchy will be ignored and a warning will be issued.)
 .sp
 You can safely symlink or hardlink the same file (or folder) in multiple places (within the content hierarchy), and its data will be stored only once.
