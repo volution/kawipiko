@@ -1,0 +1,4 @@
+untrusted comment: signature from minisign secret key
+RURyRsmb5UuugiPgS3PHQlEyHmBKWxLzCx95PGm204yOj0nUBKEhwmYACS37X0jSdf/gKNL3MozVd5zQxVPlBsrQkxVaP0vuQAE=
+trusted comment: kawipiko-archiver--darwin--aarch64--v0.1.0--preview
+6hNPtvCRhxpSFzn/0HTz6mSwv7HmlIn7HluykPAK+9Iro6WppoBcCXdPKckhZbI8fJu8stkm5poO514ClrDYBQ==
